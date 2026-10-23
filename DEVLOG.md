@@ -19,3 +19,11 @@
 - Bundled the pinned Three.js distribution and its license locally, removing the runtime CDN/certificate dependency.
 - Added title/pause interface and comfort controls. Geometry and progression are still scaffolding in this increment.
 - Validation: four physics tests passed; local Chromium created the scene, captured the mouse and returned to pause without page exceptions.
+
+## 2026-10-22 — The house and the first encounter
+- Replaced the visual scaffold with original procedural olive wallpaper, wood panelling, floorboards, an oxblood runner, framed landscape, domestic props, practical lamps and a working clock. Deliberate low-resolution rendering keeps the HUD readable.
+- Built a continuous hallway circuit with blind corners. Seeing the normal mirror is required before the first authored inversion; the painting turns upside down and the clock reverses.
+- Added a real planar room reflection and a reflection-only low-poly player proxy. The occupant first follows, then delays, then remains at the glass when the player turns away.
+- Connected a collectible note, two-item pocket inventory, opening drawer, encounter-gated key, animated front door and a definite ending/replay. Added mouse, sound, voice and walking-motion controls.
+- Added restrained Web Audio ambience/effects and seven locally generated synthetic provisional dialogue takes, with subtitles, provenance and a regeneration tool. Written direction and performance script: GAME_DIRECTION.md.
+- Validation: nine physics/progression tests passed; a deterministic Chromium playthrough used actual movement/collision around both corners and checked the encounter, early drawer recovery, inventory, paused input/audio, wall occlusion, unlocked exit, ending/reset and all seven decoded non-silent voice clips. Fixed overly strict door interaction range during this run. No production or Cloudflare changes; no remote push.
