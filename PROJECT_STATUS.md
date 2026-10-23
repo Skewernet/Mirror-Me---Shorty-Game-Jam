@@ -1,7 +1,7 @@
 # MIRROR ME — Current status
 
 **Version:** First encounter / playable slice 0.2 (October 22, 2026, America/Denver)
-**Source:** first encounter pushed to GitHub `main` at `c1d60bd` after explicit owner approval. Local development branch: `develop/first-mirror-slice`.
+**Source and release:** GitHub `main` and Cloudflare Pages production are synchronized through a verified Git-source build. The live `build-id.json` gives the exact current revision. Local development branch: `develop/first-mirror-slice`.
 
 ## Implemented
 
@@ -26,7 +26,7 @@
 
 Human desktop/headphone playtest, Firefox verification, real-device frame-rate profiling, a more expressive final reflected character, directed human voice recording if available, final sound balancing, one meaningful mirrored-world puzzle, and the final replacement sequence. Current content is a short first encounter; it does not yet deliver the complete 5–8 minute jam arc. No mobile support or persistent save system is planned for this slice.
 
-Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare access is now authenticated. Found and reused the existing `mirror-me` project at https://mirror-me.pages.dev, connected to the correct GitHub repository and main branch. Direct Upload of `11c84c7` succeeded and all 24 public runtime assets matched the staged build. Fixed the public verifier user-agent after Cloudflare rejected Python urllib defaults (1010). Configured Git builds to stage a clean dist artifact and added explicit Git-build and read-only verification modes. Earlier pushes produced no deployment records despite enabled automation, so GitHub push success must not be equated with a live release. See CLOUDFLARE_SETUP.md; the live build-id identifies the actual current version.
+Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare access is now authenticated. Found and reused the existing `mirror-me` project at https://mirror-me.pages.dev, connected to the correct GitHub repository and main branch. Direct Upload of `11c84c7` succeeded and all 24 public runtime assets matched the staged build. Fixed the public verifier user-agent after Cloudflare rejected Python urllib defaults (1010). Configured Git builds to stage a clean dist artifact and added explicit Git-build and read-only verification modes. Earlier pushes produced no deployment records despite enabled automation, so GitHub push success must not be equated with a live release. A subsequent Git-source build of `1b52651` also succeeded: Cloudflare fetched main, ran the staged build, published production, and all 24 runtime hashes matched. The explicit release command verifies both source commit and public content. Automatic webhook delivery remains unproven despite enabled settings; use the explicit Git-build command for approved releases. See CLOUDFLARE_SETUP.md; the live build-id identifies the actual current version.
 
 ## Next milestone
 

@@ -58,3 +58,5 @@
 - Confirmed the only existing deployment was the old afd4f77 prototype; newer Git pushes had not created deployments. Uploaded the approved 11c84c7 slice with official Wrangler. Cloudflare confirmed a successful production deployment, and all 24 public runtime assets matched the manifest.
 - Diagnosed Cloudflare error 1010 on the public verifier's default Python user-agent. A descriptive build-verifier user-agent works without disabling TLS or altering site security settings.
 - Configured this project's build command to stage a clean dist artifact with build-id/asset hashes. Added portable fixed-directory staging, explicit Git-source builds and read-only live comparison. A Git-source build will now be exercised; source configuration alone does not prove webhook delivery.
+
+- Git-source pipeline verification succeeded for 1b52651: Cloudflare fetched the correct main commit, built the dist artifact, completed the production deployment and served all 24 exact runtime assets. The source checkout and remote main matched. Automatic push webhook delivery was not established, so the explicit Git-build release command remains the verified publishing path.

@@ -5,7 +5,7 @@
 - Existing Pages project: **mirror-me**, https://mirror-me.pages.dev . No duplicate project was created.
 - GitHub source: **Skewernet/Mirror-Me---Shorty-Game-Jam**; production branch: **main**. GitHub integration and automatic production deployments are enabled in Cloudflare. Earlier main pushes did not produce new deployment records, so webhook operation must be distinguished from configuration.
 - This environment now has working CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID bindings. Authenticated project lookup and a production Direct Upload succeeded.
-- First confirmed release: **11c84c7**, with all 24 runtime assets checked against the public site. The current release is identified by the live build-id rather than by this historical documentation.
+- First confirmed Direct Upload release: **11c84c7**. A subsequent Git-source build of **1b52651** also completed successfully and all 24 public runtime hashes matched. The current release is identified by the live build-id rather than by this historical documentation. The explicit Git-build command is verified; automatic push webhook delivery is not yet proven.
 - Build command: `python3 tools/stage_pages.py --output-dir dist`; output: `dist`; root: repository root. The production artifact contains runtime files and a revision/hash manifest.
 - Wrangler **4.152.0** is installed outside the checkout. Startup never publishes. Keep account access in secure environment settings.
 
