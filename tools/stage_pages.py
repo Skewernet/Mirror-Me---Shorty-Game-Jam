@@ -22,7 +22,7 @@ def stage(parent=Path('/workspace/artifacts'), output_dir=None):
             raise RuntimeError(f'Unexpected symlink in runtime assets: {path.relative_to(ROOT)}')
         payload[path.relative_to(ROOT).as_posix()] = path.read_bytes()
     manifest = {
-        'project': 'mirror-me', 'version': 'crescendo-mirror-world-0.6', 'revision': revision,
+        'project': 'mirror-me', 'version': 'inverted-confession-0.7', 'revision': revision,
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in payload.items()},
     }
     payload['build-id.json'] = (json.dumps(manifest, indent=2) + '\n').encode()
