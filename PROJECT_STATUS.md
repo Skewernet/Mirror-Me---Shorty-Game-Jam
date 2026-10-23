@@ -26,7 +26,7 @@
 
 Human desktop/headphone playtest, Firefox verification, real-device frame-rate profiling, a more expressive final reflected character, directed human voice recording if available, final sound balancing, one meaningful mirrored-world puzzle, and the final replacement sequence. Current content is a short first encounter; it does not yet deliver the complete 5–8 minute jam arc. No mobile support or persistent save system is planned for this slice.
 
-Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare production inspection remains blocked by policy; auto-deploy behavior is unverified. The source was pushed after the owner explicitly approved deployment. The connected Pages build/live result remains unverified; no Cloudflare resource settings were changed.
+Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare API/site access is blocked in the running environment. The owner clarified that no Pages setup should be assumed; the earlier GitHub push did not establish a deployment. Official Wrangler 4.152.0 is installed, credentials/network requirements are saved as an environment draft, and direct-upload preparation/deployment commands are ready. No project creation or production deployment has occurred here. Secure token and account ID entry, then environment save/publication, are required to continue. See CLOUDFLARE_SETUP.md.
 
 ## Next milestone
 

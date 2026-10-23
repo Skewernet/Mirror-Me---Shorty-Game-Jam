@@ -42,3 +42,11 @@
 - Fetched main, verified a fast-forward, and pushed the tested source at `c1d60bd`; a native read-only Git check confirmed that exact commit on remote main.
 - The handoff identifies main as the connected Pages production branch. Repository configuration contains no independently verifiable Pages connection settings.
 - GitHub deployment/check APIs and the live mirror-me.pages.dev site are denied by the environment egress proxy. Cloudflare build completion and live behavior are therefore unverified; a successful Git push is not a verified deployment. No Cloudflare resources or settings were changed.
+
+
+## 2026-10-22 — Direct Cloudflare connection preparation
+- Corrected the deployment assumption: the GitHub push published source only. No Cloudflare deployment was verified or performed. The owner clarified that Pages setup must be checked/created and authorized creating or reusing `mirror-me` and deploying this slice.
+- Checked actual credential names, Wrangler auth/config locations and available connectors: no Cloudflare credential/login/integration was available. Wrangler whoami confirmed unauthenticated status; API access was denied by egress policy.
+- Installed official Wrangler 4.152.0 outside the checkout and verified its version/deployment/project-create commands against Cloudflare documentation.
+- Saved an environment draft with pinned installation/startup instructions, the secure CLOUDFLARE_API_TOKEN requirement, CLOUDFLARE_ACCOUNT_ID variable, and Cloudflare API/Pages host access. Saving does not supply values, apply runtime access or create a Pages project.
+- Added immutable static staging with revision/asset hashes and an explicit deployment command that creates only after an authenticated 404, reuses the actual production branch and verifies public content. Its missing-credential guard was exercised; authenticated creation/upload/live validation remain blocked until secure account settings are supplied. Added step-by-step setup and a reusable environment prompt in CLOUDFLARE_SETUP.md.
