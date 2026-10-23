@@ -1,5 +1,7 @@
 # MIRROR ME — audit and first vertical slice
 
+**Historical baseline and plan.** The first encounter has since been implemented; see PROJECT_STATUS.md for current behavior, verification and remaining work.
+
 Recorded October 22, 2026 (America/Denver). Baseline: `afd4f77`, matching remote main when inspected. The supplied handoff is design context; the owner's current request controls scope and production approval.
 
 ## What currently works

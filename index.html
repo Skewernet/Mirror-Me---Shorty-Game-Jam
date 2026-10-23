@@ -1,27 +1,94 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11120f">
-<title>MIRROR ME — a house that learns</title><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css">
-<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
-</head><body>
-<div id="veil" aria-hidden="true"></div>
-<main id="menu">
-  <div class="menu-top"><span>SKEWERNET PRESENTS</span><span>SHORTY JAM 2026 / INVERTED</span></div>
-  <div class="menu-body"><p class="eyebrow" id="chapter">A SHORT PSYCHOLOGICAL HORROR EXPERIENCE</p>
-    <h1 id="title">MIRROR<span>ME</span></h1><p id="description">You know the way home.<br>So does something else.</p>
-    <div class="actions"><button id="start" disabled>LOADING THE HOUSE…</button><button id="restart" class="secondary" hidden>START AGAIN</button></div>
-    <p id="error" role="alert"></p>
-    <details id="settings"><summary>COMFORT & SOUND</summary>
-      <label>Mouse sensitivity <input id="sensitivity" type="range" min="0.3" max="2" step="0.1" value="1"></label>
-      <label>Sound <input id="volume" type="range" min="0" max="1" step="0.05" value="0.55"></label>
-      <label><input id="bob" type="checkbox"> Gentle walking motion</label>
-      <label><input id="voice" type="checkbox" checked> Voice playback</label>
-    </details>
-  </div>
-  <footer><span>W A S D · WALK &nbsp; / &nbsp; MOUSE · LOOK<br>E · INTERACT &nbsp; / &nbsp; TAB · POCKET &nbsp; / &nbsp; ESC · PAUSE</span><span>HEADPHONES RECOMMENDED<br>DESKTOP BROWSER · EARLY PLAYABLE SLICE</span></footer>
-</main>
-<div id="hud" hidden><div class="topline"><span id="location">THE HOUSE</span><span id="inventory"></span></div>
-<div id="cross" aria-hidden="true"></div><div id="prompt"></div><div id="message" role="status" aria-live="polite"></div><div id="subtitle" role="status" aria-live="polite"></div><div id="hint"></div></div>
-<section id="pocket" hidden aria-label="Inventory"><p class="eyebrow">WHAT YOU BROUGHT WITH YOU</p><h2>Your pocket</h2><div id="items"></div><p class="pocket-help">TAB · RETURN &nbsp; / &nbsp; ESC · PAUSE</p></section>
-<noscript>This house needs JavaScript and a desktop browser with WebGL.</noscript>
-<script type="module" src="src/main.mjs"></script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#11120f" />
+    <title>MIRROR ME — a house that learns</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three.module.js" } }
+    </script>
+  </head>
+  <body>
+    <div id="veil" aria-hidden="true"></div>
+    <main id="menu">
+      <div class="menu-top">
+        <span>SKEWERNET PRESENTS</span><span>SHORTY JAM 2026 / INVERTED</span>
+      </div>
+      <div class="menu-body">
+        <p class="eyebrow" id="chapter">
+          A SHORT PSYCHOLOGICAL HORROR EXPERIENCE
+        </p>
+        <h1 id="title">MIRROR<span>ME</span></h1>
+        <p id="description">
+          You know the way home.<br />So does something else.
+        </p>
+        <div class="actions">
+          <button id="start" disabled>LOADING THE HOUSE…</button
+          ><button id="restart" class="secondary" hidden>START AGAIN</button>
+        </div>
+        <p id="error" role="alert"></p>
+        <details id="settings">
+          <summary>COMFORT & SOUND</summary>
+          <label
+            >Mouse sensitivity
+            <input
+              id="sensitivity"
+              type="range"
+              min="0.3"
+              max="2"
+              step="0.1"
+              value="1"
+          /></label>
+          <label
+            >Sound
+            <input
+              id="volume"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value="0.55"
+          /></label>
+          <label
+            ><input id="bob" type="checkbox" /> Gentle walking motion</label
+          >
+          <label
+            ><input id="voice" type="checkbox" checked /> Voice playback</label
+          >
+        </details>
+      </div>
+      <footer>
+        <span
+          >W A S D · WALK &nbsp; / &nbsp; MOUSE · LOOK<br />E · INTERACT &nbsp;
+          / &nbsp; TAB · POCKET &nbsp; / &nbsp; ESC · PAUSE</span
+        ><span
+          >HEADPHONES RECOMMENDED<br />DESKTOP BROWSER · EARLY PLAYABLE
+          SLICE</span
+        >
+      </footer>
+    </main>
+    <div id="hud" hidden>
+      <div class="topline">
+        <span id="location">THE HOUSE</span><span id="inventory"></span>
+      </div>
+      <div id="cross" aria-hidden="true"></div>
+      <div id="prompt"></div>
+      <div id="message" role="status" aria-live="polite"></div>
+      <div id="subtitle" role="status" aria-live="polite"></div>
+      <div id="hint"></div>
+    </div>
+    <section id="pocket" hidden aria-label="Inventory">
+      <p class="eyebrow">WHAT YOU BROUGHT WITH YOU</p>
+      <h2>Your pocket</h2>
+      <div id="items"></div>
+      <p class="pocket-help">TAB · RETURN &nbsp; / &nbsp; ESC · PAUSE</p>
+    </section>
+    <noscript
+      >This house needs JavaScript and a desktop browser with WebGL.</noscript
+    >
+    <script type="module" src="src/main.mjs"></script>
+  </body>
+</html>
