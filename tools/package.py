@@ -18,7 +18,7 @@ with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
         if path.is_symlink():
             raise ValueError(f'Refusing a symlink in runtime files: {path}')
         archive.write(path, path.relative_to(root))
-    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — REALISM / THRESHOLD LOOP 0.5 LOCAL REVIEW BUILD
+    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — CRESCENDO / THROUGH THE GLASS 0.6 LOCAL REVIEW BUILD
 Original concept and direction: Skewernet. AI-assisted development: ChatGPT/Codex.
 
 Extract the entire archive. From the extracted folder, run:
@@ -32,9 +32,9 @@ F toggles the flashlight. H gives an optional thought. Escape pauses.
 Picture, comfort and sound controls are in the menu.
 Start with the telephone in the sitting room. Keep discoveries in your journal.
 
-Five rooms and five authored passes lead to a complete replacement ending.
+Five rooms and seven ordered chapters lead through the mirror to a new ending.
 The sitting-room telephone carries calls. The kitchen radio is a separate object.
-The seventeen voice takes are synthetic provisional performances, not human acting.
+The twenty-three voice takes are synthetic performances, not human acting.
 See ATTRIBUTIONS.md and assets/voice/README.md for licenses and provenance.
 
 This archive has not been deployed or submitted anywhere.
