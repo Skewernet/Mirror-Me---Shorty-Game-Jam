@@ -2,17 +2,17 @@
 
 A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
 
-## Local review — demonic presence, 0.8
+## Demonic presence — 0.8
 
-The local `develop/demonic-presence-0.8` branch rebuilds the authored intruder's appearance, timing and nonverbal sound. The demon owns its facial sculpt and surfaces; Mara's normal reflection, the truthful final reflection, the covered mother and the mourners keep their existing human model. The house, puzzle order and seamless returns remain the 0.7 baseline. This work has not been pushed or published.
+**The owner-approved 0.8 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=0.8), synchronized with GitHub `main`.** Reviewed revision `3d26ffb` deployed automatically, and all 116 public runtime/credit hashes match the tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records. See [current status](PROJECT_STATUS.md).
+
+The authored intruder has new appearance, timing and nonverbal sound. The demon owns its facial sculpt and surfaces; Mara's normal reflection, the truthful final reflection, the covered mother and the mourners keep their existing human model. The house, puzzle order and seamless returns retain the 0.7 baseline.
 
 The familiar female face has a collapsed cheek and an original generated torn-tissue decal, dark matted hair and wet human eyes. It holds still, makes one bounded head/jaw response and withdraws with planted contacts. Three sightings begin silently and three have one local breath beforehand. New finite throat, breath and palm/fabric textures preserve dialogue priority, pause and restart; disabling sudden scares cancels a paused creature cue. [Art and implementation details](docs/DEMON_ART.md).
 
 [Fear research and original creature direction](docs/FEAR_RESEARCH.md) separates literature, film interpretation and testable design ideas. Research-host access was blocked during this session; the bibliography is explicitly unverified here. No film assets or new external creature/sound libraries are used.
 
-## Published inverted confession — 0.7
-
-**The owner-approved 0.7 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** Gameplay revision `477779e` deployed automatically, and all 113 public runtime/credit files match the tested package. `/build-id.json` identifies the exact deployed revision, including release-record-only commits. The integrated route, source-browser, creature-clearance and immutable-package checks pass. See [current status](PROJECT_STATUS.md).
+## The house and inverted confession
 
 Mara Vale returns with a version of the evening in which she was a devoted daughter and her mother died from illness. The mirror keeps correcting what that account leaves out. The revised final chapter reveals a violent death in the familiar bedroom, followed by a separate funeral-room radio report that names Mara's responsibility. The horror comes from recognition, rather than an external demon taking the blame. The complete script and walkthrough contain spoilers in [GAME_DIRECTION.md](GAME_DIRECTION.md).
 
@@ -83,6 +83,6 @@ The 0.8 source passes all 29 unit tests, 40 creature geometry/gaze/contact cases
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner specifically approved publication of this 0.7 build; its automatic deployment and 113 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner specifically approved publication of this 0.8 build; its automatic deployment and all 116 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.
