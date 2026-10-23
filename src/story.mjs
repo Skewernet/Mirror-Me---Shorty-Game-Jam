@@ -21,6 +21,9 @@ export class Story {
     this.power = false;
     this.heardArrival = false;
     this.hasDiary = false;
+    this.hasLetter = false;
+    this.radioOn = true;
+    this.phoneLiftUntil = 0;
     this.hasTimeClue = false;
     this.clockHour = 12;
     this.clockMinute = 0;
@@ -105,6 +108,7 @@ export class Story {
     this.laps++;
     if (this.stage < 4 && this.ready()) {
       this.stage++;
+      if (this.stage === 3) this.radioOn = true;
       return "pass-" + this.stage;
     }
     return "incomplete-pass";
@@ -147,18 +151,29 @@ export class Story {
       this.hasNote = true;
       return "note";
     }
-    if (id === "radio") {
-      if (this.stage === 3) return this.silence("radio");
-      if (this.stage === 2 && this.clockSolved) {
-        if (this.heardCall) return "radio-static";
-        this.heardCall = true;
-        return "call";
-      }
+    if (id === "telephone") {
+      // The handset carries calls only. It never participates in the sound puzzle.
       if (!this.heardArrival) {
         this.heardArrival = true;
         return "arrival-recording";
       }
-      return this.stage === 2 ? "radio-time" : "radio-static";
+      if (this.stage === 2 && this.clockSolved && !this.heardCall) {
+        this.heardCall = true;
+        return "call";
+      }
+      return this.stage === 3 ? "telephone-dead" : "telephone-repeat";
+    }
+    if (id === "radio") {
+      if (this.stage === 3) return this.silence("radio");
+      if (this.stage >= 4) return "already-quiet";
+      if (!this.power) return "radio-no-power";
+      this.radioOn = !this.radioOn;
+      return this.radioOn ? "radio-on" : "radio-off";
+    }
+    if (id === "letter") {
+      if (this.hasLetter) return "letter-repeat";
+      this.hasLetter = true;
+      return "letter";
     }
     if (id === "fuse") {
       if (this.hasFuse || this.power) return null;
@@ -233,7 +248,7 @@ export class Story {
   hint() {
     if (this.doorOpen) return "The front door is open.";
     if (this.stage === 0) {
-      if (!this.heardArrival) return "A voice is coming from the sitting room.";
+      if (!this.heardArrival) return "The sitting-room telephone is ringing.";
       if (!this.hasFuse && !this.power)
         return "The kitchen light is dead. Look for a spare fuse.";
       if (!this.power) return "The fuse box is in the utility room.";
@@ -258,7 +273,7 @@ export class Story {
     if (this.stage === 3)
       return this.echoIndex === 3
         ? "The house is quiet. Return through the passage."
-        : "Three sounds. What came first must be last. The diary remembers.";
+        : "Her evening, in reverse: bedroom music box, bathroom tap, then kitchen radio. The telephone is not one of them.";
     return this.exitReleased
       ? "Go back to the front door."
       : "Face the glass. When it calls you closer, leave.";
@@ -266,48 +281,65 @@ export class Story {
 }
 export const VOICES = {
   arrival: {
-    speaker: "YOU",
-    text: "I know this house. I just don’t remember the way in.",
+    speaker: "MARA",
+    text: "Mum's light is still on. I asked them to leave it.",
   },
   recording: {
     speaker: "THE TELEPHONE",
-    text: "If you are hearing this, leave the lights on. There is a spare fuse in the kitchen.",
+    text: "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
   },
-  power: { speaker: "YOU", text: "There. Now why does that feel worse?" },
-  repeat: { speaker: "YOU", text: "That picture. It was the other way up." },
-  late: { speaker: "YOU", text: "Did I move first?" },
+  power: { speaker: "MARA", text: "They disconnected this house on Monday." },
+  repeat: {
+    speaker: "MARA",
+    text: "I straightened that photograph before I left.",
+  },
+  late: { speaker: "MARA", text: "That wasn't a blink." },
   returned: {
     speaker: "THE GLASS",
-    text: "You can stop now. I remember how to be you.",
+    text: "You always look away before the difficult part.",
   },
   key: {
-    speaker: "YOU",
-    text: "The bedroom key. Someone has been holding it.",
+    speaker: "MARA",
+    text: "Her bedroom. I haven't opened it since the hospital.",
   },
   diary: {
-    speaker: "YOU",
-    text: "Radio. Water. A lullaby. Every night, in that order.",
+    speaker: "MARA",
+    text: "The kitchen radio. Then her bath. Then the music box. I thought the silence would wake her.",
   },
   time: {
-    speaker: "YOU",
-    text: "It isn’t a time. It’s the reflection of one.",
+    speaker: "MARA",
+    text: "Three seventeen. That's when the nurse called.",
   },
   call: {
     speaker: "THE TELEPHONE",
-    text: "You were never the one making the sounds. Make them stop. Last sound first.",
+    text: "Listen to me, Mara. That wasn't Mum. The radio, the tap, the music box. End the night in reverse. Don't let it finish for you.",
   },
   inverted: {
-    speaker: "YOU",
-    text: "This is the same house. Why does everything feel like the other side?",
+    speaker: "MARA",
+    text: "I stopped coming. Something kept doing it for me.",
   },
-  command: { speaker: "THE GLASS", text: "Come closer. Do exactly what I do." },
-  released: { speaker: "YOU", text: "No. You can stay there." },
+  command: {
+    speaker: "THE GLASS",
+    text: "Come closer. Let me finish taking care of her.",
+  },
+  released: {
+    speaker: "MARA",
+    text: "She's gone. We don't have to do this again.",
+  },
   unlocked: {
     speaker: "THE GLASS",
-    text: "You always needed someone to open the door.",
+    text: "I can stay with her. You couldn't.",
   },
   ending: {
     speaker: "THE GLASS",
-    text: "There. Stay where I used to be. It’s my turn.",
+    text: "Go on, Mara. I'll tell her you came.",
+  },
+  broadcast: {
+    speaker: "THE KITCHEN RADIO",
+    text: "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
+  },
+  letter: {
+    speaker: "MARA",
+    text: "Personal effects. They put her whole life in those two words.",
   },
 };

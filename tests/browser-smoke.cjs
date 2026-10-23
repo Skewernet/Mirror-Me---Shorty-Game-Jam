@@ -66,6 +66,8 @@ require("node:fs").mkdirSync(
     console.log("Normal mode: picture and resize");
     await p.locator("#settings summary").click();
     await p.selectOption("#quality", "900");
+    await p.locator("#contact-shadows").uncheck();
+    await p.locator("#contact-shadows").check();
     await p.setViewportSize({ width: 1280, height: 800 });
     await p.waitForTimeout(500);
     assert.equal(await p.locator("canvas").evaluate((e) => e.height), 800);
@@ -88,7 +90,7 @@ require("node:fs").mkdirSync(
           "pointer lock and walking",
           "flashlight render",
           "480/900 quality and resize",
-          "brightness/grain controls",
+          "brightness/grain/contact-shadow controls",
           "journal pause/resume",
           "Escape and hint",
         ],

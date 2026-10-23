@@ -1,10 +1,11 @@
 import * as T from "three";
+import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
 import { Story, VOICES } from "./story.mjs";
 import { Sound } from "./sound.mjs";
-import { MIRROR, ROOMS, roomAt } from "./layout.mjs";
+import { MIRROR, ROOMS, roomAt, EXIT } from "./layout.mjs";
 const $ = (id) => document.getElementById(id),
   scene = new T.Scene();
 scene.background = new T.Color(0x101417);
@@ -40,6 +41,7 @@ try {
     "A house asset could not load. Reload the page; if it persists, inspect the asset request.";
   throw error;
 }
+const picture = new Picture(renderer, camera);
 const player = new Player(camera),
   mirror = new Mirror(scene, house),
   story = new Story(),
@@ -88,7 +90,9 @@ function resize() {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   const h = Math.min(quality, innerHeight);
-  renderer.setSize(Math.round(h * camera.aspect), h, false);
+  const w = Math.round(h * camera.aspect);
+  renderer.setSize(w, h, false);
+  picture.resize(w, h, quality);
 }
 resize();
 window.addEventListener("resize", resize);
@@ -101,6 +105,7 @@ function updateInventory() {
     Number(story.hasFuse) +
     Number(story.hasKey) +
     Number(story.hasDiary) +
+    Number(story.hasLetter) +
     Number(story.hasTimeClue);
   $("inventory").textContent = count ? "TAB · " + count + " MEMORIES" : "";
   const cards = [];
@@ -133,8 +138,18 @@ function updateInventory() {
     );
   if (story.hasDiary)
     item(
-      "A page from the diary",
-      "“Every night: the radio first. Then running water. Then the lullaby.<br><br>I wrote the hour on the bathroom glass. I cannot read it from this side.<br><br>What came first must be last.”",
+      "Mara’s bedside diary",
+      "“Kitchen radio for company. Run Mum’s bath. Wind the bedroom music box so she can sleep.<br><br>The nurse called at the hour I wrote on the bathroom glass. I kept doing the evening after that. I thought stopping would mean leaving her.<br><br>End it in reverse. Don’t let something else finish it for me.”",
+    );
+  if (story.hasLetter)
+    item(
+      "The hospital letter",
+      "PERSONAL EFFECTS — E. VALE<br>Collected by: Mara Vale.<br><br>They gave me her watch in a plastic bag. I left it beside her keys. I never opened the bag.",
+    );
+  if (story.heardCall)
+    item(
+      "Two calls",
+      "The first caller sounded like Mum.<br>The second sounded like me.<br><br>The sitting-room telephone is only a telephone. The three sounds belong to Mum’s evening: kitchen radio, bathroom tap, bedroom music box.",
     );
   if (story.hasTimeClue)
     item(
@@ -145,7 +160,7 @@ function updateInventory() {
   if (story.stage === 3)
     item(
       "The sounds",
-      "Radio → water → lullaby.<br><br>Silence them in reverse order.<br>Quiet: " +
+      "Kitchen radio → bathroom tap → bedroom music box.<br><br>Silence them in reverse. The sitting-room telephone is not part of this sequence.<br>Quiet: " +
         story.echoIndex +
         " / 3.",
       "◌",
@@ -158,7 +173,7 @@ function updateInventory() {
     );
   $("items").innerHTML =
     cards.join("") ||
-    '<article class="item"><h3>Nothing yet.</h3><p>The telephone is speaking in the sitting room. Start there.</p></article>';
+    '<article class="item"><h3>Nothing yet.</h3><p>The sitting-room telephone is ringing. Start there.</p></article>';
 }
 function reset() {
   story.reset();
@@ -206,7 +221,7 @@ function showMenu() {
     $("chapter").textContent = "YOU KNOW WHICH SIDE YOU ARE ON NOW";
     $("title").innerHTML = "THE OTHER<span>SIDE</span>";
     $("description").textContent =
-      "You watched someone leave in your body. In the glass, the house is finally quiet.";
+      "Your mother’s light is still on. Someone has gone to sit with her. You cannot follow.";
     $("start").textContent = "PLAY AGAIN";
     $("restart").hidden = true;
   } else if (mode !== "title") {
@@ -292,6 +307,10 @@ $("brightness").oninput = (e) => {
   renderer.toneMappingExposure = Number(e.target.value);
   renderRequested = true;
 };
+$("contact-shadows").onchange = (e) => {
+  picture.contactShadows = e.target.checked;
+  renderRequested = true;
+};
 $("grain").onchange = (e) =>
   $("veil").classList.toggle("clean", !e.target.checked);
 document.addEventListener("pointerlockchange", () => {
@@ -304,7 +323,7 @@ document.addEventListener("pointerlockchange", () => {
     if (!arrival) {
       arrival = true;
       queueVoice("arrival", 0.8);
-      say("A voice is speaking somewhere in the house.", 4);
+      say("The sitting-room telephone is ringing.", 4);
     }
   } else if (!["pocket", "clock"].includes(mode)) showMenu();
 });
@@ -427,16 +446,24 @@ function respond(event) {
   const lines = {
     note: "“If the hall returns, watch the glass. When it leads, you leave.”",
     "arrival-recording":
-      "The recording mentions a spare fuse by the kitchen sink.",
-    "radio-static": "A voice caught beneath the static.",
-    "radio-time": "The line is dead. The hands of the clock are not.",
+      "Mum asks you to stay until she is asleep. There is a spare fuse by the kitchen sink.",
+    "telephone-repeat": "Only a dead line now. You remember what she asked.",
+    "telephone-dead":
+      "The telephone is dead. The kitchen radio is still playing; that is the sound in the diary.",
+    "radio-no-power":
+      "The switch clicks, but the tuning scale stays dark. The kitchen has no power.",
+    "radio-on": "The kitchen radio catches the valley weather service.",
+    "radio-off": "The tuning light goes out. A small, ordinary silence.",
+    letter:
+      "ST. ANNE’S — PERSONAL EFFECTS. E. Vale. Collected by Mara Vale. The envelope has been opened and folded shut again.",
+    "letter-repeat": "Mum’s things. My signature. The date I stopped coming.",
     fuse: "A spare ceramic fuse. The utility room is at the far end of the return passage.",
     "panel-empty": "One fuse is missing. Someone left its outline in the dust.",
     "panel-on": "Power is restored. Every switch is on.",
     power: "The lights come on. Something else wakes up.",
     "mirror-first": "The room behind you. Your face. Everything in its place.",
     "mirror-late": "You move. It remembers how, a moment later.",
-    "mirror-held": "The drawer beside the glass. Something is inside it now.",
+    "mirror-held": "Something is in the console drawer, back down the hall.",
     "mirror-command": "When it leads, you leave.",
     "drawer-open":
       story.keyAvailable && !story.hasKey
@@ -445,19 +472,20 @@ function respond(event) {
     key: "A small brass key. The tag reads BEDROOM.",
     "bedroom-locked": "Locked. The key is small; it must be nearby.",
     diary:
-      "“Radio. Water. A lullaby. What came first must be last. I wrote the hour on the bathroom glass.”",
+      "“Kitchen radio for company. Mum’s bath. The bedroom music box. I kept doing the evening after the nurse called. End it in reverse.”",
     "diary-repeat":
-      "The diary remembers: radio, water, lullaby. Last sound first.",
+      "The diary remembers: kitchen radio, bathroom tap, bedroom music box. End it in reverse.",
     "bath-clouded":
       "The glass is cold and dry. There is nothing to wipe away yet.",
     "time-clue": "71:30. A time, written backward in the steam.",
     "clock-set": "You leave the hands where you put them. The house waits.",
     "clock-solved":
       "A latch clicks inside the clock. A telephone starts ringing.",
-    call: "Last sound first. The diary remembers the order.",
+    call: "The voice sounds like yours. End Mum’s evening in reverse: bedroom music box, bathroom tap, kitchen radio.",
     musicbox: "A few notes turn in the little wooden box.",
     tap: "Water runs into an empty basin.",
-    photo: "A family. The room is familiar.",
+    photo:
+      "Mum, Dad, and you before you learned to leave quietly. Someone has turned the photograph toward the room again.",
     "photo-changed": "The same room. Three places left empty.",
     "echo-silenced": "One sound stops. The others seem farther away.",
     "house-quiet": "Nothing. For the first time, nothing.",
@@ -470,17 +498,24 @@ function respond(event) {
     released: "You turn away. Behind you, a latch releases.",
   };
   if (event === "note") house.note.visible = false;
+  if (event === "arrival-recording" || event === "call")
+    story.phoneLiftUntil = elapsed + 13;
+  if (event === "radio-on" || event === "radio-off") sound.effect("switch");
   if (event === "clock") {
     clock();
     return;
   }
   if (lines[event])
-    say(lines[event], ["diary", "note", "time-clue"].includes(event) ? 7 : 4);
+    say(
+      lines[event],
+      ["diary", "letter", "note", "time-clue", "call"].includes(event) ? 7 : 4,
+    );
   const voiced = {
     "arrival-recording": "recording",
     power: "power",
     key: "key",
     diary: "diary",
+    letter: "letter",
     "time-clue": "time",
     call: "call",
     "mirror-command": "command",
@@ -652,6 +687,8 @@ function update(dt) {
   }
   mirror.update(elapsed, player, story, looking);
   house.animate(elapsed, dt, story, player);
+  for (const event of house.dressing?.drainEvents() || [])
+    sound.effect(event.id, event);
   apparition(dt);
   updateFlashlight(dt);
   if (story.stage === 2 && echoSteps > 0 && elapsed >= echoStepNext) {
@@ -687,7 +724,16 @@ function update(dt) {
       : story.hasFuse
         ? "INSTALL CERAMIC FUSE"
         : "INSPECT FUSE BOX";
-  if (target?.id === "radio" && story.stage === 3) label = "SILENCE RADIO";
+  if (target?.id === "radio")
+    label =
+      story.stage >= 3
+        ? story.echoIndex >= 3
+          ? "THE KITCHEN RADIO IS OFF"
+          : "SWITCH OFF KITCHEN RADIO"
+        : "TURN KITCHEN RADIO " + (story.radioOn ? "OFF" : "ON");
+  if (target?.id === "telephone")
+    label =
+      story.stage === 3 ? "CHECK DEAD TELEPHONE" : "LIFT TELEPHONE RECEIVER";
   if (target?.id === "tap" && story.stage === 3) label = "TURN OFF TAP";
   if (target?.id === "musicbox" && story.stage === 3) label = "CLOSE MUSIC BOX";
   if (target?.id === "door")
@@ -719,11 +765,11 @@ function tick(now) {
   if (!testMode) {
     update(dt);
     if (active || firstFrame || renderRequested) {
-      renderer.render(scene, camera);
+      picture.render(scene, camera);
       firstFrame = renderRequested = false;
     }
   } else if (firstFrame) {
-    renderer.render(scene, camera);
+    picture.render(scene, camera);
     firstFrame = false;
   }
 }
@@ -756,13 +802,15 @@ if (testMode) {
       seen: apparitionSeen,
       done: apparitionDone,
     },
-    drawCalls: renderer.info.render.calls,
-    triangles: renderer.info.render.triangles,
+    dressing: house.dressing?.snapshot(),
+    character: mirror.figure.identity,
+    drawCalls: picture.stats?.calls,
+    triangles: picture.stats?.triangles,
   });
   window.__mirror = {
     snapshot,
     render() {
-      renderer.render(scene, camera);
+      picture.render(scene, camera);
     },
     advance(seconds) {
       for (let t = 0; t < seconds; t += 1 / 60)

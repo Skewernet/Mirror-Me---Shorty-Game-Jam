@@ -217,3 +217,16 @@ export function grimeTexture() {
   cloud(g, 512, "rgba(11,14,10,.38)", 28);
   return texture(c);
 }
+
+export function radioGrille() {
+  const [c, g] = canvas(256);
+  g.fillStyle = "#4d493a";
+  g.fillRect(0, 0, 256, 256);
+  for (let y = 0; y < 256; y += 4)
+    for (let x = 0; x < 256; x += 4) {
+      g.fillStyle = (x + y) % 8 ? "#a49472" : "#6e614d";
+      g.fillRect(x, y, 2, 3);
+    }
+  cloud(g, 256, "rgba(0,0,0,.15)", 12);
+  return texture(c);
+}

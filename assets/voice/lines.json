@@ -1,77 +1,87 @@
 {
   "arrival": {
-    "text": "I know this house. I just don’t remember the way in.",
+    "text": "Mum's light is still on. I asked them to leave it.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "recording": {
-    "text": "If you are hearing this, leave the lights on. There is a spare fuse in the kitchen.",
+    "text": "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
     "role": "phone",
-    "speed": 0.91
+    "speed": 0.94
   },
   "power": {
-    "text": "There. Now why does that feel worse?",
+    "text": "They disconnected this house on Monday.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "repeat": {
-    "text": "That picture. It was the other way up.",
+    "text": "I straightened that photograph before I left.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "late": {
-    "text": "Did I move first?",
+    "text": "That wasn't a blink.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "returned": {
-    "text": "You can stop now. I remember how to be you.",
+    "text": "You always look away before the difficult part.",
     "role": "glass",
-    "speed": 0.88
+    "speed": 0.9
   },
   "key": {
-    "text": "The bedroom key. Someone has been holding it.",
+    "text": "Her bedroom. I haven't opened it since the hospital.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "diary": {
-    "text": "Radio. Water. A lullaby. Every night, in that order.",
+    "text": "The kitchen radio. Then her bath. Then the music box. I thought the silence would wake her.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "time": {
-    "text": "It isn’t a time. It’s the reflection of one.",
+    "text": "Three seventeen. That's when the nurse called.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "call": {
-    "text": "You were never the one making the sounds. Make them stop. Last sound first.",
+    "text": "Listen to me, Mara. That wasn't Mum. The radio, the tap, the music box. End the night in reverse. Don't let it finish for you.",
     "role": "phone",
-    "speed": 0.91
+    "speed": 0.94
   },
   "inverted": {
-    "text": "This is the same house. Why does everything feel like the other side?",
+    "text": "I stopped coming. Something kept doing it for me.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "command": {
-    "text": "Come closer. Do exactly what I do.",
+    "text": "Come closer. Let me finish taking care of her.",
     "role": "glass",
-    "speed": 0.88
+    "speed": 0.9
   },
   "released": {
-    "text": "No. You can stay there.",
+    "text": "She's gone. We don't have to do this again.",
     "role": "player",
-    "speed": 0.91
+    "speed": 0.94
   },
   "unlocked": {
-    "text": "You always needed someone to open the door.",
+    "text": "I can stay with her. You couldn't.",
     "role": "glass",
-    "speed": 0.88
+    "speed": 0.9
   },
   "ending": {
-    "text": "There. Stay where I used to be. It’s my turn.",
+    "text": "Go on, Mara. I'll tell her you came.",
     "role": "glass",
-    "speed": 0.88
+    "speed": 0.9
+  },
+  "broadcast": {
+    "text": "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
+    "role": "radio",
+    "speed": 0.94
+  },
+  "letter": {
+    "text": "Personal effects. They put her whole life in those two words.",
+    "role": "player",
+    "speed": 0.94
   }
 }

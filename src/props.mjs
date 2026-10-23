@@ -1,5 +1,5 @@
 import * as T from "three";
-import { writingTexture, rainTexture } from "./surfaces.mjs";
+import { writingTexture, rainTexture, radioGrille } from "./surfaces.mjs";
 export function furnish(b, m) {
   const { box, cylinder, sphere, tube, lathe, group, target, contact, scene } =
     b;
@@ -225,7 +225,7 @@ export function furnish(b, m) {
   const phoneTable = table(-3.0, 6.75, 1.1, 0.68, 0.78, lounge),
     phone = group(0, 0.84, 0, 0, phoneTable);
   const phoneTarget = slab(0.39, 0.12, 0.3, 0, 0, 0, m.black, phone, 0.035);
-  target("radio", phoneTarget, "LISTEN TO TELEPHONE", 2.3, phone);
+  target("telephone", phoneTarget, "LIFT TELEPHONE RECEIVER", 2.3, phone);
   const dial = new T.Mesh(new T.TorusGeometry(0.07, 0.013, 8, 32), m.brass);
   dial.rotation.x = -Math.PI / 2;
   dial.position.set(0, 0.075, -0.02);
@@ -244,6 +244,7 @@ export function furnish(b, m) {
       8,
     );
   }
+  const receiver = group(0, 0, 0, 0, phone);
   tube(
     [
       [-0.17, 0.14, 0.08],
@@ -254,8 +255,21 @@ export function furnish(b, m) {
     ],
     0.035,
     m.black,
-    phone,
+    receiver,
   );
+  for (const side of [-1, 1]) {
+    const cup = cylinder(
+      0.052,
+      0.047,
+      0.045,
+      side * 0.17,
+      0.13,
+      0.08,
+      m.black,
+      receiver,
+    );
+    cup.rotation.z = side * 0.18;
+  }
   const cord = [];
   for (let i = 0; i < 100; i++) {
     const a = i * 0.65;
@@ -383,6 +397,67 @@ export function furnish(b, m) {
     cylinder(0.065, 0.05, 0.12, x, 0.87, -0.28, m.ceramic, dining);
   }
   window(11.64, 1.83, -1.3, -Math.PI / 2, kitchen, 1.75, 1.25);
+  // A separate kitchen radio: speaker cloth, tuning scale and two physical knobs.
+  const radio = group(11.08, 1.15, 0.68, -Math.PI / 2, kitchen);
+  const radioBody = slab(0.68, 0.37, 0.26, 0, 0, 0, m.wood, radio, 0.055);
+  target("radio", radioBody, "TURN KITCHEN RADIO OFF", 2.3, radio);
+  const grille = new T.MeshStandardMaterial({
+    map: radioGrille(),
+    roughness: 0.95,
+    color: 0x96866b,
+  });
+  slab(0.35, 0.26, 0.016, -0.12, 0, 0.14, grille, radio, 0.016);
+  const tuningMaterial = new T.MeshStandardMaterial({
+    map: writingTexture(["AM  ·  FM", "550   800   1200", "VALLEY SERVICE"], {
+      background: "#353c30",
+      color: "#c6b894",
+      font: 34,
+    }),
+    roughness: 0.3,
+    emissive: 0x786038,
+    emissiveIntensity: 0,
+  });
+  box(0.22, 0.105, 0.013, 0.2, 0.07, 0.145, tuningMaterial, false, radio);
+  const radioKnob = group(0.14, -0.085, 0.155, 0, radio);
+  for (const x of [0, 0.115]) {
+    const k = cylinder(0.031, 0.031, 0.035, x, 0, 0, m.black, radioKnob);
+    k.rotation.x = Math.PI / 2;
+    box(0.007, 0.021, 0.003, x, 0.013, 0.02, m.brass, false, radioKnob);
+  }
+  const aerial = cylinder(
+    0.004,
+    0.004,
+    0.48,
+    0.21,
+    0.42,
+    -0.07,
+    m.steel,
+    radio,
+  );
+  aerial.rotation.z = -0.2;
+  // An optional personal-effects letter anchors Mara's return without gating a pass.
+  const letter = box(
+    0.29,
+    0.008,
+    0.38,
+    -5.7,
+    0.514,
+    4.8,
+    paper(
+      [
+        "ST. ANNE'S",
+        "PATIENT PROPERTY",
+        "E. VALE",
+        "COLLECTED BY:",
+        "MARA VALE",
+      ],
+      27,
+    ),
+    false,
+    lounge,
+  );
+  letter.rotation.y = 0.12;
+  target("letter", letter, "READ HOSPITAL LETTER", 2.1);
   // Bathroom: curved tub, wet ceramic, sink, obscured glass with mirrored writing.
   const bathroom = group();
   roomGroups.bathroom = bathroom;
@@ -614,7 +689,7 @@ export function furnish(b, m) {
     7.84,
     0.755,
     7.2,
-    paper(["I REMEMBER", "RADIO", "WATER", "A LULLABY"], 32),
+    paper(["MARA", "AFTER THE WARD", "EVENINGS"], 32),
     false,
     bedroom,
     0.012,
@@ -764,6 +839,19 @@ export function furnish(b, m) {
     }
     animate.quiltStage = state.stage;
     tvScreen.material.map = state.stage >= 3 ? m.photos[1] : screenMap;
+    const on =
+      state.power &&
+      state.radioOn &&
+      !(state.stage >= 3 && state.echoIndex >= 3);
+    tuningMaterial.emissiveIntensity = on ? 0.65 : 0;
+    radioKnob.rotation.z = on ? -0.4 : 0.4;
+    const offHook = time < state.phoneLiftUntil;
+    receiver.position.set(
+      offHook ? -0.06 : 0,
+      offHook ? 0.26 : 0,
+      offHook ? -0.025 : 0,
+    );
+    receiver.rotation.z = offHook ? -0.2 : 0;
     family.face.material.map = m.photos[state.stage >= 2 ? 1 : 0];
     clue.visible = state.stage >= 2;
     fuseGroup.visible = !state.hasFuse && !state.power;
@@ -777,6 +865,10 @@ export function furnish(b, m) {
   }
   return {
     roomGroups,
+    telephone: phone,
+    receiver,
+    radio,
+    letter,
     animated,
     animate,
     window,

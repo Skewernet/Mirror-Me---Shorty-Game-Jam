@@ -95,22 +95,30 @@ fs.mkdirSync(out, { recursive: true });
       await p.screenshot({ path: out + "/" + name + ".png", timeout: 60000 });
     }
     console.log("BEGIN: rooms and first pass");
-    await use("door", 0, 1.1, 8.4);
+    assert.equal((await snap()).character, "Mara Vale");
+    await use("door", 3.5, 1.1, 8.4);
     assert.equal((await snap()).story.doorOpen, false);
+    await walk(0, 7);
+    await face(0);
+    await photo("L-hall-sightline");
     await walk(0, 4);
     await open("lounge", -1.75, 4);
     await walk(-3.4, 4);
     await walk(-3.1, 5.15);
-    await use("radio", -3, 0.86, 6.75);
+    await use("telephone", -3, 0.86, 6.75);
     assert.equal((await snap()).story.heardArrival, true);
     await photo("sitting-room");
+    await walk(-3.4, 4);
+    await walk(-4.4, 4);
+    await use("letter", -5.7, 0.473, 4.8);
+    assert.equal((await snap()).story.hasLetter, true);
     await walk(-3.4, 4);
     await walk(0, 4);
     await walk(0, 1);
     await use("note", 1.09, 0.903, 0.65);
     assert.equal((await snap()).story.hasNote, true);
-    await walk(0, -0.5);
-    await aim(-1.595, 1.52, -0.5);
+    await walk(0, -7);
+    await aim(0, 1.52, -9.34);
     await advance(1.5);
     assert.ok((await snap()).story.firstSeen >= 1.3);
     await photo("faithful-mirror");
@@ -134,8 +142,8 @@ fs.mkdirSync(out, { recursive: true });
     await toMain();
     assert.equal((await snap()).story.stage, 1);
     console.log("PASS 1: power restored, normal reflection witnessed");
-    await walk(0, -0.5);
-    await aim(-1.595, 1.52, -0.5);
+    await walk(0, -7);
+    await aim(0, 1.52, -9.34);
     await advance(0.8);
     await p.keyboard.down("KeyD");
     await advance(0.23);
@@ -148,9 +156,9 @@ fs.mkdirSync(out, { recursive: true });
     await face(Math.PI);
     await advance(0.12);
     assert.equal((await snap()).story.frozen, true);
-    await walk(0, 1.3);
+    await walk(0, -6.4);
     const held = await snap();
-    await aim(-1.595, 1.52, -0.5);
+    await aim(0, 1.52, -9.34);
     await advance(1.4);
     assert.equal((await snap()).story.encounter, true);
     assert.equal((await snap()).body.z, held.body.z);
@@ -161,8 +169,9 @@ fs.mkdirSync(out, { recursive: true });
     await use("drawer", 0.95, 0.63, 0.9);
     assert.equal((await snap()).story.hasKey, true);
     // The old shortcut must stay closed even with the encounter key.
-    await walk(0, 6.7);
-    await use("door", 0, 1.1, 8.4);
+    await walk(0, 7);
+    await walk(3.5, 6.7);
+    await use("door", 3.5, 1.1, 8.4);
     assert.equal((await snap()).story.doorOpen, false);
     await walk(3.5, 6.1);
     await open("bedroom", 5.25, 6.1);
@@ -185,7 +194,7 @@ fs.mkdirSync(out, { recursive: true });
     await walk(-3.5, -5.5);
     await walk(0, -5.5);
     await walk(0, -7.9);
-    await use("clock", 0.3, 1.96, -9.24);
+    await use("clock", -1.58, 1.96, -7.3);
     assert.equal((await snap()).mode, "clock");
     const clockPause = (await snap()).time;
     await advance(3);
@@ -199,7 +208,7 @@ fs.mkdirSync(out, { recursive: true });
     await walk(0, 4);
     await walk(-3.4, 4);
     await walk(-3.1, 5.15);
-    await use("radio", -3, 0.86, 6.75);
+    await use("telephone", -3, 0.86, 6.75);
     assert.equal((await snap()).story.heardCall, true);
     await aim(3.5, 1.6, -5.3);
     await advance(1);
@@ -221,15 +230,28 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal((await snap()).story.stage, 3);
     assert.equal((await snap()).body.visible, false);
     console.log("PASS 3: reverse-time puzzle and second call");
-    // One wrong answer must recover; then the player must traverse all three rooms.
+    // The dead telephone cannot reset or advance the three physical sound sources.
     await walk(0, 4);
     await walk(-3.4, 4);
     await walk(-3.1, 5.15);
-    await use("radio", -3, 0.86, 6.75);
+    await use("telephone", -3, 0.86, 6.75);
     assert.equal((await snap()).story.echoIndex, 0);
     await walk(-3.4, 4);
     await walk(0, 4);
     await walk(0, 7);
+    await walk(3.5, 7);
+    await walk(3.5, -0.2);
+    await walk(8.7, -0.2);
+    await walk(9.55, 0.68);
+    await use("radio", 11.08, 1.15, 0.68);
+    assert.equal(
+      (await snap()).story.echoIndex,
+      0,
+      "Wrong radio order recovers",
+    );
+    await photo("separate-kitchen-radio");
+    await walk(8.7, -0.2);
+    await walk(3.5, -0.2);
     await walk(3.5, 6.1);
     await walk(7, 6.1);
     await walk(7, 4.7);
@@ -246,12 +268,22 @@ fs.mkdirSync(out, { recursive: true });
     await walk(-3.5, -7.55);
     await use("tap", -3.5, 1.11, -8.96);
     assert.equal((await snap()).story.echoIndex, 2);
+    // Checking the telephone mid-sequence must retain two silenced sounds.
     await walk(-3.5, -5.5);
     await walk(0, -5.5);
     await walk(0, 4);
     await walk(-3.4, 4);
     await walk(-3.1, 5.15);
-    await use("radio", -3, 0.86, 6.75);
+    await use("telephone", -3, 0.86, 6.75);
+    assert.equal((await snap()).story.echoIndex, 2);
+    await walk(-3.4, 4);
+    await walk(0, 4);
+    await walk(0, -8);
+    await walk(3.5, -8);
+    await walk(3.5, -0.2);
+    await walk(8.7, -0.2);
+    await walk(9.55, 0.68);
+    await use("radio", 11.08, 1.15, 0.68);
     assert.equal((await snap()).story.echoIndex, 3);
     await p.keyboard.press("Tab");
     await p.waitForFunction(() => !document.querySelector("#pocket").hidden);
@@ -259,9 +291,9 @@ fs.mkdirSync(out, { recursive: true });
     await photo("journal");
     await p.keyboard.press("Tab");
     await p.waitForFunction(() => !!document.pointerLockElement);
-    await walk(-3.4, 4);
-    await walk(0, 4);
-    await lap();
+    await walk(8.7, -0.2);
+    await walk(3.5, -0.2);
+    await toMain();
     assert.equal((await snap()).story.stage, 4);
     await p.waitForTimeout(800);
     const quiet = (await snap()).roomSound;
@@ -269,9 +301,14 @@ fs.mkdirSync(out, { recursive: true });
       quiet.radio < 0.005 && quiet.water < 0.005,
       "Solved sounds stay quiet on the final pass",
     );
-    console.log("PASS 4: reversed sound sequence");
-    await walk(0, -0.5);
-    await aim(-1.595, 1.52, -0.5);
+    assert.deepEqual((await snap()).dressing, {
+      frameFallen: true,
+      cupFallen: true,
+      inverted: true,
+    });
+    console.log("PASS 4: reversed sound sequence and staged object scares");
+    await walk(0, -7);
+    await aim(0, 1.52, -9.34);
     await advance(0.5);
     assert.equal((await snap()).story.finalFaced, true);
     await p.keyboard.press("Escape");
@@ -289,11 +326,12 @@ fs.mkdirSync(out, { recursive: true });
     await p.waitForFunction(() => !!document.pointerLockElement);
     await walk(0, 5);
     assert.equal((await snap()).story.exitReleased, true);
-    await walk(0, 6.7);
-    await use("door", 0, 1.1, 8.4);
+    await walk(0, 7);
+    await walk(3.5, 6.7);
+    await use("door", 3.5, 1.1, 8.4);
     await advance(1.3);
     assert.equal((await snap()).story.doorOpen, true);
-    await walk(0, 10.3);
+    await walk(3.5, 10.3);
     const playTime = (await snap()).time;
     await advance(9.2);
     assert.equal((await snap()).mode, "ending");
@@ -313,6 +351,13 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(reset.story.exitReleased, false);
     assert.equal(reset.story.doors.lounge, false);
     assert.equal(reset.pose.z, 6.7);
+    assert.equal(reset.pose.x, 3.5);
+    assert.equal(reset.story.hasLetter, false);
+    assert.deepEqual(reset.dressing, {
+      frameFallen: false,
+      cupFallen: false,
+      inverted: false,
+    });
     await p.keyboard.press("KeyF");
     await advance(0.1);
     assert.equal((await snap()).flashlight, true);
@@ -335,7 +380,7 @@ fs.mkdirSync(out, { recursive: true });
       }
       return result;
     });
-    assert.equal(Object.keys(voices).length, 15);
+    assert.equal(Object.keys(voices).length, 17);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
     console.log(
@@ -353,7 +398,10 @@ fs.mkdirSync(out, { recursive: true });
             "normal/delayed/held reflection",
             "bedroom key cannot bypass ending",
             "diary and backward clock UI",
-            "phone and inversion",
+            "independent telephone and kitchen radio",
+            "female protagonist and L-hall approach",
+            "hospital letter",
+            "falling props and local inversion reset",
             "watcher sightlines and disappearance",
             "wrong-order recovery",
             "reverse sound sequence",

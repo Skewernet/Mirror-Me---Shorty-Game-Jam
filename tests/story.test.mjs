@@ -6,7 +6,7 @@ function lap(s) {
   return s.traverse(3.5, 6.6);
 }
 function firstPass(s) {
-  s.interact("radio");
+  s.interact("telephone");
   s.interact("fuse");
   s.interact("panel");
   s.observe(1.4, true, true, 1.6);
@@ -30,7 +30,7 @@ function toInversion(s) {
   assert.equal(lap(s), "pass-2");
   s.interact("bath-clue");
   s.setClock(3, 17);
-  s.interact("radio");
+  s.interact("telephone");
   assert.equal(lap(s), "pass-3");
 }
 test("first pass requires exploration, power and a believable reflection", () => {
@@ -38,7 +38,7 @@ test("first pass requires exploration, power and a believable reflection", () =>
   assert.equal(lap(s), "incomplete-pass");
   s.observe(1.5, true, true);
   assert.equal(lap(s), "incomplete-pass");
-  s.interact("radio");
+  s.interact("telephone");
   assert.equal(lap(s), "incomplete-pass");
   assert.equal(s.interact("panel"), "panel-empty");
   s.interact("fuse");
@@ -95,7 +95,7 @@ test("the backward time clue and correct hour are both required", () => {
   assert.equal(s.interact("bath-clue"), "time-clue");
   assert.equal(s.clockSolved, true);
   assert.equal(s.ready(), false);
-  assert.equal(s.interact("radio"), "call");
+  assert.equal(s.interact("telephone"), "call");
   assert.equal(s.ready(), true);
 });
 test("invalid clock values do not corrupt the current hands", () => {
@@ -153,4 +153,28 @@ test("restart restores all objects, doors, clues and final conditions", () => {
   s.doorOpen = true;
   s.reset();
   assert.deepEqual(s, new Story());
+});
+
+test("telephone calls and kitchen radio have independent state", () => {
+  const s = new Story();
+  assert.equal(s.interact("radio"), "radio-no-power");
+  assert.equal(s.heardArrival, false);
+  s.power = true;
+  assert.equal(s.interact("radio"), "radio-off");
+  assert.equal(s.heardArrival, false);
+  assert.equal(s.interact("telephone"), "arrival-recording");
+  assert.equal(s.radioOn, false);
+  s.stage = 2;
+  s.clockSolved = true;
+  assert.equal(s.interact("radio"), "radio-on");
+  assert.equal(s.heardCall, false);
+  assert.equal(s.interact("telephone"), "call");
+  s.stage = 3;
+  assert.equal(s.interact("telephone"), "telephone-dead");
+  assert.equal(s.echoIndex, 0);
+  s.interact("musicbox");
+  s.interact("tap");
+  assert.equal(s.interact("telephone"), "telephone-dead");
+  assert.equal(s.echoIndex, 2);
+  assert.equal(s.interact("radio"), "house-quiet");
 });

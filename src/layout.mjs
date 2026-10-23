@@ -1,5 +1,7 @@
-export const SPAWN = { x: 0, z: 6.7, yaw: 0 };
-export const MIRROR = { x: -1.595, y: 1.52, z: -0.5 };
+export const SPAWN = { x: 3.5, z: 6.7, yaw: Math.PI / 2 };
+export const MIRROR = { x: 0, y: 1.52, z: -9.34, rotation: 0 };
+export const EXIT = { x: 3.5, z: 8.4 };
+export const HALL_CLOCK = { x: -1.58, y: 1.96, z: -7.3 };
 export const ROOMS = [
   {
     id: "lounge",

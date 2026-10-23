@@ -7,7 +7,8 @@ import {
   grimeTexture,
 } from "./surfaces.mjs";
 import { furnish } from "./props.mjs";
-import { ROOMS, roomAt } from "./layout.mjs";
+import { dressHouse } from "./dressing.mjs";
+import { ROOMS, roomAt, MIRROR, EXIT, HALL_CLOCK } from "./layout.mjs";
 export async function buildHouse(scene) {
   const b = builders(scene),
     { box, cylinder, sphere, group, target, contact } = b;
@@ -153,7 +154,9 @@ export async function buildHouse(scene) {
   ]);
   wallRange("x", 1.75, -6.2, 5.2);
   wallRange("z", -9.5, -7.1, 11.8);
-  wallRange("z", 8.5, -8.1, 11.8, "wallpaper", [{ center: 0, width: 1.3 }]);
+  wallRange("z", 8.5, -8.1, 11.8, "wallpaper", [
+    { center: EXIT.x, width: 1.3 },
+  ]);
   wallRange("x", -8.1, 1.7, 8.5);
   wallRange("z", 1.7, -8.1, -1.75);
   wallRange("x", -7.1, -9.5, -2.9, "tile");
@@ -180,6 +183,14 @@ export async function buildHouse(scene) {
     surfaces.material("fabric", 1, 9, 0x7c8278),
   );
   const roomDoors = {};
+  const kitchenPaint = new T.MeshStandardMaterial({
+    color: 0xb3b39b,
+    roughness: 0.65,
+  });
+  const kitchenPanelPaint = new T.MeshStandardMaterial({
+    color: 0x929a84,
+    roughness: 0.71,
+  });
   function makeDoor(id, x, z, rotation, width = 1.25) {
     const g = group(x, 0, z, rotation),
       pivot = group(-width / 2, 0, 0, 0, g),
@@ -190,7 +201,7 @@ export async function buildHouse(scene) {
         width / 2,
         1.1,
         0,
-        m.wood,
+        id === "kitchen" ? kitchenPaint : m.wood,
         false,
         pivot,
         0.018,
@@ -203,7 +214,7 @@ export async function buildHouse(scene) {
         width / 2,
         y,
         0.05,
-        surfaces.material("panel"),
+        id === "kitchen" ? kitchenPanelPaint : surfaces.material("panel"),
         false,
         pivot,
       );
@@ -214,7 +225,7 @@ export async function buildHouse(scene) {
         width / 2,
         y,
         -0.05,
-        surfaces.material("panel"),
+        id === "kitchen" ? kitchenPanelPaint : surfaces.material("panel"),
         false,
         pivot,
       );
@@ -255,6 +266,17 @@ export async function buildHouse(scene) {
         g,
       );
     box(width + 0.18, 0.09, 0.17, 0, 2.28, 0, m.wood, false, g);
+    if (id === "kitchen") {
+      const label = new T.MeshStandardMaterial({
+        map: writingTexture(["KITCHEN"], {
+          background: "#b0ad91",
+          color: "#383e32",
+          font: 78,
+        }),
+        roughness: 0.8,
+      });
+      box(0.4, 0.12, 0.015, width / 2, 1.63, 0.068, label, false, pivot, 0.006);
+    }
     const dummy = box(width, 2.23, 0.12, 0, 1.11, 0, m.invisible, false, g);
     const collider = b.solid(dummy);
     const mesh = target(
@@ -273,17 +295,17 @@ export async function buildHouse(scene) {
   makeDoor("kitchen", 5.25, -0.2, -Math.PI / 2, 1.35);
   makeDoor("bedroom", 5.25, 6.1, -Math.PI / 2, 1.25);
   makeDoor("utility", 5.25, -7.2, -Math.PI / 2, 1.2);
-  const front = makeDoor("front", 0, 8.4, Math.PI, 1.25);
-  box(1.7, 0.15, 3.5, 0, -0.08, 10.25, surfaces.material("floor", 1, 2));
-  box(1.7, 0.12, 3.5, 0, 2.91, 10.25, m.black);
-  wallRange("x", -0.85, 8.5, 12);
-  wallRange("x", 0.85, 8.5, 12);
-  wallRange("z", 12, -0.85, 0.85);
+  const front = makeDoor("front", EXIT.x, EXIT.z, Math.PI, 1.25);
+  box(1.7, 0.15, 3.5, EXIT.x, -0.08, 10.25, surfaces.material("floor", 1, 2));
+  box(1.7, 0.12, 3.5, EXIT.x, 2.91, 10.25, m.black);
+  wallRange("x", EXIT.x - 0.85, 8.5, 12);
+  wallRange("x", EXIT.x + 0.85, 8.5, 12);
+  wallRange("z", 12, EXIT.x - 0.85, EXIT.x + 0.85);
   const frontNumber = box(
     0.21,
     0.14,
     0.008,
-    0,
+    EXIT.x,
     1.77,
     8.35,
     new T.MeshStandardMaterial({
@@ -297,6 +319,7 @@ export async function buildHouse(scene) {
   );
   b.plane(5.1, 2.67, -4.4, 1.37, -9.395, surfaces.material("tile", 2.5, 1.35));
   const furnishings = furnish(b, m);
+  const dressing = dressHouse(b, m, surfaces, furnishings);
   // Hall console and a practical lamp.
   const hallTable = furnishTable();
   function furnishTable() {
@@ -369,7 +392,12 @@ export async function buildHouse(scene) {
   );
   target("photo", hallFrame.face, "EXAMINE PHOTOGRAPH", 2.1, hallFrame.group);
   // Readable analog clock, used by a real reversed-time puzzle.
-  const clock = group(0.3, 1.76, -9.34);
+  const clock = group(
+    HALL_CLOCK.x - 0.06,
+    HALL_CLOCK.y - 0.2,
+    HALL_CLOCK.z,
+    Math.PI / 2,
+  );
   box(0.66, 1.14, 0.12, 0, 0, 0, m.wood, false, clock, 0.025);
   const clockFace = new T.Mesh(
     new T.CircleGeometry(0.27, 48),
@@ -449,7 +477,11 @@ export async function buildHouse(scene) {
   const bedsideLight = point(0xffcb94, 7, 4, 7.95, 1.4, 7.5);
   const ambient = new T.HemisphereLight(0x8fa7b5, 0x29201a, 0.23);
   scene.add(ambient);
-  const mirrorLight = point(0x9ab2b3, 2.2, 3.5, -1, 2.2, -0.5);
+  const mirrorLight = point(0x9ab2b3, 3.5, 5, MIRROR.x, 2.2, MIRROR.z + 0.8);
+  const kitchenDoorLight = point(0xf0d1a1, 7, 5, 4.72, 2.25, -0.2);
+  box(0.07, 0.25, 0.52, 5.13, 2.36, -0.2, m.black);
+  box(0.065, 0.17, 0.38, 5.08, 2.36, -0.2, m.shade);
+  box(0.02, 0.035, 0.28, 5.035, 2.28, -0.2, m.bulb);
   const shadow = new T.SpotLight(0xf3cb94, 25, 15, Math.PI * 0.3, 0.65, 2);
   shadow.position.set(0, 2.57, 4.7);
   shadow.target.position.set(0, 0.6, -1.5);
@@ -460,7 +492,7 @@ export async function buildHouse(scene) {
   shadow.shadow.bias = -0.0005;
   shadow.shadow.normalBias = 0.025;
   scene.add(shadow, shadow.target);
-  const exitLight = point(0xb4cfd8, 0, 5, 0, 2, 10.5);
+  const exitLight = point(0xb4cfd8, 0, 5, EXIT.x, 2, 10.5);
   const grimeMap = grimeTexture();
   for (const [x, z, rot] of [
     [-1.63, -8.2, Math.PI / 2],
@@ -481,7 +513,7 @@ export async function buildHouse(scene) {
   const endingGlass = b.plane(
     1.5,
     2.65,
-    0,
+    EXIT.x,
     1.35,
     9.5,
     new T.MeshPhysicalMaterial({
@@ -551,7 +583,9 @@ export async function buildHouse(scene) {
       3,
       dt,
     );
-    furnishings.animate(time, state);
+    kitchenDoorLight.color.set(inverted ? 0xa9cad2 : 0xf0d1a1);
+    furnishings.animate(time, state, player);
+    dressing.animate(time, state, player);
     if (player)
       for (const [id, g] of Object.entries(furnishings.roomGroups)) {
         const r = ROOMS.find((r) => r.id === id);
@@ -563,6 +597,7 @@ export async function buildHouse(scene) {
       }
   }
   function reset(state) {
+    dressing.reset();
     for (const d of Object.values(roomDoors)) {
       d.pivot.rotation.y = 0;
       d.collider.disabled = false;
@@ -596,6 +631,8 @@ export async function buildHouse(scene) {
     exitLight,
     endingGlass,
     props: furnishings,
+    dressing,
+    drainEvents: dressing.drainEvents,
     roomAt,
     setStage,
     animate,
