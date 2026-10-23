@@ -106,3 +106,10 @@
 - Validation: sixteen physics/progression tests passed. Complete collision-respecting Chromium route passed all five stages, distinct phone/radio behavior including a phone check mid-puzzle, letter collection, shifted mirror/clock/exit, watcher sightlines, prop falls/inversion/reset, final silence, ending/reset and seventeen decoded non-silent takes; no page/console errors or failed requests. Known-solution validation route: 275.9 seconds, not a human first-play duration.
 - Separate ordinary-mode smoke passed rendering, walking/pointer lock, flashlight, journal pause/resume, Escape, quality/resize, brightness/grain/contact-shadow controls and hints. Targeted actual-game checks verified no blocked passage after falls and spatial event execution; close model and room images reviewed. Human headphone mix review and real-GPU performance remain outstanding.
 - Final staged-artifact smoke also passed against the immutable upload folder, including contact-shadow controls. All 43 runtime files matched source bytes and SHA256 manifest; no Git metadata, tools or tests are published in that folder. Remote main and the live public manifest remain unchanged at 6d20a88.
+
+
+## 2026-10-22 — Owner-approved Mara 0.4 publication
+- Owner explicitly approved publishing the completed 0.4 build. Fetched main, verified the fast-forward, and pushed approved gameplay/source revision d55c2cf to GitHub main.
+- Reconfirmed the existing mirror-me Pages project, correct GitHub source, main production branch and enabled production/preview automation before pushing. No Cloudflare resource or build-setting changes were needed.
+- Explicit Git-source deployment bc5a9ed1-4b58-431c-8b0d-c204fa79ae65 completed successfully for d55c2cf. The live mara-story-0.4 build-id and all 43 runtime SHA256 hashes matched. All sixteen release prerequisite tests passed.
+- Updated README/status to record publication. This release-record commit changes no tested runtime asset; the final source revision and live hashes are verified again after synchronization.

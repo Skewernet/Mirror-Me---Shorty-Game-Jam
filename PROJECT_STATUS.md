@@ -1,8 +1,8 @@
 # MIRROR ME — Current status
 
 **Version:** Mara / picture and story pass 0.4, October 22, 2026 (America/Denver).
-**Development:** `develop/character-and-story-polish`, local only. No 0.4 push/deployment.
-**Production:** Approved 0.3 expansion remains on GitHub `main` and https://mirror-me.pages.dev at `6d20a88`. The public `/build-id.json` identifies the exact live release. Specific approval is required before publishing this new pass.
+**Source:** Approved 0.4 work fast-forwarded from `develop/character-and-story-polish` to GitHub `main`. The development branch is retained.
+**Production:** Owner-approved 0.4 is live at https://mirror-me.pages.dev. Git-source deployment of gameplay revision `d55c2cf` succeeded and all 43 public runtime hashes matched. The public `/build-id.json` identifies the exact current release, including documentation-only release records. Future production changes require specific approval.
 
 ## Implemented
 
@@ -27,7 +27,7 @@
 - A full deterministic Chromium playthrough traverses all five rooms with actual collision-respecting movement, uses the clock UI, checks independent telephone/radio behavior, hospital-letter collection, watcher occlusion/disappearance, falling props/local inversion/reset and persistent final-pass silence, completes all five passes, and verifies inventory, pause/audio, flashlight, ending/reset and seventeen non-silent decoded voice clips. No page errors or failed requests in the passing run.
 - The known-solution route takes approximately 276 seconds of simulation. This does not measure first-time play length or establish that the experience is frightening.
 - Room, mirror and ending screenshots reviewed. A separate normal-mode Chromium check passed live rendering, walking/pointer lock, flashlight, journal pause/resume, Escape, picture settings, brightness/grain controls, hints and resize without errors. The test harness is absent in this mode.
-- Static release staging includes a source revision and SHA256 manifest. The previous 0.3 release was verified through GitHub/Cloudflare; this new 0.4 build remains local pending specific publication approval.
+- Static release staging includes a source revision and SHA256 manifest. The owner-approved 0.4 release was verified through GitHub/Cloudflare, its exact source revision and all 43 public runtime hashes.
 
 ## Remaining before the October 25 deadline
 

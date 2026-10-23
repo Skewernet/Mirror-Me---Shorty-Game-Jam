@@ -2,7 +2,7 @@
 
 A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
 
-## Mara — picture and story pass 0.4 (local development)
+## Mara — playable picture and story pass 0.4
 
 Mara Vale returns to collect her mother's belongings. An impossible telephone call asks her to finish an ordinary evening. A reflection learns the routine, then offers to take her place.
 
@@ -14,7 +14,7 @@ Mara has a new female model with sculpted face, shoulder-length hair, cardigan, 
 
 The picture pass adds restrained screen-space contact shadows, edge smoothing and a filmic response. Contact shadows can be disabled and are omitted at 480p; rendering has an 8-bit/no-AO capability fallback. No full-screen inversion flash, persistent camera shake or forced head motion is added.
 
-**This 0.4 pass is local on `develop/character-and-story-polish`, not pushed or deployed.** Production still serves the approved 0.3 expansion at revision `6d20a88`. The new collision-respecting known-solution validation route takes roughly 4 minutes 36 seconds; first-time duration and scare effectiveness need human playtesting. The target remains 8–12 minutes of discovery, not added wait timers.
+**The owner-approved 0.4 build is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** Gameplay release `d55c2cf` was built through Cloudflare and all 43 runtime assets matched. `/build-id.json` identifies the exact current revision, including release-record updates. The new collision-respecting known-solution validation route takes roughly 4 minutes 36 seconds; first-time duration and scare effectiveness need human playtesting. The target remains 8–12 minutes of discovery, not added wait timers.
 
 ## Run locally
 
@@ -62,6 +62,6 @@ Sixteen unit tests cover movement and progression. The full browser route uses a
 - [Asset provenance](ATTRIBUTIONS.md)
 - [Cloudflare connection and operating instructions](CLOUDFLARE_SETUP.md)
 
-The existing production project is [mirror-me.pages.dev](https://mirror-me.pages.dev), connected to this GitHub repository with `main` as production branch. Production automation and branch previews are enabled; **a push can publish**. Earlier pushes did not create deployment records, so a successful push alone is not proof of release. The approved expansion was built from GitHub and all 39 runtime files were verified against its source/hash manifest.
+The existing production project is [mirror-me.pages.dev](https://mirror-me.pages.dev), connected to this GitHub repository with `main` as production branch. Production automation and branch previews are enabled; **a push can publish**. Earlier pushes did not create deployment records, so a successful push alone is not proof of release. The approved 0.4 build was built from GitHub and all 43 runtime files were verified against its source/hash manifest.
 
-Further production changes require the owner's approval of the specific build. Pushes and deployments are explicit release actions; the owner approved publication of the earlier 0.3 expansion. This 0.4 pass requires its own publication approval. For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit plus every public runtime hash; `--verify-only` is read-only. Build settings are `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment runs at environment startup. Do not modify Morlins Quest or Skewer Signals.
+Further production changes require the owner's approval of the specific build. Pushes and deployments are explicit release actions; the owner approved publication of this 0.4 build. Future production changes require their own specific approval. For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit plus every public runtime hash; `--verify-only` is read-only. Build settings are `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment runs at environment startup. Do not modify Morlins Quest or Skewer Signals.
