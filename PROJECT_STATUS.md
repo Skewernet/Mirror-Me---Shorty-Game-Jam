@@ -2,7 +2,7 @@
 
 Updated October 23, 2026 (America/Denver).
 
-**Local development:** 0.7, Inverted Confession, is being reviewed on `develop/inverted-confession`. It has not been pushed or deployed. All 29 unit tests, the integrated browser route, final normal-mode smoke and targeted geometry/art checks pass. Immutable-package validation remains pending.
+**Local development:** 0.7, Inverted Confession, is ready for owner review on `develop/inverted-confession`. It has not been pushed or deployed. All 29 unit tests, the integrated browser route, final normal-mode smoke and targeted geometry/art checks pass. The immutable package also passes exact-source/hash validation and a fresh ordinary-mode cold boot.
 
 **Last verified production release:** the owner-approved 0.6 is live at https://mirror-me.pages.dev, revision `d354651`. Its gameplay revision `5bfb4ee` deployed automatically, and all 110 public runtime/credit hashes matched the tested package. `/build-id.json` identifies the live revision. That release approval does not authorize publication of 0.7.
 
@@ -27,7 +27,7 @@ Updated October 23, 2026 (America/Denver).
 - The final ordinary-mode smoke passes actual render-loop startup, controls, graphics/comfort settings, pause and credits without a test harness, with no page/console errors or failed requests. Final crime-room art review passes with 81 stable colliders; cloth grounding, wall blood and floor props were reviewed, and the final moved tray clears the slippers.
 - `node tests/creature-bounds.cjs` passes on the actual skinned geometry. The maximum measured narrow-crawl width is about 0.487 m, safely within the 0.88 m bedroom door with at least 0.04 m required margin on either side. Independent planted-bone drift and anchor error remain below 1e-7 m, and the ceiling crawl stays under the 2.32 m roof. Four actual-house crawl frames show clear, monotonic withdrawal and doorway entry with no page/console errors or failed requests. The normal standing `FigureGait` is unchanged.
 - The current route's raw 366.178 simulated seconds include the extra 50-second ending stress check. This is validation workload, not a measured gameplay duration or first-time playtime.
-- Staging and exact-package hash/browser checks are **pending** after the clean commit. No 0.7 production validation is claimed here.
+- The immutable review package contains 113 runtime/credit files plus its revision manifest. Every byte and SHA-256 matches the clean source checkout. Fresh ordinary-mode startup against staged `8636693` passes character/material/HDR loading, 11 rendered credit entries, 25 accessible Oggs, pointer lock, walking, flashlight and pause. There is no test harness, browser/HTTP error, failed request or external runtime request. Tests, tools, Git metadata and environment files are excluded. Documentation-only records preserve these same tested payload hashes. No 0.7 production validation is claimed here.
 
 ## Historical 0.6 evidence
 
@@ -37,7 +37,7 @@ The 0.6 known-solution route took **317.895 simulated game seconds** (about 5m18
 
 ## Remaining before jam submission
 
-Complete immutable-package checks, then obtain specific owner approval before a potentially publishing 0.7 push or deployment. The current integration, normal-mode and targeted geometry/art checks pass. The release helper gates every unit-test file. Preserve the tested payload and verify the public revision/assets after any approved release.
+The implementation and immutable-package checks are complete. Obtain specific owner approval before a potentially publishing 0.7 push or deployment. The current integration, normal-mode and targeted geometry/art checks pass. The release helper gates every unit-test file. Preserve the tested payload and verify the public revision/assets after any approved release.
 
 Human playtesting must judge first-time puzzle clarity, the moral inversion and final revelation, perceived duration, horror impact, synthetic performances and headphone balance. The target remains **10–15 minutes on a first play**, without arbitrary idle gates; it is not yet measured. Test Chrome/Firefox and real desktop GPUs before submission. Cloud SwiftShader checks are not performance evidence. Gait, faces and creature posing remain procedural. There is no save system, combat, chase AI, second floor or branching ending.
 
