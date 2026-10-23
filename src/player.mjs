@@ -1,6 +1,6 @@
 import * as T from "three";
 import { wishDirection, moveWithCollision } from "./physics.mjs";
-import {SPAWN} from "./layout.mjs";
+import { SPAWN } from "./layout.mjs";
 export class Player {
   constructor(camera) {
     this.camera = camera;

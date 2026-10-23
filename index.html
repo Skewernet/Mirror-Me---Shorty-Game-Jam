@@ -18,12 +18,11 @@
         <span>SKEWERNET PRESENTS</span><span>SHORTY JAM 2026 / INVERTED</span>
       </div>
       <div class="menu-body">
-        <p class="eyebrow" id="chapter">
-          THE HOUSE THAT LEARNS
-        </p>
+        <p class="eyebrow" id="chapter">THE HOUSE THAT LEARNS</p>
         <h1 id="title">MIRROR<span>ME</span></h1>
         <p id="description">
-          Someone left the house awake.<br />Someone else is learning your way home.
+          Someone left the house awake.<br />Someone else is learning your way
+          home.
         </p>
         <div class="actions">
           <button id="start" disabled>LOADING THE HOUSE…</button
@@ -58,17 +57,38 @@
           <label
             ><input id="voice" type="checkbox" checked /> Voice playback</label
           >
-          <label>Picture <select id="quality"><option value="720">Balanced · 720p</option><option value="900">Detailed · 900p</option><option value="480">Retro · 480p</option></select></label>
-          <label>Brightness <input id="brightness" type="range" min="0.8" max="1.6" step="0.05" value="1.13"></label>
-          <label><input id="grain" type="checkbox" checked> Subtle film texture</label>
+          <label
+            >Picture
+            <select id="quality">
+              <option value="720">Balanced · 720p</option>
+              <option value="900">Detailed · 900p</option>
+              <option value="480">Retro · 480p</option>
+            </select></label
+          >
+          <label
+            >Brightness
+            <input
+              id="brightness"
+              type="range"
+              min="0.8"
+              max="1.6"
+              step="0.05"
+              value="1.13"
+          /></label>
+          <label
+            ><input id="grain" type="checkbox" checked /> Subtle film
+            texture</label
+          >
         </details>
       </div>
       <footer>
         <span
-          >W A S D · WALK &nbsp; / &nbsp; MOUSE · LOOK<br />E · INTERACT &nbsp; / &nbsp; F · LIGHT &nbsp;
-          / &nbsp; TAB · POCKET &nbsp; / &nbsp; ESC · PAUSE</span
+          >W A S D · WALK &nbsp; / &nbsp; MOUSE · LOOK<br />E · INTERACT &nbsp;
+          / &nbsp; F · LIGHT &nbsp; / &nbsp; TAB · POCKET &nbsp; / &nbsp; ESC ·
+          PAUSE</span
         ><span
-          >HEADPHONES RECOMMENDED<br />DESKTOP BROWSER · DEVELOPMENT BUILD · HOUSE EXPANSION</span
+          >HEADPHONES RECOMMENDED<br />DESKTOP BROWSER · DEVELOPMENT BUILD ·
+          HOUSE EXPANSION</span
         >
       </footer>
     </main>
@@ -89,9 +109,33 @@
       <p class="pocket-help">TAB · RETURN &nbsp; / &nbsp; ESC · PAUSE</p>
     </section>
     <section id="inspect" hidden aria-label="Hall clock">
-      <p class="eyebrow">THE HOUR THAT DID NOT HAPPEN</p><h2>The stopped clock</h2>
+      <p class="eyebrow">THE HOUR THAT DID NOT HAPPEN</p>
+      <h2>The stopped clock</h2>
       <p>The writing was on the other side of the glass.</p>
-      <form id="clock-form"><div class="time-inputs"><label>HOUR<input id="clock-hour" type="number" min="1" max="12" required></label><span>:</span><label>MINUTE<input id="clock-minute" type="number" min="0" max="59" required></label></div><button type="submit">SET THE HANDS</button><button id="clock-back" type="button" class="secondary">LEAVE IT</button></form>
+      <form id="clock-form">
+        <div class="time-inputs">
+          <label
+            >HOUR<input
+              id="clock-hour"
+              type="number"
+              min="1"
+              max="12"
+              required /></label
+          ><span>:</span
+          ><label
+            >MINUTE<input
+              id="clock-minute"
+              type="number"
+              min="0"
+              max="59"
+              required
+          /></label>
+        </div>
+        <button type="submit">SET THE HANDS</button
+        ><button id="clock-back" type="button" class="secondary">
+          LEAVE IT
+        </button>
+      </form>
     </section>
     <noscript
       >This house needs JavaScript and a desktop browser with WebGL.</noscript
