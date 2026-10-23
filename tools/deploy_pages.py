@@ -101,7 +101,8 @@ def main():
         raise RuntimeError('Missing secure environment settings: ' + ', '.join(missing) + '. Never paste credentials into chat.')
     token, account = os.environ['CLOUDFLARE_API_TOKEN'], os.environ['CLOUDFLARE_ACCOUNT_ID']
     if not args.verify_only:
-        subprocess.run(['node', '--test', 'tests/physics.test.mjs', 'tests/story.test.mjs'], cwd=ROOT, check=True)
+        test_files = sorted(path.relative_to(ROOT).as_posix() for path in (ROOT / 'tests').glob('*.test.mjs'))
+        subprocess.run(['node', '--test', *test_files], cwd=ROOT, check=True)
     output, manifest = stage()
     endpoint = 'https://api.cloudflare.com/client/v4/accounts/' + quote(account, safe='') + '/pages/projects/' + PROJECT
     env = dict(os.environ, CI='true', WRANGLER_SEND_METRICS='false', XDG_CONFIG_HOME='/workspace/mirror-me-tools/config')
@@ -126,7 +127,7 @@ def main():
         if not WRANGLER.exists():
             raise RuntimeError('Install pinned Wrangler with the saved environment installation script.')
         print(f'Uploading revision {manifest["revision"]} to {PROJECT}, production branch {branch}.', flush=True)
-        subprocess.run([str(WRANGLER), 'pages', 'deploy', str(output), '--project-name', PROJECT, '--branch', branch, '--commit-hash', manifest['revision'], '--commit-message', 'MIRROR ME first playable mirror encounter'], cwd=WRANGLER.parents[2], env=env, check=True)
+        subprocess.run([str(WRANGLER), 'pages', 'deploy', str(output), '--project-name', PROJECT, '--branch', branch, '--commit-hash', manifest['revision'], '--commit-message', 'MIRROR ME ' + manifest['version']], cwd=WRANGLER.parents[2], env=env, check=True)
     project = request_json(endpoint, token)['result']
     subdomain = project.get('subdomain', '')
     if not subdomain.endswith('.pages.dev'):

@@ -1,6 +1,6 @@
 # MIRROR ME — crescendo, ritual and mirror-world script
 
-Version 0.6, in development. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define progression and exact words. Release verification and measured playthroughs belong in `PROJECT_STATUS.md` and `DEVLOG.md`.
+Version 0.6, local review build. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define progression and exact words. Release verification and measured playthroughs belong in `PROJECT_STATUS.md` and `DEVLOG.md`.
 
 ## The dramatic spine
 
