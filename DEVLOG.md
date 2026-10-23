@@ -35,3 +35,10 @@
 - Formatted source modules for further iteration and updated README/status with actual running instructions and outstanding limitations.
 - The second deterministic playthrough passed its expanded checks; a separate normal-mode browser check passed movement, Escape, settings, inventory pause and resize with no page exceptions. Firefox remains untested because its download was denied by egress policy. Human headphone/performance review remains necessary.
 - Final rerun after the sound/ending polish passed all nine unit tests and the expanded Chromium playthrough with no errors. Packaged the exact verified static runtime into a local review ZIP; validated archive integrity, required assets and byte-for-byte source equality. No distribution/upload performed.
+
+
+## 2026-10-22 — Owner-approved publication
+- Owner explicitly approved deploying the tested first encounter to the existing Cloudflare site, including the potentially deployment-triggering push.
+- Fetched main, verified a fast-forward, and pushed the tested source at `c1d60bd`; a native read-only Git check confirmed that exact commit on remote main.
+- The handoff identifies main as the connected Pages production branch. Repository configuration contains no independently verifiable Pages connection settings.
+- GitHub deployment/check APIs and the live mirror-me.pages.dev site are denied by the environment egress proxy. Cloudflare build completion and live behavior are therefore unverified; a successful Git push is not a verified deployment. No Cloudflare resources or settings were changed.

@@ -58,4 +58,4 @@ Next: human playtest the first encounter, improve the reflected figure and sound
 
 ## Production safety
 
-No production deployment or remote push has been performed for this slice. Pages automatic deployment settings remain unverified; this checkout contains no Pages or CI configuration. Treat a push as potentially deployment-triggering until the actual Pages settings are checked. Obtain approval of specific changes before production promotion or any Cloudflare resource change. Do not modify Morlins Quest or Skewer Signals.
+The owner approved deployment of this first encounter and its source was pushed to GitHub `main` at `c1d60bd`. The handoff identifies `main` as connected to the existing Cloudflare Pages project `mirror-me`. Actual Pages build/deployment status remains unverified because the environment proxy blocks the live site and GitHub API. No Cloudflare resource settings were changed. Future production changes still require approval of the specific changes. Do not modify Morlins Quest or Skewer Signals.

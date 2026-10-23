@@ -1,7 +1,7 @@
 # MIRROR ME — Current status
 
 **Version:** First encounter / playable slice 0.2 (October 22, 2026, America/Denver)
-**Branch:** `develop/first-mirror-slice` — local commits only
+**Source:** first encounter pushed to GitHub `main` at `c1d60bd` after explicit owner approval. Local development branch: `develop/first-mirror-slice`.
 
 ## Implemented
 
@@ -26,7 +26,7 @@
 
 Human desktop/headphone playtest, Firefox verification, real-device frame-rate profiling, a more expressive final reflected character, directed human voice recording if available, final sound balancing, one meaningful mirrored-world puzzle, and the final replacement sequence. Current content is a short first encounter; it does not yet deliver the complete 5–8 minute jam arc. No mobile support or persistent save system is planned for this slice.
 
-Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare production inspection remains blocked by policy; auto-deploy behavior is unverified. No deployment, Cloudflare change or remote push.
+Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare production inspection remains blocked by policy; auto-deploy behavior is unverified. The source was pushed after the owner explicitly approved deployment. The connected Pages build/live result remains unverified; no Cloudflare resource settings were changed.
 
 ## Next milestone
 
