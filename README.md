@@ -58,4 +58,10 @@ Next: human playtest the first encounter, improve the reflected figure and sound
 
 ## Production safety
 
-The owner approved creating or reusing Cloudflare Pages project `mirror-me` and deploying this first encounter. GitHub main contains the new source, but a Git push did not deploy the game: no GitHub/Pages connection has been established. Cloudflare credentials and API network access are missing in the current runtime. The secure settings and official Wrangler tooling are prepared; see [Cloudflare setup and reusable environment prompt](CLOUDFLARE_SETUP.md). No Pages project or production deployment has been created by this environment yet. Future production changes still require approval of the specific changes. Do not modify Morlins Quest or Skewer Signals.
+The existing production project is **[mirror-me](https://mirror-me.pages.dev)**. Authenticated inspection confirmed its GitHub source is `Skewernet/Mirror-Me---Shorty-Game-Jam`, production branch `main`, with automatic production deployments enabled. The earlier pushes did not create deployment records, so a push alone must not be treated as a successful release.
+
+The owner-approved slice was uploaded directly and verified live: all 24 runtime assets matched revision `11c84c7`. The environment now has working secure Cloudflare access. Build settings are `python3 tools/stage_pages.py --output-dir dist`, output directory `dist`, repository root. This packages runtime assets and a revision/hash manifest instead of publishing development tools.
+
+For an approved release, use `python tools/deploy_pages.py --github-build` to build the remote production branch, or `python tools/deploy_pages.py` for Direct Upload. Both verify the live `build-id.json` and exact asset hashes. `python tools/deploy_pages.py --verify-only` checks whether the current clean checkout matches production without publishing. GitHub main must contain the intended commit before using the Git build route. [Connection and operating instructions](CLOUDFLARE_SETUP.md).
+
+Further production changes require approval of the specific changes. No automatic deployment runs at environment startup. Do not modify Morlins Quest or Skewer Signals.
