@@ -2,9 +2,9 @@
 
 A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
 
-## Inverted confession — local 0.7
+## Inverted confession — 0.7
 
-**0.7 is a local review build on `develop/inverted-confession`; it has not been pushed or deployed.** The last verified, owner-approved production release remains **0.6 at `d354651`**, at [mirror-me.pages.dev](https://mirror-me.pages.dev). Its 110 public runtime/credit files matched the tested package. The integrated route, source-browser, creature-clearance and immutable-package checks pass; specific publication approval remains. See [current status](PROJECT_STATUS.md).
+**The owner-approved 0.7 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** Gameplay revision `477779e` deployed automatically, and all 113 public runtime/credit files match the tested package. `/build-id.json` identifies the exact deployed revision, including release-record-only commits. The integrated route, source-browser, creature-clearance and immutable-package checks pass. See [current status](PROJECT_STATUS.md).
 
 Mara Vale returns with a version of the evening in which she was a devoted daughter and her mother died from illness. The mirror keeps correcting what that account leaves out. The revised final chapter reveals a violent death in the familiar bedroom, followed by a separate funeral-room radio report that names Mara's responsibility. The horror comes from recognition, rather than an external demon taking the blame. The complete script and walkthrough contain spoilers in [GAME_DIRECTION.md](GAME_DIRECTION.md).
 
@@ -71,6 +71,6 @@ All 29 unit tests, the full seven-chapter collision-respecting browser route and
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner-approved 0.6 release is last verified at `d354651`, with 110 matching public payload hashes. Local 0.7 has no publication approval. Keep it local until the owner approves these specific changes, then verify the deployment and public payload before claiming it is live. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner specifically approved publication of this 0.7 build; its automatic deployment and 113 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

@@ -214,3 +214,11 @@
 - Prepared clean revision `8636693` as an immutable static folder: 113 runtime/credit files plus `build-id.json`. Each payload byte and SHA-256 matches source; tools, tests, Git metadata and environment files are excluded.
 - Fresh ordinary-mode cold boot against that exact staged payload passes models, materials, HDR, 11 rendered credit entries, all 25 valid Ogg responses, pointer lock, walking, flashlight and pause. There is no exposed test harness, page/console/HTTP error, failed request or external runtime request. Reports and captures are retained under `/workspace/artifacts/murder-staged-qa/`.
 - The final record changes only development documentation. Restaged manifests must preserve all 113 browser-tested game/credit hashes. Local `main` remains the published 0.6 `d354651`; no 0.7 branch push, preview, deployment or Cloudflare mutation has occurred. The completed 0.7 is ready for specific release approval.
+
+
+## October 23, 2026 — owner-approved 0.7 publication
+
+- The owner explicitly approved publishing reviewed build `477779e` and requested screenshots. Rechecked the clean exact package, 29 passing unit tests, full credits, remote ancestry and existing Cloudflare project/GitHub source/build settings.
+- Fast-forwarded and pushed the approved source to GitHub `main`. The existing integration automatically created successful production deployment `59039193-9a85-4584-abf2-68bde3c07d42`. No extra deployment request, Cloudflare project creation or resource/build-setting change was needed.
+- Normal HTTPS verification confirmed the live 0.7 build ID and all 113 runtime/credit SHA-256 hashes against the immutable approved package. Preserved the gameplay-release receipt at `/workspace/artifacts/mirror-me-477779e-production-receipt.json`. Local/source/staged browser and creature-clearance evidence remain documented above.
+- Updated the current README/status and reusable Cloudflare prompt for the published release. This follow-up record changes no game/credit payload; future gameplay changes still need specific production approval. Screenshots supplied for review are unedited renders of the approved build, with ending spoilers labelled.
