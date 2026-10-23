@@ -42,7 +42,7 @@
     "speaker_id": 21
   },
   "key": {
-    "text": "Her bedroom. I haven't opened it since the hospital.",
+    "text": "Her bedroom. I haven't opened it since they took her away.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
@@ -63,42 +63,42 @@
     "speaker_id": 21
   },
   "call": {
-    "text": "Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.",
+    "text": "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
     "role": "phone",
     "speed": 1,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "inverted": {
-    "text": "I stopped coming. Something kept doing it for me.",
+    "text": "This is the room I keep turning away from.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "command": {
-    "text": "You wanted an empty house. Go on.",
+    "text": "You keep putting yourself on the wrong side.",
     "role": "glass",
     "speed": 0.96,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "released": {
-    "text": "She's gone. We don't have to do this again.",
+    "text": "It's quiet. That doesn't make it finished.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "unlocked": {
-    "text": "Don't leave the light on for me.",
+    "text": "Now tell it the right way round.",
     "role": "glass",
     "speed": 0.96,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "ending": {
-    "text": "There you are, Mara. I kept your place.",
+    "text": "You looked right at me.",
     "role": "mum",
     "speed": 0.93,
     "voice": "bf_isabella",
@@ -112,7 +112,7 @@
     "speaker_id": 26
   },
   "letter": {
-    "text": "Personal effects. They put her whole life in those two words.",
+    "text": "Personal effects. That's what they called them when they sent her home.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
@@ -144,20 +144,36 @@
     "speed": 0.96,
     "voice": "bf_emma",
     "speaker_id": 21,
-    "text": "There. You haven't forgotten how to be her daughter."
+    "text": "There. Every little thing put back. That's how you told it."
   },
   "empty": {
     "role": "player",
     "speed": 0.94,
     "voice": "bf_emma",
     "speaker_id": 21,
-    "text": "I'm still here. I should still be there."
+    "text": "I kept leaving myself out of it."
   },
   "farewell": {
     "role": "player",
     "speed": 0.91,
     "voice": "bf_emma",
     "speaker_id": 21,
-    "text": "I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum."
+    "text": "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum."
+  },
+  "sob": {
+    "role": "sobbing",
+    "speed": 0.88,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "No... no. Mum. I'm sorry. I'm so sorry.",
+    "segments": ["No... no.", "Mum.", "I'm sorry.", "I'm so sorry."],
+    "pauses_after_seconds": [0.65, 0.9, 0.6]
+  },
+  "news": {
+    "role": "news",
+    "speed": 0.94,
+    "voice": "bm_george",
+    "speaker_id": 26,
+    "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness."
   }
 }

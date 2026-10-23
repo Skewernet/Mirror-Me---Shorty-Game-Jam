@@ -38,9 +38,9 @@ export const CHAPTERS = [
   },
   {
     id: 6,
-    title: "THE OTHER SIDE",
+    title: "THE RIGHT WAY ROUND",
     objective:
-      "Go to Mum's bed. Say what remains, turn off her light and leave through the front door.",
+      "Face what happened at Mum's bed, turn off her light and leave through the front door.",
   },
 ];
 export const RADIO_SOLUTION = 93.7;

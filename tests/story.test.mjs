@@ -343,17 +343,22 @@ test("the spent back door disappears and an interaction click cannot cross the e
   assert.equal(s.silenceComplete, true);
   assert.equal(s.doorOpen, false);
 });
-test("the bedside farewell and lamp must precede opening and crossing the front door", () => {
+test("acknowledging the bedside truth and switching off the lamp must precede the front departure", () => {
   const s = new Story();
   for (let stage = 0; stage < 6; stage++) {
     s.stage = stage;
+    assert.equal(s.interact("bed-farewell"), "bed-waiting");
+    assert.equal(s.truthFound, false);
     assert.equal(s.interact("front-door"), "front-locked");
     assert.equal(s.interact("bedside-lamp"), "lamp-stay");
     assert.equal(s.enterWake(), null);
   }
   s.stage = 6;
+  assert.equal(s.truthFound, false);
   assert.equal(s.interact("bedside-lamp"), "lamp-not-yet");
   assert.equal(s.interact("bed-farewell"), "farewell");
+  assert.equal(s.truthFound, true);
+  assert.equal(s.farewellSaid, true);
   assert.equal(s.interact("bed-farewell"), "farewell-repeat");
   assert.equal(s.enterWake(), null);
   assert.equal(s.interact("bedside-lamp"), "lamp-off");
@@ -370,6 +375,28 @@ test("the bedside farewell and lamp must precede opening and crossing the front 
   assert.equal(s.enterWake(), "wake-entered");
   assert.equal(s.enterWake(), null);
 });
+test("the mirror reveals the real house but only the bedside evidence records Mara's acknowledgment", () => {
+  const s = new Story();
+  toKeepsakes(s);
+  fourthPass(s);
+  fifthPass(s);
+  assert.equal(s.truthFound, false);
+  assert.equal(s.crossMirror(), "mirror-crossed");
+  assert.equal(s.truthFound, false);
+  for (const id of ["mirror", "photo", "telephone", "radio", "front-door"])
+    s.interact(id);
+  assert.equal(s.truthFound, false);
+  assert.equal(s.frontReleased, false);
+  assert.equal(s.interact("bed-farewell"), "farewell");
+  assert.equal(s.truthFound, true);
+  assert.equal(s.frontReleased, false);
+  assert.equal(s.interact("bed-farewell"), "farewell-repeat");
+  assert.deepEqual(s.drainEvents(), []);
+  s.reset();
+  assert.equal(s.truthFound, false);
+  assert.equal(s.farewellSaid, false);
+  assert.equal(s.frontReleased, false);
+});
 test("all seven chapters complete through five rear crossings, the mirror, and the front threshold", () => {
   const s = new Story();
   toKeepsakes(s);
@@ -378,7 +405,9 @@ test("all seven chapters complete through five rear crossings, the mirror, and t
   assert.equal(s.stage, 5);
   assert.equal(s.laps, 5);
   assert.equal(s.crossMirror(), "mirror-crossed");
+  assert.equal(s.truthFound, false);
   s.interact("bed-farewell");
+  assert.equal(s.truthFound, true);
   s.interact("bedside-lamp");
   s.interact("front-door");
   assert.equal(s.enterWake(), "wake-entered");

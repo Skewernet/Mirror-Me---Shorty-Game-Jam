@@ -1,116 +1,98 @@
-# MIRROR ME — crescendo, ritual and mirror-world script
+# MIRROR ME — the daughter in the wrong side of the glass
 
-Version 0.6, local review build. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define progression and exact words. Release verification and measured playthroughs belong in `PROJECT_STATUS.md` and `DEVLOG.md`.
+Version 0.7, in development. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define the exact words. Publication requires its own release approval; this script is not evidence of a live release.
 
 ## The dramatic spine
 
-Mara Vale returns to collect her mother's belongings. She asked for one light to be left on. The telephone rings with a request she used to hear every evening: fix the kitchen light and stay until Mum is asleep. At first, the house is a place she recognizes and her reflection is her own.
+Mara Vale has built a story in which she did everything a good daughter could do, then lost her mother to illness. The house lets her keep performing the proof: fix a light, lay out a watch, prepare the bath, keep the music playing. What is missing from that story is the action between the routine and the telephone call.
 
-The impossible returns disclose a routine Mara knows through her hands: a watch beside the kitchen radio, a ring taken off for the bath, a ribbon at the music box. The hospital returned those things in a sealed bag. Their reappearance should be more troubling than an unexplained symbol or a named monster. They belonged to a particular woman, and Mara remembers how they felt.
+Evelyn Vale was sixty-eight. Mara had been her full-time caregiver for seven years. Evelyn was ill, but the illness did not kill her. Mara took a kitchen knife into her mother’s bedroom and repeatedly stabbed her. Mum was awake and looking at her. At 03:17 Mara called for an ambulance. The crime is not caused or excused by a demon, a mirror, possession, illness or an implied request for euthanasia.
 
-The held reflection knows the unkindest way to describe Mara's absence. The second caller sounds like Mara but remembers an action she has not admitted to anyone. Its instructions have two parts: put the belongings back, then undo the evening. These are different chapters with different physical changes. The daughter first restores the places she maintained for someone else; then she has to stop maintaining them.
+The player initially shares Mara’s selective account. Tender memories remain true; the conclusion she draws from them is false. Her ring really caught in Mara’s hair. Mara really propped the music-box lid open because Mum disliked the silence. Those acts do not cancel what she did. Avoid replacing the earlier tenderness with a sudden cartoon villain personality.
 
-Silencing the house does not produce an ordinary exit. The back door disappears. The mirror remains, but the woman who copied Mara is gone. The player must cross that empty place with her own body. The familiar house on the other side is inverted and still recognizably furnished. Mara goes to the bed, says good night, turns off the last lamp and finally opens the front door.
+The mirror matters because it keeps the actor in frame. Its delay, fixed gaze and later blood turn Mara’s attention back to the hands she keeps calling caring hands. When the reflection disappears, the missing figure corresponds to the person she has removed from her account. Walking through the empty glass restores her to the scene as the person who acted, rather than a daughter who arrived too late.
 
-Outside is a bright, somber funeral reception. A chair has been reserved for MARA VALE. Silent seated figures turn toward the player. The voice from the opening telephone, now close and clear, says: **“There you are, Mara. I kept your place.”** The contradiction is the ending. The game does not explain whose reception this is, identify the figures, or certify that the speaker is Mum.
+**INVERTED** is both spatial and moral. The rear door leads back to the front. An hour must be read from the other side. The care order is undone in reverse. Her supposedly comforting house becomes the evidence she has covered. The final correction is grammatical and personal: not “she passed” or “they took her,” but “I killed you.” Keep UI, written clues and essential paths readable while the house changes.
 
-Do not explain a demon, assign Mara a diagnosis, or imply that grief makes a person dangerous. The glass can accuse her without the script treating its accusations as fact. Keep the people and the care specific; leave the impossible relationship unresolved. The final reception replaces the old behind-the-glass replacement walk entirely.
+## What the evidence actually says
 
-## INVERTED through play
+The old hospital envelope is a genuine **discharge / personal-property receipt**, not a death notice. It explicitly says Evelyn returned to care at home. The watch, ring and ribbon came home when she did. Mara’s assumption that the hospital explains the end of Mum’s life is hers; the paper never confirms it.
 
-- A faithful reflection becomes late, held, independently watchful, then absent.
-- A caring routine must first be reconstructed and then ended in reverse.
-- A door that once returned Mara to the house is removed; a surface that once stopped her becomes a route.
-- The player crosses into the familiar house's inverted image and leaves through the entrance.
-- “Keeping a place for you” changes from domestic reassurance to an invitation Mara did not accept.
+Mara says the nurse called at 03:17. The diary repeats that claim, but its first word has been rubbed through the paper. The final news report establishes the opposite direction of the call: Mara called the emergency service from the house. This contradiction is deliberate and resolved, not a continuity mistake.
 
-Take structural inspiration from P.T.'s domestic repetition and off-screen changes, and from the unease of an intimate family ritual. All scenes, assets, writing and sound are original to this project or credited licensed sources. Familiarity should make each change legible. Repetition must deliver a new action or piece of evidence, not add empty walking or idle timers.
+The mirror-side bedroom reveals the same place without the protective retelling: extensive blood on bedding and surrounding surfaces, the kitchen knife, ruined domestic care objects and Mum’s human presence or remains. The scene must clearly show a violent death in the bed; do not let generic red lighting substitute for physical evidence. Preserve the familiar bed, lamp, music box and room dimensions so the player recognizes what has changed. Crying and breath belong to Mara’s recognition. Do not make the victim perform screams as a reward.
 
-## Seven chapters and their gates
+At the bed, the player must inspect and acknowledge what happened. This sets `truthFound` and the compatible `farewellSaid` flag. The spoken admission names the knife, Mara’s continuing action and Mum’s gaze. Switching off the lamp is available only afterward. It releases the original front entrance. The gesture ends her performance of the good evening; it does not absolve her.
 
-| Chapter                       | Required route                                                                                                                                                                                                                                         | Change and dramatic purpose                                                                                                                                                                                                                                     |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **0 — The light you left on** | Answer the sitting-room telephone. Collect the spare fuse by the kitchen sink and install it in the utility panel. Give the normal hall reflection a short look.                                                                                       | The first voice is recognizably Mum. Her ordinary request is more persuasive than the fact that the house was disconnected. Establish readable doors, warm practical lamps and the real reflection before taking any of them away.                              |
-| **1 — Something stays**       | Watch the delayed reflection, turn away nearby, then look back. Open the hall drawer, take the bedroom key and read the bedside diary.                                                                                                                 | The reflection holds a pose and speaks with Mara's voice. A brief authored encounter may punctuate the return look. The key gives access to a real room and a written history of the objects, station and care order.                                           |
-| **2 — The hour of the call**  | Wipe the bathroom glass. Read **71:30** backward as **03:17** and set the hall clock. Then tune the kitchen radio to **93.7 FM**, from the diary/card. Only then answer the second sitting-room telephone call.                                        | The clock, tuner and telephone are three distinct actions. The hour is the nurse's call; the station is a familiar habit. The second caller sounds like Mara, remembers her hand on the music-box lid and asks her to finish what she left.                     |
-| **3 — Put everything back**   | Collect the **watch from the kitchen table**, **ring from the utility-room washing area**, and **ribbon from the sitting-room table**. Place **watch beside the kitchen radio → ring in the bath dish → ribbon on the music-box tray**, in that order. | The sealed personal effects have returned to the house. Each pickup has a specific memory. Correct placements remain visible. The glass's apparent approval should feel less like a reward than an admission that it has been waiting for this routine.         |
-| **4 — End the evening**       | Close the **bedroom music box → stop the bathroom tap → switch off the kitchen radio**.                                                                                                                                                                | This reverses the care order established in the diary. Each action removes a real local sound. A wrong sound restarts this sequence; the restored keepsakes stay placed. The telephone is dead and never counts as a wrong answer.                              |
-| **5 — No one in the glass**   | Return through the final rear threshold. Find the back door replaced by continuous wall and the large mirror empty. Walk physically into the mirror.                                                                                                   | The player has earned the quiet. The missing reflection is readable before the surface becomes passable. E can inspect and offer a thought; it cannot substitute for walking into the space. No extra key, collectible or arbitrary waiting gate is added here. |
-| **6 — The other side**        | Explore the inverted house. Go to Mum's bed and say the farewell. Then turn off the bedside lamp. Open the released **front door** and cross its threshold.                                                                                            | The farewell is personal and finite, rather than a final speech explaining the haunting. The lamp cannot be switched off before it. The front entrance is now the way out. It opens onto the reception rather than the street.                                  |
+## Seven ordered chapters
 
-For chapters 0–4, the rear door stays locked until that chapter is complete, then **opens automatically once** with an audible latch response. It cannot be used to repeat an unfinished chapter. Crossing the ready door returns Mara directly to the front entrance and closes the rear door behind her; no physical return corridor or fade is part of this transition. Walking the L, opening an interior door or backtracking never counts as a pass.
+| Chapter | Required actions | Dramatic work |
+| --- | --- | --- |
+| **0 — The light you left on** | Answer the sitting-room telephone, restore power with the kitchen fuse and utility panel, sustain attention on the faithful hall mirror. | Establish a credible ordinary house and an apparently helpful daughter. The opening Mum take is an ordinary remembered call. |
+| **1 — Something stays** | Watch the delayed reflection, look away nearby, return to its held gaze, take the hall-drawer key and read the bedroom diary. | The reflection refuses her habitual looking away. The diary gives the real care order and plants the selective “I did everything” account. |
+| **2 — The hour of the call** | Wipe the bathroom clue, read **71:30** backward as **03:17**, set the hall clock, tune the kitchen radio to **93.7 FM**, then answer the second telephone call. | Mara labels the time as the nurse’s call. Her own voice on the receiver remembers the music-box lid and the order before she called anyone. |
+| **3 — Put everything back** | Find the kitchen watch, utility-room ring and sitting-room ribbon; place watch by radio, ring by bath, ribbon by music box, in that order. | Real good acts become the pieces she keeps arranging to defend herself. Correct placements remain visible; errors preserve held items and prior progress. |
+| **4 — End the evening** | Close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. | Reverse the routine. The silence does not complete her account. Wrong sounds reset this sequence only; the telephone cannot spoil it. |
+| **5 — No one in the glass** | Find the back door replaced with continuous wall and the hall mirror empty; physically walk through the glass. | The missing person in Mara’s account is Mara. A physical crossing changes her viewpoint rather than handing her another key. |
+| **6 — The right way round** | Enter the revealed bedroom, inspect Mum’s bed and acknowledge the killing, then switch off the lamp, open the front door and cross into the wake. | The house supplies evidence before the external report names the act. The bedside admission is required; leaving is not forgiveness. |
 
-There are five rear-door crossings, then one mirror crossing, then the final front exit. Every completion has an inspectable result: restored power, a key/diary, a tuned station/call, three returned belongings, three silenced sources, an empty passable mirror and a darkened bedside lamp.
+For chapters 0–4, the rear door stays locked until the chapter is complete, then opens automatically once. Five rear crossings preserve held movement, velocity, lateral position, view and overshoot; no fade or physical return corridor is part of the loop. Interior doors and walking the L never count as a chapter. The mirror crossing and final front exit remain physical threshold crossings.
 
-Target **10–15 minutes for an unbriefed first playthrough**. This is a human-playtest target, not an established duration. A known-solution traversal cannot prove discovery time, emotional effectiveness or pacing. Add length through meaningful searching, reading, comparing and returning; do not stretch observation windows or lock the player behind dialogue timers to reach a number.
+The 10–15-minute first-play target remains a human-playtest target, not a measured duration. Do not add arbitrary idle gates to obtain a number. Pause, journal and forms suspend the game and audio; all changes reset on a new run.
 
-## Objects, clues and recovery
+## House and mirror direction
 
-The **sitting-room telephone** carries the two calls only. Its receiver, ringing and voice belong at that table. It never tunes a station, switches off the kitchen broadcast or penalizes the reverse-sound puzzle.
+Preserve the claustrophobic L, five furnished rooms and readable kitchen entrance that the player has already approved. A repaired rear-door leaf must stay inside its swept opening and must not appear through destination walls. The return is an immediate view into the same front hall.
 
-The **kitchen radio** has an FM scale, a 93.7 clue, its own local weather/static source and a separate offering place for the watch. In chapters 0/1 it switches on and off normally. In chapter 2 the hall clock must be solved before its tuning form is useful. A wrong or malformed frequency yields static and permits another attempt. The correct station enables the second call. Chapter 3 uses the nearby offering place; chapter 4 uses the radio's actual switch to finish the reversed evening.
+Mara’s ordinary female identity remains recognizable in the glass and bodily sightings. The early mirror uses timing and gaze. Later physical deformation and blood are manifestations of an account she cannot hold together, not a replacement culprit. Crawlers need weight and believable contact even when their joint angles are impossible. Creature sightings are authored, optional and finite; no fight or chase gate is introduced.
 
-The three belongings can be collected in any order. They must be placed in the diary's care order. A wrong item, wrong receiver or premature offering does not consume an item or erase a correct placement. The inventory distinguishes held belongings from those already returned. The optional hint names the next missing object or its receiver.
+Keep the sound puzzle’s earned silence in chapters 5 and 6. The bath, music box and kitchen weather bulletin must not restart to fill a quiet moment. The revealed bedroom adds one finite broken-voice/cry beat after overlapping dialogue clears, plus localized breath and room texture. Its evidence and acknowledgment remain legible with voices muted or sudden scares disabled.
 
-An early correct clock setting does not skip discovery of the bathroom writing; finding the writing later recognizes the correct existing hands. Repeat inspection never removes a clue, restores a taken key or duplicates a keepsake. The reverse-sound sequence can be retried without losing any chapter 3 placements. Later inspection keeps the earned radio, tap and music-box silence intact.
+## Funeral-room coda
 
-The lamp stays on when checked before the farewell. Repeating the farewell or lamp inspection cannot produce another front-unlock event. E opens the released front door once; the controller's physical threshold starts the reception. Restart restores the faithful reflection, all belongings, sound sources, lamps, doors, tuner, clues, event guards and the ending.
+The front door opens into the pale, enclosed wake: familiar chairs, a place reserved for Mara, flowers, portrait and the veiled seated versions of her. The banal funeral arrangement after the blood is the jarring change. Keep bounded walking, free look, flashlight and pause. Do not add a large monster attack that displaces the admission.
 
-## The house, body and escalation
+A **separate, visible funeral radio** plays the new factual `news` take once. Its source position belongs to that prop. The kitchen radio remains silent; it is neither secretly moved into the wake nor reused as a puzzle target. The news confirms Evelyn’s age, Mara’s seven-year role, the admitted repeated stabbing and the 03:17 emergency call. It explicitly rules out illness as the cause of death.
 
-Preserve the single cramped L and its turn toward the fitted mirror. All five furnished rooms remain part of one legible building. The kitchen door must be readable before power restoration. Realistic, varied materials, fitted joinery, a textured adult female character and credible room-specific objects carry the image; darkness should not hide a required door or turn surfaces into flat black.
-
-Mara remains the same woman throughout: ordinary burgundy blouse, dark jeans, bobbed brown hair and practical black shoes. Timing and gaze make the mirror wrong before blood-like damage does. Later appearances can be injured or bodily distorted, but retain enough identity for recognition. Do not replace a recognizable face with an anonymous mask.
-
-Begin with quiet rain and ordinary room sources. Through the belongings chapter, introduce structural movement, breathing and finite glimpses of something low in a passage. Establish props before moving or dropping them. Give each sound a physical source and leave time to inspect the aftermath. Authored encounters must not be consumed while entirely out of view or repeated randomly until they lose meaning.
-
-Chapter 4 takes sources away. Do not restart the radio, bath or music box as incidental ambience in chapters 5/6. The inverted house can retain distant structure and thin environmental presence without erasing the silence the player made. Inversion changes surfaces, spatial expectation and the threshold's meaning; the interface and clue text stay readable. No full-screen strobe or forced head motion is needed.
-
-Sudden scares remain optional without changing any puzzle or exit gate. The ordinary path, captions and important objects must remain legible at default settings. Sound begins after player gesture and suspends with pause, inventory and inspection forms.
-
-## The reception coda
-
-The front exit opens onto a pale, enclosed wake: arranged chairs, cloth-covered tables, flowers and the empty place bearing Mara's name. It is warm in the wrong way after the cold inverted house. Avoid a large monster reveal, celebratory sting or explanatory funeral photograph.
-
-The coda lasts roughly twenty seconds with free look and bounded walking. The rear door closes behind the player. Seated figures begin turning toward her after about seven seconds, staggered rather than synchronized like a machine. By the final voice cue, their shared attention and the empty chair should be clear. A slight change in posture can complete the recognition; do not turn it into a combat encounter.
-
-The final Mum take is about **2.87 seconds**. Cue it around second fifteen, after the player has had a chance to read the place card and notice the heads. Let it finish before the last two-second fade. The voice is the same preset as the opening Mum call, now without the telephone filter. Its intimacy is the last intrusion. Credits and replay follow the fade; there is no replacement walking back to the old bedroom.
+The report must finish in full. Drive coda timing from the decoded clip duration, then leave a short quiet beat, allow Mum’s final **“You looked right at me.”**, and leave another quiet beat before fading. The last voice is recognition without welcome, consolation or absolution. Seated heads can turn during the report, but no loud cue should obscure its facts. With voices muted, full readable captions and equivalent pacing still communicate the report. Credits and replay follow; there is no unrelated replacement walking back into the house.
 
 ## Complete performance script
 
-There are **twenty-two story performances and one ambient bulletin**, played from local Ogg files. Thirteen unchanged takes from 0.5 are retained, including the opening and ambient bulletin. Four later lines are revised and six new performances cover the belongings, completed ritual, missing reflection and farewell. Mara and the glass share Kokoro's British `bf_emma`; Mum uses `bf_isabella`; the weather reader uses `bm_george`. These are synthetic presets, not credited human acting or a real-person clone.
+There are **25 local synthetic performances**: the existing kitchen weather loop, one finite funeral news report, one broken-word crying take and 22 other story takes. Mara and the glass share Kokoro’s supplied British `bf_emma`; Mum uses `bf_isabella`; both fictional radio readers use `bm_george`. These are synthetic presets, not actors or real-person clones. The broken-word take is directed TTS with restrained processing, not a claim of a captured human sob.
 
-Exact words below match `VOICES` and `assets/voice/lines.json`. The render manifest records voices, processing, durations, hashes and measured decoded headroom. The radio has an eighteen-second quiet tail between sparse repetitions. Essential speech sits above ambience; the extended second call should not be interrupted by an authored scare.
+The weather file alone carries an eighteen-second quiet tail for sparse ambience. The funeral report has no padding tail and must never loop. `assets/voice/production.json` records exact text, voice, speed, filters, durations, output/model hashes and decoded true peaks. The table below mirrors `VOICES` and `lines.json`.
 
-| ID / intended cue                         | Speaker and exact line                                                                                                                                                                                                               | Direction                                                                                                            |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `arrival` / opening entry                 | MARA: “Mum's light is still on. I asked them to leave it.”                                                                                                                                                                           | A practical observation carrying an excuse; quiet, not a horror trailer.                                             |
-| `recording` / first receiver lift         | THE TELEPHONE: “Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.”                                                                                                               | Mum at the end of an ordinary evening. The final request is familiar, not knowingly threatening.                     |
-| `power` / restore kitchen circuit         | MARA: “They disconnected this house on Monday.”                                                                                                                                                                                      | The recognition comes after her hand has done the ordinary thing.                                                    |
-| `repeat` / first impossible return        | MARA: “I straightened that photograph before I left.”                                                                                                                                                                                | Trust the remembered small action more than the room.                                                                |
-| `late` / delayed reflection               | MARA: “That wasn't a blink.”                                                                                                                                                                                                         | Almost under her breath; let the player test the glass.                                                              |
-| `returned` / held reflection              | THE GLASS: “You always look away before the difficult part.”                                                                                                                                                                         | Mara's own recognizable voice, privately accusatory. No growl.                                                       |
-| `key` / take bedroom key                  | MARA: “Her bedroom. I haven't opened it since the hospital.”                                                                                                                                                                         | Practical identification, then the memory she has avoided.                                                           |
-| `diary` / read bedside diary              | MARA: “The kitchen radio. Then her bath. Then the music box. I thought the silence would wake her.”                                                                                                                                  | Remember the actions in her hands; the final sentence reveals the contradiction.                                     |
-| `time` / wipe bathroom writing            | MARA: “Three seventeen. That's when the nurse called.”                                                                                                                                                                               | Recognition of a specific call, not a puzzle-solved celebration.                                                     |
-| `call` / receiver after clock and station | THE TELEPHONE: “Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.” | The caller sounds like Mara. Controlled urgency, intimate impossible knowledge; do not certify when or where she is. |
-| `inverted` / physical mirror crossing     | MARA: “I stopped coming. Something kept doing it for me.”                                                                                                                                                                            | An admission followed by a frightening inference; give the inverted room room to register.                           |
-| `command` / inspect empty mirror          | THE GLASS: “You wanted an empty house. Go on.”                                                                                                                                                                                       | A plain invitation from a place where nobody is visible.                                                             |
-| `released` / house becomes quiet          | MARA: “She's gone. We don't have to do this again.”                                                                                                                                                                                  | A difficult boundary, without triumph or certainty that the house agrees.                                            |
-| `unlocked` / front latch releases         | THE GLASS: “Don't leave the light on for me.”                                                                                                                                                                                        | The glass's voice is familiar and nearly helpful. Do not explain who remains.                                        |
-| `ending` / reception, after figures turn  | MUM: “There you are, Mara. I kept your place.”                                                                                                                                                                                       | Mum's established voice, clear and close. A warm welcome that the room makes unbearable.                             |
-| `broadcast` / kitchen radio ambience      | THE KITCHEN RADIO: “Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.”                                                                                                                        | Impersonal local weather. No hidden instruction or address to Mara.                                                  |
-| `letter` / optional hospital envelope     | MARA: “Personal effects. They put her whole life in those two words.”                                                                                                                                                                | Dry anger at an institutional phrase; no eulogy.                                                                     |
-| `watch` / collect kitchen watch           | MARA: “They gave this back in a sealed bag. It's warm.”                                                                                                                                                                              | The impossible warmth arrives after a factual memory.                                                                |
-| `ring` / collect utility ring             | MARA: “She wore this for forty-three years. It used to catch on my hair.”                                                                                                                                                            | A tactile childhood memory that makes the object personal.                                                           |
-| `ribbon` / collect sitting-room ribbon    | MARA: “I tied the lid open. She hated when the music stopped.”                                                                                                                                                                       | An ordinary adaptation to make someone comfortable; do not over-explain it.                                          |
-| `ritual` / third correct offering         | THE GLASS: “There. You haven't forgotten how to be her daughter.”                                                                                                                                                                    | Approval as an intimate accusation. The same Mara voice, without hesitation.                                         |
-| `empty` / enter empty-mirror chapter      | MARA: “I'm still here. I should still be there.”                                                                                                                                                                                     | She is checking the simplest rule about her own presence.                                                            |
-| `farewell` / Mum's bed in inverted house  | MARA: “I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum.”                                                                                                                      | A specific reason to have kept returning, then a simple good night. Leave the last name quiet.                       |
+| ID / cue | Exact speaker and line | Performance direction |
+| --- | --- | --- |
+| `arrival` / opening entry | MARA: “Mum's light is still on. I asked them to leave it.” | Practical self-assurance. She is returning to the version of the house she can bear. |
+| `recording` / first sitting-room receiver lift | THE TELEPHONE: “Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.” | An ordinary, genuine memory of Mum alive. The request must not sound sinister or knowingly prophetic. |
+| `power` / restore kitchen circuit | MARA: “They disconnected this house on Monday.” | A small contradiction. Let the ordinary manual action finish before the thought. |
+| `repeat` / first impossible return | MARA: “I straightened that photograph before I left.” | Trust the remembered action more than the evidence in the room. |
+| `late` / delayed reflection | MARA: “That wasn't a blink.” | Under her breath. Give the player room to experiment. |
+| `returned` / look back at the held reflection | THE GLASS: “You always look away before the difficult part.” | Mara’s own recognizable voice. The glass accuses without naming the crime. |
+| `key` / take bedroom key | MARA: “Her bedroom. I haven't opened it since they took her away.” | Avoid the reason they took Mum away; Mara chooses a passive construction. |
+| `diary` / read bedside diary | MARA: “The kitchen radio. Then her bath. Then the music box. I thought the silence would wake her.” | A sincere remembered routine and a rehearsed explanation for the silence. |
+| `time` / read the backward bathroom time | MARA: “Three seventeen. That's when the nurse called.” | A confident false recollection. The final report explicitly establishes that Mara made the emergency call. |
+| `call` / second receiver lift, after clock and station | THE TELEPHONE: “Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.” | Mara’s own voice identifies actions and order. No hospital call is presented as an objective event. |
+| `inverted` / physical mirror crossing | MARA: “This is the room I keep turning away from.” | Recognition of avoidance before a direct confession. Let the player see the changed room. |
+| `command` / inspect the empty mirror | THE GLASS: “You keep putting yourself on the wrong side.” | The mirror is correcting her position in the story, not offering absolution. |
+| `released` / complete the reverse-sound puzzle | MARA: “It's quiet. That doesn't make it finished.” | The silence fails to produce closure. Preserve the unease. |
+| `unlocked` / front latch releases after bedside acknowledgment and lamp | THE GLASS: “Now tell it the right way round.” | The glass asks for an account with the actor and victim restored to their proper places. |
+| `ending` / after the funeral news has finished | MUM: “You looked right at me.” | Mum’s established voice, clear and close. Recognition, not welcome or forgiveness. Leave a quiet beat after it. |
+| `broadcast` / early kitchen radio ambience | THE KITCHEN RADIO: “Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.” | An impersonal original weather bulletin. Never play the murder report from this early radio loop. |
+| `letter` / optional hospital discharge/property receipt | MARA: “Personal effects. That's what they called them when they sent her home.” | She classifies the care discharge as loss. The document itself clearly says Mum returned home alive. |
+| `watch` / collect the kitchen watch | MARA: “They gave this back in a sealed bag. It's warm.” | A returned care item with an impossible tactile detail; do not invent a post-death hospital admission. |
+| `ring` / collect the utility-room ring | MARA: “She wore this for forty-three years. It used to catch on my hair.” | A specific, unperformed childhood memory. Keep its tenderness; guilt does not erase the shared history. |
+| `ribbon` / collect the sitting-room ribbon | MARA: “I tied the lid open. She hated when the music stopped.” | A small good act she returns to as evidence that she was a good daughter. |
+| `ritual` / third correct keepsake offering | THE GLASS: “There. Every little thing put back. That's how you told it.” | Approval becomes an accusation about selective storytelling. Calm, never a monster growl. |
+| `empty` / first entry to the missing-reflection chapter | MARA: “I kept leaving myself out of it.” | The missing figure is the missing actor in her own account. |
+| `farewell` / inspect Mum’s bed in the revealed room | MARA: “It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.” | An unambiguous first-person admission. Broken phrases, no triumphant villain speech and no claim Mum asked for it. |
+| `sob` / first physical entry to the inverted bedroom, after other speech clears | MARA: “No... no. Mum. I'm sorry. I'm so sorry.” | Broken synthetic words with space between them. Add restrained authored breath/sob texture in the room mix; never loop a confession or overlap its subtitles. |
+| `news` / one-shot from the visible funeral-room radio | THE FUNERAL RADIO: “Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.” | A sober fictional news reader. Facts rather than lurid adjectives: the victim, caregiver relationship, admitted act and emergency-call time. |
 
 ## Shared written discoveries
 
-The note, diary and property letter are exported once as `WRITINGS`. Physical writing and the inventory journal should use those same strings. Do not maintain a shorter physical clue with a different frequency, receiver name or order.
+Physical writing and the journal use the same exported `WRITINGS` strings. The hospital heading and the claim about the direction of the 03:17 call must retain their distinctions.
 
 ### Folded hall note
 
@@ -130,35 +112,51 @@ Her station is 93.7 FM. The kitchen radio for company, then her bath, then the b
 
 Before the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.
 
+SEVEN YEARS
+I knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.
+
 WHAT I BROUGHT HOME
-I left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They should not be here. The hospital bag was sealed.
+I left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.
 
 AFTER THE CALL
-The bathroom glass kept the hour backward. I kept winding the box. I thought the silence would wake her.
+The bathroom glass kept the hour backward. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.
 
 If I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.
 
 I have written that last line twice.
 ```
 
-### Hospital property letter
+### Hospital discharge / property receipt
 
 ```text
-ST. ANNE'S — PERSONAL EFFECTS
-E. VALE
-Collected by: MARA VALE
+ST. ANNE'S — DISCHARGE / PERSONAL PROPERTY
+PATIENT: EVELYN VALE
+Property received by: MARA VALE
 
 One wristwatch. One wedding ring. One ribbon.
-Items returned in a sealed property bag to the nominated next of kin.
+Items returned on discharge to home care.
+Long-term care to continue at the patient's home.
 
 In my handwriting, below the signature:
-I left my coat on. I thought I would only be a minute.
+I kept the house exactly how she liked it. I did everything.
 ```
 
-## Implementation and release boundaries
+### Bedside acknowledgment after the reveal
 
-`Story.ready()` governs only chapters 0–4. Completion synchronously sets `doorOpen` and queues `backdoor-unlocked` once per chapter. Interaction methods return their own event; `drainEvents()` or `observe()` delivers additional automatic events without duplicating the interaction. `crossBackDoor()` advances only an open, completed gate. `crossMirror()` advances only chapter 5 with `mirrorReady`. `enterWake()` requires chapter 6 and the released, physically opened front door.
+```text
+I SAID SHE DIED IN HER SLEEP.
 
-The stable scene flags are `radioTuned`, `radioFrequency`, held `keepsakes`, ordered `placedKeepsakes`, `ritualIndex`, `backdoorGone`, `mirrorReady`, `inverted`, `silenceComplete`, `farewellSaid`, `lampOff`, `frontReleased`, `frontOpen`, `wakeEntered` and `endingStarted`. `KEEPSAKE_ORDER`, `RADIO_SOLUTION` and `CHAPTERS` are shared constants. The controller, not the narrative model, owns physical threshold detection and player placement.
+The knife came from my kitchen. The cuts in the sheet follow my hand. I dialled for an ambulance at 03:17.
 
-Scope remains one house, seven chapters and one reception coda. No second floor, combat, branching ending tree, chase simulation or external voice service is required. Validate the full physical route, bad answers and restart before release. Human testing still needs to establish first-time duration, scare effectiveness, vocal delivery and brightness on ordinary displays. Production publication remains a separate release action.
+Mum was awake. She was looking at me.
+
+I did this.
+```
+
+## State and release boundaries
+
+`Story.ready()` still governs only chapters 0–4. The door latch opens once for a completed chapter; unfinished exits do not consume a pass. `crossMirror()` requires chapter 5 and `mirrorReady`. Bed inspection in chapter 6 alone sets `truthFound` and `farewellSaid`. The lamp, released front door and `enterWake()` all require the truth flag; clicking earlier beds or merely crossing the mirror cannot reveal it. Restart clears it.
+
+Keep the existing `farewell` event and `farewellSaid` field as compatible identifiers; in 0.7 they mean the acknowledgment, not a comforting goodbye. `WRITINGS.truth` and the new `news`/`sob` voice IDs supply the new content. The controller owns physical threshold placement, spatial dialogue, first-entry cry cue and duration-aware ending timeline.
+
+Scope remains one house, seven chapters and one finite wake. No extra floor, combat, branching ending tree, external voice service or chase simulation is needed. Validate wrong answers, puzzle order, all thresholds, truth/lamp/exit gates, new voice files, pause/mute, final report completion and restart. Human testing must still judge the reveal’s clarity, headphone mix, subjective horror and first-play duration. Keep this revision local until specifically approved for publication.

@@ -1,6 +1,6 @@
 # Kokoro voice performances
 
-The twenty-three shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
+The twenty-five shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
 
 Casting uses three of Kokoro's supplied synthetic British-English presets:
 
@@ -8,18 +8,18 @@ Casting uses three of Kokoro's supplied synthetic British-English presets:
 | --------------------------------------------------- | ------------- | ---------- | --------------------------------------------------------------------------- |
 | Mara, including the second telephone caller         | `bf_emma`     | 21         | Close, clear speech at the character's natural pitch                        |
 | The glass                                           | `bf_emma`     | 21         | The same identity, steadier pace and a restrained short reflection          |
-| Mum on the first telephone call and final reception | `bf_isabella` | 22         | Telephone bandwidth for the call; clear, full-range speech at the reception |
-| Kitchen weather service                             | `bm_george`   | 26         | A distinct man, radio filtering and an eighteen-second quiet tail           |
+| Mum on the first call and final recognition          | `bf_isabella` | 22         | Telephone bandwidth for the call; a clear, full-range final accusation |
+| Kitchen weather service / funeral news reader         | `bm_george`   | 26         | Radio filtering; only the weather loop carries an eighteen-second quiet tail |
 
 The model is not a substitute for directed acting: phrase delivery is controlled through the written punctuation, preset and pace, with role-specific post-processing. The glass retains Mara's real preset and pitch instead of becoming a pitch-shifted monster. Human performances remain a possible final improvement.
 
-There are twenty-two story performances and one ambient bulletin. Thirteen unchanged takes are retained from the 0.5 release, including the opening and ambient bulletin; four later lines are revised and six takes are added for the expanded ritual and farewell. Exact text, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
+There are twenty-two other story performances, one finite broken-word crying take, one funeral news report and one ambient kitchen weather loop. Twelve unchanged takes are retained from 0.6; eleven are revised for the murder revelation and two are added. The funeral report is original fictional news, not a real broadcast. It is a single finite take with no artificial padding tail. The crying take uses the existing Mara preset, separated phrases, scripted pauses and restrained amplitude modulation; it is not a recorded human sob. Exact text, phrase plans, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
 
 ## Provenance and license
 
 Kokoro's upstream project describes its weights as Apache licensed. The official sherpa-onnx Kokoro v1.0 model package includes Apache License 2.0; an unmodified copy is retained as `LICENSE_APACHE_2.0.txt`. See `MODEL_CARD.txt` for source URLs, the exact package hash and tested input hashes. The model weights, voice embeddings, eSpeak data and inference libraries are development tools stored outside the game checkout; they are not shipped to players.
 
-These are supplied synthetic preset names, not claims to have employed or imitated actors named Emma, Isabella or George. The weather bulletin is original game writing, not a recording from a real station.
+These are supplied synthetic preset names, not claims to have employed or imitated actors named Emma, Isabella or George. The weather bulletin and funeral news report are original game writing, not recordings from real stations.
 
 ## Reproduce
 
@@ -39,4 +39,4 @@ PYTHONPATH=/workspace/mirror-me-tools/python python3 tools/generate_voice.py /pa
 
 Append line IDs such as `arrival recording` to render only those takes. `--output-dir` makes an audition without overwriting shipped files. The runtime uses the bundled Great Britain lexicon and eSpeak language name `en`; the installed eSpeak dataset does not accept `en-gb` as a direct voice-file name.
 
-Audio is encoded at 24 kHz mono, Vorbis quality 5. Speech is loudness-normalized with a -4 dB true-peak synthesis target, leaving headroom for codec reconstruction and the game mixer. Each encoded file is decoded and measured; the renderer rejects any take exceeding -3 dBFS true peak. The radio's quiet tail is added after normalization. Listen on headphones before final release to judge acting, intelligibility and scene balance.
+Audio is encoded at 24 kHz mono, Vorbis quality 5. Speech is loudness-normalized with a -4 dB true-peak synthesis target, leaving headroom for codec reconstruction and the game mixer. Each encoded file is decoded and measured; the renderer rejects any take exceeding -3 dBFS true peak. The kitchen weather loop's quiet tail is added after normalization; the funeral news report has no such tail. Listen on headphones before final release to judge acting, intelligibility and scene balance.

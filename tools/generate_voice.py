@@ -38,6 +38,14 @@ def effects_for(role: str) -> str:
         return "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8"
     if role == "radio":
         return "highpass=f=400,lowpass=f=3200,loudnorm=I=-21:TP=-4:LRA=7,apad=pad_dur=18"
+    if role == "news":
+        # A finite, intelligible report at the wake; unlike the sparse kitchen
+        # weather loop it must not carry an eighteen-second artificial tail.
+        return "highpass=f=250,lowpass=f=5200,loudnorm=I=-20:TP=-4:LRA=7"
+    if role == "sobbing":
+        # Keep the broken words recognizable. This is a directed synthetic
+        # take with restrained breath-like amplitude, not a recorded human cry.
+        return "highpass=f=90,lowpass=f=8500,tremolo=f=4.7:d=0.12,loudnorm=I=-23:TP=-4:LRA=9"
     return "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8"
 
 
@@ -109,12 +117,25 @@ def main() -> None:
         if selected and name not in selected:
             continue
         started = time.monotonic()
-        audio = tts.generate(line["text"], sid=line["speaker_id"], speed=line["speed"])
-        if not audio.sample_rate or not len(audio.samples):
-            raise RuntimeError("Kokoro produced no speech for " + name)
-        if not any(abs(float(s)) > 0.005 for s in audio.samples):
+        # An optional finite phrase plan gives a broken take actual space to
+        # breathe, without asking TTS to speak a stage direction such as [sob].
+        segments = line.get("segments") or [line["text"]]
+        pauses = line.get("pauses_after_seconds", [])
+        samples = []
+        sample_rate = None
+        for index, text in enumerate(segments):
+            audio = tts.generate(text, sid=line["speaker_id"], speed=line["speed"])
+            if not audio.sample_rate or not len(audio.samples):
+                raise RuntimeError("Kokoro produced no speech for " + name)
+            if sample_rate is not None and sample_rate != audio.sample_rate:
+                raise RuntimeError("Sample rate changed within " + name)
+            sample_rate = audio.sample_rate
+            samples.extend(audio.samples)
+            if index < len(segments) - 1 and index < len(pauses):
+                samples.extend([0.] * round(float(pauses[index]) * sample_rate))
+        if not any(abs(float(s)) > 0.005 for s in samples):
             raise RuntimeError("Kokoro produced a silent take for " + name)
-        pcm = array.array("h", (round(max(-1, min(1, float(s))) * 32767) for s in audio.samples))
+        pcm = array.array("h", (round(max(-1, min(1, float(s))) * 32767) for s in samples))
         target = args.output_dir / (name + ".ogg")
         effects = effects_for(line["role"])
         with tempfile.TemporaryDirectory() as tmp:
@@ -122,7 +143,7 @@ def main() -> None:
             with wave.open(str(raw), "wb") as wav:
                 wav.setnchannels(1)
                 wav.setsampwidth(2)
-                wav.setframerate(audio.sample_rate)
+                wav.setframerate(sample_rate)
                 wav.writeframes(pcm.tobytes())
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(raw),
@@ -135,10 +156,13 @@ def main() -> None:
         report["clips"][name] = {
             "voice": line["voice"], "speaker_id": line["speaker_id"],
             "role": line["role"], "speed": line["speed"], "text": line["text"],
-            "speech_seconds": round(len(audio.samples) / audio.sample_rate, 3),
+            "speech_seconds": round(len(samples) / sample_rate, 3),
             "file_seconds": round(duration, 3), "effects": effects, "sha256": digest(target),
             "decoded_true_peak_dbfs": true_peak,
         }
+        if line.get("segments"):
+            report["clips"][name]["segments"] = segments
+            report["clips"][name]["pauses_after_seconds"] = pauses
         report_path.write_text(json.dumps(report, indent=2) + "\n")
         print(f"{name}: {line['voice']}, {duration:.2f}s, rendered in {time.monotonic()-started:.2f}s", flush=True)
 

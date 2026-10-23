@@ -22,8 +22,8 @@ weights, embeddings, phonemizer data and inference runtime stay outside it.
 Preset IDs use the official conversion's table:
 https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/kokoro/v1.0/generate_voices_bin.py
   21 bf_emma — Mara and the glass; second telephone call
-  22 bf_isabella — Mum / first telephone call and final reception
-  26 bm_george — original kitchen weather bulletin
+  22 bf_isabella — Mum / first telephone call and final recognition
+  26 bm_george — original kitchen weather bulletin and fictional funeral news report
 The preset labels identify supplied synthetic styles, not actors or cloned
 identifiable people. No human performance is claimed.
 
@@ -33,4 +33,8 @@ Sample rate: 24000 Hz. Exact line settings and output/model checksums are in
 production.json; source text and voice assignments are in lines.json.
 
 Kokoro v1.0 supersedes the former public-domain LJ Speech/Piper engine in this
-revision. No LJ Speech voice is used in the current twenty-three takes.
+revision. No LJ Speech voice is used in the current twenty-five takes.
+
+Revision 0.7 adds a finite fictional news report and a broken-word Mara take.
+The latter uses scripted phrase spacing and restrained amplitude modulation;
+it is synthetic TTS, not a recorded human sob or a real-person voice clone.

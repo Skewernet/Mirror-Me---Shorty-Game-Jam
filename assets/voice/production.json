@@ -87,11 +87,11 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "Her bedroom. I haven't opened it since the hospital.",
-      "speech_seconds": 3.143,
-      "file_seconds": 3.154,
+      "text": "Her bedroom. I haven't opened it since they took her away.",
+      "speech_seconds": 3.381,
+      "file_seconds": 3.392,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "9dfef0953d77ed92d764b82cf2cb9345eee29ad7089a78782327299eac546b45",
+      "sha256": "e6b7120de8a96ab9ef41365a594545432a1636a66f46d418fdf19fca4f320e27",
       "decoded_true_peak_dbfs": -4.0
     },
     "diary": {
@@ -123,23 +123,23 @@
       "speaker_id": 21,
       "role": "phone",
       "speed": 1,
-      "text": "Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.",
-      "speech_seconds": 12.154,
-      "file_seconds": 12.2,
+      "text": "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
+      "speech_seconds": 12.885,
+      "file_seconds": 12.9,
       "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
-      "sha256": "d01ebc4bc669a1fbbb13c60f643fe082296d10ff997fd4e088908ae2485f8460",
-      "decoded_true_peak_dbfs": -3.8
+      "sha256": "31c8adde7d0eb1174931ff2bbabdbeaa02a11c29f88575a3d136375030592dae",
+      "decoded_true_peak_dbfs": -3.6
     },
     "inverted": {
       "voice": "bf_emma",
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "I stopped coming. Something kept doing it for me.",
-      "speech_seconds": 2.998,
-      "file_seconds": 2.998,
+      "text": "This is the room I keep turning away from.",
+      "speech_seconds": 2.395,
+      "file_seconds": 2.395,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "36274480aadbc53ef994668e18b403d229536998f91c59b5008b036ead9f5d2a",
+      "sha256": "991947eb8f4cb87048b0488a00b4637eefa5941bad496e25390c2e66d8915fd2",
       "decoded_true_peak_dbfs": -4.0
     },
     "command": {
@@ -147,48 +147,48 @@
       "speaker_id": 21,
       "role": "glass",
       "speed": 0.96,
-      "text": "You wanted an empty house. Go on.",
-      "speech_seconds": 2.058,
-      "file_seconds": 2.09,
+      "text": "You keep putting yourself on the wrong side.",
+      "speech_seconds": 2.287,
+      "file_seconds": 2.319,
       "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "0d2f257c8dbfc3859be5f57239d2f1674848938415229daf964b1dddbbda3a1a",
-      "decoded_true_peak_dbfs": -6.1
+      "sha256": "bda4abe89661323550aa93b46de6d5ed21364333d9de68df57695b06e2a764dd",
+      "decoded_true_peak_dbfs": -5.4
     },
     "released": {
       "voice": "bf_emma",
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "She's gone. We don't have to do this again.",
-      "speech_seconds": 2.595,
-      "file_seconds": 2.595,
+      "text": "It's quiet. That doesn't make it finished.",
+      "speech_seconds": 2.697,
+      "file_seconds": 2.697,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "43b49e7a842c48303778b1330c33bafb438de652ffc11d38c9b0fac959b8a849",
-      "decoded_true_peak_dbfs": -4.2
+      "sha256": "da38aa116acb3cd1943dc5a66db2a2346b89ef6fad843e597c68d54e8e138504",
+      "decoded_true_peak_dbfs": -5.1
     },
     "unlocked": {
       "voice": "bf_emma",
       "speaker_id": 21,
       "role": "glass",
       "speed": 0.96,
-      "text": "Don't leave the light on for me.",
-      "speech_seconds": 1.651,
-      "file_seconds": 1.683,
+      "text": "Now tell it the right way round.",
+      "speech_seconds": 1.877,
+      "file_seconds": 1.909,
       "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "e24928b18930b3bd0b0baaa7473efe6e51b9a7a1041aa348b4b3e642eabeae87",
-      "decoded_true_peak_dbfs": -5.3
+      "sha256": "61a7c86b9453abd3c40469ddfc130d8482abaf0336cf4e939c2a4e75d818ac43",
+      "decoded_true_peak_dbfs": -6.4
     },
     "ending": {
       "voice": "bf_isabella",
       "speaker_id": 22,
       "role": "mum",
       "speed": 0.93,
-      "text": "There you are, Mara. I kept your place.",
-      "speech_seconds": 2.865,
-      "file_seconds": 2.865,
+      "text": "You looked right at me.",
+      "speech_seconds": 1.444,
+      "file_seconds": 1.444,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "1661b9300cec0a43ac38c2058a427c32f750775850a3fda1095463667e0bcf1a",
-      "decoded_true_peak_dbfs": -4.9
+      "sha256": "519e0ee9d55c466477ac76ca9109dbc047bfe2359c0eb65a4f0d7c7a3e841a91",
+      "decoded_true_peak_dbfs": -4.4
     },
     "broadcast": {
       "voice": "bm_george",
@@ -207,12 +207,12 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "Personal effects. They put her whole life in those two words.",
-      "speech_seconds": 3.616,
-      "file_seconds": 3.627,
+      "text": "Personal effects. That's what they called them when they sent her home.",
+      "speech_seconds": 3.742,
+      "file_seconds": 3.753,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "ae4362fa03625f362a8a5dfe555e6696f61275ada769dba8c013457dff4668da",
-      "decoded_true_peak_dbfs": -4.8
+      "sha256": "402f8cfef769efd008f44840aae06678d2d4f82227d2a69f8ca73f0161f2f3a8",
+      "decoded_true_peak_dbfs": -4.5
     },
     "watch": {
       "voice": "bf_emma",
@@ -255,23 +255,23 @@
       "speaker_id": 21,
       "role": "glass",
       "speed": 0.96,
-      "text": "There. You haven't forgotten how to be her daughter.",
-      "speech_seconds": 3.062,
-      "file_seconds": 3.1,
+      "text": "There. Every little thing put back. That's how you told it.",
+      "speech_seconds": 3.905,
+      "file_seconds": 4.0,
       "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "ddfc0cdc2d645a931b5d1ed9bbf904c8003e3579657fcb52cc29b9bbe49d735a",
-      "decoded_true_peak_dbfs": -4.3
+      "sha256": "79a3ced0ae2a2d2f8fe76b3d55275d3379f92065377320cd5075ea9d639ef561",
+      "decoded_true_peak_dbfs": -5.0
     },
     "empty": {
       "voice": "bf_emma",
       "speaker_id": 21,
       "role": "player",
       "speed": 0.94,
-      "text": "I'm still here. I should still be there.",
-      "speech_seconds": 2.685,
-      "file_seconds": 2.685,
+      "text": "I kept leaving myself out of it.",
+      "speech_seconds": 2.063,
+      "file_seconds": 2.063,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "3837771229100502aed4fee860a1b00c88491ba7ea197e0f1062cf628d4714f4",
+      "sha256": "b82a1ca86644b9844ef893200cf84540ac4e32a0d30fcfcbc6264e7e5eb4135e",
       "decoded_true_peak_dbfs": -5.8
     },
     "farewell": {
@@ -279,12 +279,47 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.91,
-      "text": "I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum.",
-      "speech_seconds": 6.351,
-      "file_seconds": 6.4,
+      "text": "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.",
+      "speech_seconds": 7.126,
+      "file_seconds": 7.2,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "4cc1a7e07fccdaf9a218bc7c039fd50ef27610744152fb6110bec51caeb0aafb",
-      "decoded_true_peak_dbfs": -3.6
+      "sha256": "6be37a283b72fb68ab5c6805563cfc747a19be5d9b1548ab0b477661f56f5c39",
+      "decoded_true_peak_dbfs": -4.1
+    },
+    "sob": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "sobbing",
+      "speed": 0.88,
+      "text": "No... no. Mum. I'm sorry. I'm so sorry.",
+      "speech_seconds": 6.252,
+      "file_seconds": 6.3,
+      "effects": "highpass=f=90,lowpass=f=8500,tremolo=f=4.7:d=0.12,loudnorm=I=-23:TP=-4:LRA=9",
+      "sha256": "c5372c3f9490d32f8095bf935181c7899bce97538608b990d75b19b509f524af",
+      "decoded_true_peak_dbfs": -6.6,
+      "segments": [
+        "No... no.",
+        "Mum.",
+        "I'm sorry.",
+        "I'm so sorry."
+      ],
+      "pauses_after_seconds": [
+        0.65,
+        0.9,
+        0.6
+      ]
+    },
+    "news": {
+      "voice": "bm_george",
+      "speaker_id": 26,
+      "role": "news",
+      "speed": 0.94,
+      "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
+      "speech_seconds": 20.781,
+      "file_seconds": 20.8,
+      "effects": "highpass=f=250,lowpass=f=5200,loudnorm=I=-20:TP=-4:LRA=7",
+      "sha256": "42eb797c932cdf93fc90dfbeb00f06fbe956366460d5fd059ad4c1e83a54d5cf",
+      "decoded_true_peak_dbfs": -3.5
     }
   }
 }

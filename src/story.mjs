@@ -51,6 +51,7 @@ export class Story {
     this.mirrorReady = false;
     this.inverted = false;
     this.farewellSaid = false;
+    this.truthFound = false;
     this.lampOff = false;
     this.frontReleased = false;
     this.frontOpen = false;
@@ -178,6 +179,7 @@ export class Story {
   enterWake() {
     if (
       this.stage !== 6 ||
+      !this.truthFound ||
       !this.frontReleased ||
       !this.frontOpen ||
       this.wakeEntered
@@ -365,12 +367,13 @@ export class Story {
     if (id === "bed-farewell") {
       if (this.stage !== 6) return "bed-waiting";
       if (this.farewellSaid) return "farewell-repeat";
+      this.truthFound = true;
       this.farewellSaid = true;
       return "farewell";
     }
     if (id === "bedside-lamp") {
       if (this.stage !== 6) return "lamp-stay";
-      if (!this.farewellSaid) return "lamp-not-yet";
+      if (!this.truthFound || !this.farewellSaid) return "lamp-not-yet";
       if (this.lampOff) return "lamp-already-off";
       this.lampOff = true;
       this.frontReleased = true;
@@ -378,7 +381,7 @@ export class Story {
       return "lamp-off";
     }
     if (id === "front-door") {
-      if (!this.frontReleased) return "front-locked";
+      if (!this.truthFound || !this.frontReleased) return "front-locked";
       if (this.frontOpening) return "front-open";
       this.frontOpen = true;
       this.frontOpening = true;
@@ -455,9 +458,10 @@ export class Story {
     if (this.stage === 5)
       return "The back door is gone. Your reflection is gone. Walk into the empty mirror.";
     if (this.stage === 6) {
-      if (!this.farewellSaid)
-        return "Go to Mum's bed. There is something you still have to say.";
-      if (!this.lampOff) return "Turn off the lamp beside her bed.";
+      if (!this.truthFound)
+        return "Go to Mum's bed. Look at what the room has kept.";
+      if (!this.lampOff)
+        return "You have seen what happened. Turn off the lamp beside her bed.";
       if (!this.frontOpen)
         return "The front lock has released. This is the door you came through.";
       return "Leave through the front doorway.";
@@ -468,9 +472,11 @@ export class Story {
 export const WRITINGS = {
   note: "IF THE HALL RETURNS, FINISH WHAT YOU LEFT.\nIF THE LATCH HOLDS, SOMETHING IS UNFINISHED.\nWHEN THE GLASS IS EMPTY, WALK THROUGH.\n\nI know this handwriting.",
   diary:
-    "HER EVENING\nHer station is 93.7 FM. The kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They should not be here. The hospital bag was sealed.\n\nAFTER THE CALL\nThe bathroom glass kept the hour backward. I kept winding the box. I thought the silence would wake her.\n\nIf I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.\n\nI have written that last line twice.",
+    "HER EVENING\nHer station is 93.7 FM. The kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nSEVEN YEARS\nI knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.\n\nAFTER THE CALL\nThe bathroom glass kept the hour backward. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.\n\nIf I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.\n\nI have written that last line twice.",
   letter:
-    "ST. ANNE'S — PERSONAL EFFECTS\nE. VALE\nCollected by: MARA VALE\n\nOne wristwatch. One wedding ring. One ribbon.\nItems returned in a sealed property bag to the nominated next of kin.\n\nIn my handwriting, below the signature:\nI left my coat on. I thought I would only be a minute.",
+    "ST. ANNE'S — DISCHARGE / PERSONAL PROPERTY\nPATIENT: EVELYN VALE\nProperty received by: MARA VALE\n\nOne wristwatch. One wedding ring. One ribbon.\nItems returned on discharge to home care.\nLong-term care to continue at the patient's home.\n\nIn my handwriting, below the signature:\nI kept the house exactly how she liked it. I did everything.",
+  truth:
+    "I SAID SHE DIED IN HER SLEEP.\n\nThe knife came from my kitchen. The cuts in the sheet follow my hand. I dialled for an ambulance at 03:17.\n\nMum was awake. She was looking at me.\n\nI did this.",
 };
 export const VOICES = {
   arrival: {
@@ -493,7 +499,7 @@ export const VOICES = {
   },
   key: {
     speaker: "MARA",
-    text: "Her bedroom. I haven't opened it since the hospital.",
+    text: "Her bedroom. I haven't opened it since they took her away.",
   },
   diary: {
     speaker: "MARA",
@@ -505,26 +511,32 @@ export const VOICES = {
   },
   call: {
     speaker: "THE TELEPHONE",
-    text: "Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.",
+    text: "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
   },
   inverted: {
     speaker: "MARA",
-    text: "I stopped coming. Something kept doing it for me.",
+    text: "This is the room I keep turning away from.",
   },
-  command: { speaker: "THE GLASS", text: "You wanted an empty house. Go on." },
+  command: {
+    speaker: "THE GLASS",
+    text: "You keep putting yourself on the wrong side.",
+  },
   released: {
     speaker: "MARA",
-    text: "She's gone. We don't have to do this again.",
+    text: "It's quiet. That doesn't make it finished.",
   },
-  unlocked: { speaker: "THE GLASS", text: "Don't leave the light on for me." },
-  ending: { speaker: "MUM", text: "There you are, Mara. I kept your place." },
+  unlocked: {
+    speaker: "THE GLASS",
+    text: "Now tell it the right way round.",
+  },
+  ending: { speaker: "MUM", text: "You looked right at me." },
   broadcast: {
     speaker: "THE KITCHEN RADIO",
     text: "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
   },
   letter: {
     speaker: "MARA",
-    text: "Personal effects. They put her whole life in those two words.",
+    text: "Personal effects. That's what they called them when they sent her home.",
   },
   watch: {
     speaker: "MARA",
@@ -540,11 +552,22 @@ export const VOICES = {
   },
   ritual: {
     speaker: "THE GLASS",
-    text: "There. You haven't forgotten how to be her daughter.",
+    text: "There. Every little thing put back. That's how you told it.",
   },
-  empty: { speaker: "MARA", text: "I'm still here. I should still be there." },
+  empty: {
+    speaker: "MARA",
+    text: "I kept leaving myself out of it.",
+  },
   farewell: {
     speaker: "MARA",
-    text: "I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum.",
+    text: "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.",
+  },
+  sob: {
+    speaker: "MARA",
+    text: "No... no. Mum. I'm sorry. I'm so sorry.",
+  },
+  news: {
+    speaker: "THE FUNERAL RADIO",
+    text: "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
   },
 };
