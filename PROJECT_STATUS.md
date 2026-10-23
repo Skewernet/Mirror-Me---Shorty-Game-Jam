@@ -2,7 +2,7 @@
 
 Updated October 23, 2026 (America/Denver).
 
-**Development:** 0.5 realism / threshold-loop revision on local branch `develop/realism-threshold-loop`. It has not been pushed or deployed. **Production:** the owner-approved 0.4 remains at https://mirror-me.pages.dev; GitHub `main` and its public build manifest identify that release.
+**Production:** the owner-approved 0.5 realism / threshold-loop game is live at https://mirror-me.pages.dev. GitHub `main` and local `main` contain the approved changes. Gameplay revision `6473461` deployed automatically from GitHub; all 96 public runtime hashes matched the tested build. `/build-id.json` identifies the exact current release, including release-record-only commits.
 
 ## Implemented in 0.5
 
@@ -24,10 +24,11 @@ Updated October 23, 2026 (America/Denver).
 - Ordinary-mode browser smoke passes the real render loop without a test harness: pointer lock, walking, flashlight, journal/pause, credits, resolution/resize and picture/sound/comfort controls. A first active-render assertion timed out under concurrent SwiftShader load; the solo run with paused inspection passed.
 - Final visual review corrected overlit skin, eye alpha, hair highlights, mirror fill and overly simple wallpaper. Independent read-only review found and verified fixes for off-screen scare consumption, quiet-state interaction messages and the no-AudioContext bathroom fallback.
 - The final known-solution simulation takes 220.9 game seconds, excluding real voice waiting. It is not a first-time play-duration measurement.
+- Production HTTPS smoke passed with normal certificate validation: model/material/HDR loads, full credits, controls/play/pause and non-silent voice decoding, without a test harness, external runtime requests or browser/network errors.
 
-## Remaining before release
+## Remaining before jam submission
 
-The local runtime is complete and the automated route passes. Release preparation includes an immutable, revision-identified payload with asset hashes, checked source/license coverage and staged browser startup. Production promotion remains a separate owner decision.
+The local runtime is complete and the automated route passes. Release preparation includes an immutable, revision-identified payload with asset hashes, checked source/license coverage and staged browser startup. The owner subsequently approved publication of this 0.5 build; future game changes need their own release approval.
 
 Human playtesting must judge first-time clarity, scare effectiveness, perceived duration, voice acting and headphone balance. The target is 8–12 minutes of discovery, not enforced idle time; automated known-solution timing does not establish that. Test Chrome/Firefox and real desktop GPUs before jam submission; cloud software rendering is not performance evidence. Facial animation remains procedural rather than performance captured. The realistic model and material pass is not a claim of scan-based or film-quality graphics. There is no save system, combat, chase AI, second floor or branching ending.
 
@@ -35,4 +36,4 @@ October 25 remains the deadline. Freeze scope around this complete five-room/fiv
 
 ## Publication
 
-The Pages project is Git-connected to `main`, with production and branch-preview deployment enabled. Pushing any branch may publish. The owner required approval of specific production changes; 0.5 has no publication approval. Keep commits local until that approval. Release preparation and read-only verification do not change Cloudflare resources.
+The Pages project is Git-connected to `main`, with production and branch-preview deployment enabled. Pushing any branch may publish. The owner approved the specific 0.5 build before promotion. Automatic deployment `282d572e-4daa-49ad-bec3-046c7d68f98b` succeeded for gameplay revision `6473461`, and all 96 public payload hashes matched. The GitHub push webhook is now proven for this release. Release-record documentation may advance the manifest revision without changing game assets. Future game changes require their own approval; do not change other Cloudflare projects.

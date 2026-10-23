@@ -14,7 +14,7 @@ Mara's reflection becomes late, held, damaged, absent and independent across fiv
 
 The sitting-room **telephone carries calls only**. The separate **kitchen radio** has its own weather bulletin, tuning light, speaker and knobs. The last routine is undone in reverse: bedroom music box → bathroom tap → kitchen radio. Checking the telephone cannot spoil that puzzle. Seventeen dialogue/radio takes now use distinct offline Kokoro voices for Mara, Mum and the radio; all performances are synthetic.
 
-**0.5 is a local development build, not the production release.** The approved 0.4 remains at [mirror-me.pages.dev](https://mirror-me.pages.dev) on GitHub `main`; its release manifest identifies the exact revision. First-time duration, scare effectiveness, subjective voice quality and target-GPU performance need human playtesting. The discovery target is 8–12 minutes, with no added wait timers.
+**The owner-approved 0.5 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** The automatic GitHub deployment of gameplay revision `6473461` succeeded, and all 96 public runtime files matched the tested manifest. `/build-id.json` identifies the current revision, including any release-record-only commits. First-time duration, scare effectiveness, subjective voice quality and target-GPU performance need human playtesting. The discovery target is 8–12 minutes, with no added wait timers.
 
 ## Run locally
 
@@ -64,6 +64,6 @@ Twenty-one unit tests cover movement, rear-door progression, early exits, puzzle
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. Do not push the development branch or deploy without the owner's approval of the specific build. Earlier webhook behavior was unreliable; a push alone is not proof of deployment.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication of this 0.5 build. Future game changes require their own specific approval before a potentially publishing push or deployment. The automatic `main` deployment of `6473461` is now verified; still check the deployment result and public asset hashes rather than treating a push alone as proof.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

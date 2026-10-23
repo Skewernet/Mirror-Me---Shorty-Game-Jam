@@ -139,3 +139,12 @@
 - Independent review found three player-facing edge cases and verified the corrections: looking far above/below a hallway appearance no longer consumes it unseen; rechecking the final tap/music box reports the established silence; bathroom drip events are safe when Web Audio cannot initialize.
 - Updated the complete direction/script, README and current status for the single L, rear-door return, real character, Kokoro cast, scare comfort control and full end/public asset credits. Kept the original audit as historical context.
 - Added credit coverage as a mandatory guard in static staging and local packaging, and included the copy-ready game description in both payloads. Local voice and game implementation commits remain on `develop/realism-threshold-loop`; no GitHub push, production deployment or Cloudflare resource change accompanies this revision.
+
+
+## October 23, 2026 — owner-approved 0.5 production release
+
+- The owner approved publication of the reviewed 0.5 build `6473461`. Rechecked the correct Cloudflare project, GitHub repository, production branch, build command and automatic-deployment settings before pushing. Fast-forwarded `main` without changing the tested game.
+- GitHub push automatically created successful production deployment `282d572e-4daa-49ad-bec3-046c7d68f98b`. This confirms webhook operation for this release; no extra deployment, project creation or Cloudflare setting change was needed.
+- Verified the public 0.5 manifest and all 96 payload SHA256 hashes against the immutable tested build. Retained the gameplay-release receipt outside the checkout at `/workspace/artifacts/mirror-me-6473461-production-receipt.json`.
+- Normal-TLS live Chromium smoke passed exact revision, local character/material/HDR loading, complete free-asset credits, pointer lock, walking, flashlight and pause. Arrival, second-call and radio audio decoded with non-silent data from production. No external runtime requests, page/console errors, failed requests or HTTP errors occurred. Existing approved certificate trust was reused; no certificate import or TLS bypass was performed.
+- Updated the release documentation only. Its follow-up manifest revision carries the same 96 game/credit payload hashes as approved `6473461`. Future gameplay changes still require their own production approval.
