@@ -21,3 +21,6 @@ Serve the repo root with a static HTTP server (e.g. `python -m http.server 8000`
 4. Audio, polish, accessibility and submission testing
 
 No P.T. assets or game code are used. Record external asset attributions before submission.
+
+### Development handoff
+See [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) for the current code audit, first vertical-slice plan, acceptance checks and production deployment safeguards.
