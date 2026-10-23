@@ -1,9 +1,77 @@
 {
-  "arrival":{"text":"I know this house. I just don't remember the way in.","role":"player","speed":0.92},
-  "repeat":{"text":"That picture. It was the other way up.","role":"player","speed":0.88},
-  "late":{"text":"Did I move first?","role":"player","speed":0.86},
-  "returned":{"text":"You can stop now. I remember how to be you.","role":"glass","speed":0.89},
-  "key":{"text":"It's warm.","role":"player","speed":0.87},
-  "unlocked":{"text":"You always needed someone to open the door.","role":"glass","speed":0.91},
-  "ending":{"text":"Stay there. It's my turn.","role":"glass","speed":0.86}
+  "arrival": {
+    "text": "I know this house. I just don’t remember the way in.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "recording": {
+    "text": "If you are hearing this, leave the lights on. There is a spare fuse in the kitchen.",
+    "role": "phone",
+    "speed": 0.91
+  },
+  "power": {
+    "text": "There. Now why does that feel worse?",
+    "role": "player",
+    "speed": 0.91
+  },
+  "repeat": {
+    "text": "That picture. It was the other way up.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "late": {
+    "text": "Did I move first?",
+    "role": "player",
+    "speed": 0.91
+  },
+  "returned": {
+    "text": "You can stop now. I remember how to be you.",
+    "role": "glass",
+    "speed": 0.88
+  },
+  "key": {
+    "text": "The bedroom key. Someone has been holding it.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "diary": {
+    "text": "Radio. Water. A lullaby. Every night, in that order.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "time": {
+    "text": "It isn’t a time. It’s the reflection of one.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "call": {
+    "text": "You were never the one making the sounds. Make them stop. Last sound first.",
+    "role": "phone",
+    "speed": 0.91
+  },
+  "inverted": {
+    "text": "This is the same house. Why does everything feel like the other side?",
+    "role": "player",
+    "speed": 0.91
+  },
+  "command": {
+    "text": "Come closer. Do exactly what I do.",
+    "role": "glass",
+    "speed": 0.88
+  },
+  "released": {
+    "text": "No. You can stay there.",
+    "role": "player",
+    "speed": 0.91
+  },
+  "unlocked": {
+    "text": "You always needed someone to open the door.",
+    "role": "glass",
+    "speed": 0.88
+  },
+  "ending": {
+    "text": "There. Stay where I used to be. It’s my turn.",
+    "role": "glass",
+    "speed": 0.88
+  }
 }

@@ -37,5 +37,7 @@ for name, line in lines.items():
         effects = 'highpass=f=100,lowpass=f=6000,loudnorm=I=-20:TP=-3:LRA=8'
         if line['role'] == 'glass':
             effects = f'asetrate={audio.sample_rate}*0.94,aresample=22050,highpass=f=120,lowpass=f=3200,aecho=0.8:0.35:74:0.12,loudnorm=I=-21:TP=-3:LRA=7'
+        if line['role'] == 'phone':
+            effects = 'highpass=f=350,lowpass=f=2300,loudnorm=I=-20:TP=-3:LRA=8'
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', str(raw), '-af', effects, '-ar', '22050', '-c:a', 'libvorbis', '-q:a', '3', str(root / 'assets/voice' / f'{name}.ogg')], check=True)
     print(name, round(len(audio.samples) / audio.sample_rate, 2), 'seconds', flush=True)

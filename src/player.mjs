@@ -1,5 +1,6 @@
 import * as T from "three";
 import { wishDirection, moveWithCollision } from "./physics.mjs";
+import {SPAWN} from "./layout.mjs";
 export class Player {
   constructor(camera) {
     this.camera = camera;
@@ -9,9 +10,9 @@ export class Player {
     this.reset();
   }
   reset() {
-    this.x = 0;
-    this.z = 5.2;
-    this.yaw = 0;
+    this.x = SPAWN.x;
+    this.z = SPAWN.z;
+    this.yaw = SPAWN.yaw;
     this.pitch = 0;
     this.distance = 0;
     this.bobOffset = 0;
@@ -41,8 +42,8 @@ export class Player {
       Number(this.keys.has("KeyA") || this.keys.has("ArrowLeft"));
     const direction = wishDirection(forward, strafe, this.yaw),
       blend = 1 - Math.exp(-dt * (forward || strafe ? 15 : 22));
-    this.vx += (direction.x * 2.05 - this.vx) * blend;
-    this.vz += (direction.z * 2.05 - this.vz) * blend;
+    this.vx += (direction.x * 1.85 - this.vx) * blend;
+    this.vz += (direction.z * 1.85 - this.vz) * blend;
     const bx = this.x,
       bz = this.z;
     moveWithCollision(this, this.vx * dt, this.vz * dt, colliders);
