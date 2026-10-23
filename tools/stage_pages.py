@@ -12,7 +12,8 @@ def stage(parent=Path('/workspace/artifacts'), output_dir=None):
     revision = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
     if subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip():
         raise RuntimeError('Commit or preserve working changes before preparing an identified production build.')
-    files = [ROOT / 'index.html', ROOT / 'style.css', ROOT / 'ATTRIBUTIONS.md']
+    subprocess.check_call([sys.executable, str(ROOT / 'tools/check_credits.py')], cwd=ROOT)
+    files = [ROOT / 'index.html', ROOT / 'style.css', ROOT / 'ATTRIBUTIONS.md', ROOT / 'GAME_DESCRIPTION.md']
     for folder in ('src', 'vendor', 'assets'):
         files.extend(p for p in sorted((ROOT / folder).rglob('*')) if p.is_file())
     payload = {}
@@ -21,7 +22,7 @@ def stage(parent=Path('/workspace/artifacts'), output_dir=None):
             raise RuntimeError(f'Unexpected symlink in runtime assets: {path.relative_to(ROOT)}')
         payload[path.relative_to(ROOT).as_posix()] = path.read_bytes()
     manifest = {
-        'project': 'mirror-me', 'version': 'mara-story-0.4', 'revision': revision,
+        'project': 'mirror-me', 'version': 'realism-threshold-0.5', 'revision': revision,
         'files': {name: hashlib.sha256(data).hexdigest() for name, data in payload.items()},
     }
     payload['build-id.json'] = (json.dumps(manifest, indent=2) + '\n').encode()

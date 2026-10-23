@@ -4,11 +4,13 @@ Usage: python tools/package.py /path/outside/checkout/mirror-me.zip
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import sys
+import subprocess
 
 root = Path(__file__).resolve().parents[1]
+subprocess.check_call([sys.executable, str(root / 'tools/check_credits.py')], cwd=root)
 output = Path(sys.argv[1]).resolve()
 output.parent.mkdir(parents=True, exist_ok=True)
-files = [root / 'index.html', root / 'style.css', root / 'ATTRIBUTIONS.md']
+files = [root / 'index.html', root / 'style.css', root / 'ATTRIBUTIONS.md', root / 'GAME_DESCRIPTION.md']
 for folder in ('src', 'vendor', 'assets'):
     files.extend(p for p in sorted((root / folder).rglob('*')) if p.is_file())
 with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
@@ -16,7 +18,7 @@ with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
         if path.is_symlink():
             raise ValueError(f'Refusing a symlink in runtime files: {path}')
         archive.write(path, path.relative_to(root))
-    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — MARA / PICTURE AND STORY LOCAL REVIEW BUILD
+    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — REALISM / THRESHOLD LOOP 0.5 LOCAL REVIEW BUILD
 Original concept and direction: Skewernet. AI-assisted development: ChatGPT/Codex.
 
 Extract the entire archive. From the extracted folder, run:
