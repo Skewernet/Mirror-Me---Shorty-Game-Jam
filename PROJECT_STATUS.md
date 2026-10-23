@@ -1,35 +1,36 @@
 # MIRROR ME — Current status
 
-**Version:** First encounter / playable slice 0.2 (October 22, 2026, America/Denver)
-**Source and release:** GitHub `main` and Cloudflare Pages production are synchronized through a verified Git-source build. The live `build-id.json` gives the exact current revision. Local development branch: `develop/first-mirror-slice`.
+**Version:** House expansion 0.3, October 22, 2026 (America/Denver).
+**Development:** Local branch `develop/house-expansion`. Not pushed or deployed. GitHub main and approved production remain at `e90d894`; `/build-id.json` identifies the live version.
 
 ## Implemented
 
-- Static browser game with local, licensed Three.js dependencies; no external runtime requests.
-- Original procedural PS1-style surfaces, a domestic hallway circuit with blind corners, practical lighting, framed landscape, clock, furniture and clutter.
-- Smooth walking, normalized diagonals, collision substeps, wall sliding, clean input release on pause/blur and adjustable sensitivity/optional walking motion.
-- Real planar room reflection with a reflection-only human proxy: obedient, delayed, then held at the glass with independent gaze.
-- Authored progression: the first mirror must be observed before the next pass. An inverted painting and backward clock signal the changed house.
-- Folded note and brass key in an inspectable pocket inventory. The drawer opens and exposes a key only after the mirror encounter; early interactions recover safely.
-- Key-operated animated front door, short voiced ending and complete replay/reset.
-- Original Web Audio hum, air, footsteps, knocks, wood/metal effects; seven credited synthetic provisional speech clips, subtitles, sound/voice controls. Audio starts from a gesture and suspends during pause/inventory.
-- Title, pause, restart, settings and inventory screens. Written creative direction, trigger script, actor brief, attribution and offline voice-generation tool.
+- Five actual rooms with operable doors and furniture collision, connected to a blind-corner hallway circuit. The bedroom key unlocks the bedroom, not an early exit.
+- Detailed original material/photo atlases, smooth furniture and anatomical figure geometry, cloth, rain-lit windows, restrained bump/roughness, warm practical lamps, a static hero shadow and flashlight shadows. Balanced 720p, detailed 900p and retro 480p choices; brightness and grain controls.
+- Accelerated walking, wall sliding, collision substeps, normalized diagonals, clean input release and optional head motion. Visible geometry occludes interaction prompts.
+- Real planar room reflection and reflection-only occupant: faithful, delayed, held, absent, then commanding. A visible replacement sequence leaves the player behind glass.
+- Five gated passes: telephone/fuse/power/normal mirror; delayed mirror/bedroom diary; bathroom time/hall clock/second telephone call; reversed three-room sound sequence; disobedience/exit/replacement. Exploration tasks, not added wait timers, provide length.
+- Environmental changes: family disappears from photograph, quilt breathes, furniture inverts, lighting shifts, clock reverses, a passage watcher appears and vanishes. Watcher observation respects physical sightlines.
+- Inventory/journal records items and puzzle clues. Real clock form validates its time. Optional H hints and recoverable wrong puzzle order prevent permanent failure.
+- Positional room audio, low electrical/air bed, material footsteps, water, telephone, lullaby, sparse knocks and effects. Fifteen original synthetic provisional voiced lines with subtitles, gesture-started playback, pause/resume and voice/volume controls.
+- Title, pause, picture/comfort/audio settings, complete ending and reset. No external runtime service.
 
 ## Verification
 
-- Nine physics/progression tests passed.
-- Chromium deterministic playthrough passed: actual movement through both blind corners; believable reflection before progression; measurable pose delay; independently tracked gaze; look-away/look-back event; early drawer recovery; inventory; paused gameplay/audio; wall/prop collision; line-of-sight targeting; actual unlocked exit; ending and full reset; seven non-silent decoded voice files. No page errors or failed requests in the passing run.
-- Normal mode, with no test harness, passed a separate smoke check for movement, pointer lock, Escape, settings, inventory pause and resize.
-- Screenshots reviewed for hallway, faithful/held mirror, inventory, title and ending. This establishes rendering, not a subjective horror or audio-quality verdict.
+- Fifteen unit tests pass for collision and the expanded progression, including early actions, all gates, incorrect sound order, clock validation, final disobedience and reset.
+- A full deterministic Chromium playthrough traverses all five rooms with actual collision-respecting movement, uses the clock UI, checks watcher occlusion/disappearance and persistent final-pass silence, completes all five passes, and verifies inventory, pause/audio, flashlight, ending/reset and fifteen non-silent decoded voice clips. No page errors or failed requests in the passing run.
+- The known-solution route takes approximately 230 seconds of simulation. This does not measure first-time play length or establish that the experience is frightening.
+- Room, mirror and ending screenshots reviewed. A separate normal-mode Chromium check passed live rendering, walking/pointer lock, flashlight, journal pause/resume, Escape, picture settings, brightness/grain controls, hints and resize without errors. The test harness is absent in this mode.
+- Static release staging includes a source revision and SHA256 manifest. Production publication remains withheld pending specific owner approval.
 
-## Remaining work
+## Remaining before the October 25 deadline
 
-Human desktop/headphone playtest, Firefox verification, real-device frame-rate profiling, a more expressive final reflected character, directed human voice recording if available, final sound balancing, one meaningful mirrored-world puzzle, and the final replacement sequence. Current content is a short first encounter; it does not yet deliver the complete 5–8 minute jam arc. No mobile support or persistent save system is planned for this slice.
+Human desktop/headphone playtesting is the priority: route readability, puzzle comprehension, scare timing, voice mix, brightness and frame rate on a real GPU. Target 8–12 minutes for a first-time player; measure before claiming it. Tune existing content from feedback before adding more rooms or systems. Human voice acting and a more expressive reflected face are desirable polish if time allows.
 
-Firefox is not installed; its official browser download was denied by the environment egress policy. The original Chromium CDN certificate blocker is resolved for the game by serving the pinned dependency locally. Cloudflare access is now authenticated. Found and reused the existing `mirror-me` project at https://mirror-me.pages.dev, connected to the correct GitHub repository and main branch. Direct Upload of `11c84c7` succeeded and all 24 public runtime assets matched the staged build. Fixed the public verifier user-agent after Cloudflare rejected Python urllib defaults (1010). Configured Git builds to stage a clean dist artifact and added explicit Git-build and read-only verification modes. Earlier pushes produced no deployment records despite enabled automation, so GitHub push success must not be equated with a live release. A subsequent Git-source build of `1b52651` also succeeded: Cloudflare fetched main, ran the staged build, published production, and all 24 runtime hashes matched. The explicit release command verifies both source commit and public content. Automatic webhook delivery remains unproven despite enabled settings; use the explicit Git-build command for approved releases. See CLOUDFLARE_SETUP.md; the live build-id identifies the actual current version.
+Firefox is unverified; its browser download was blocked by environment egress policy. No mobile controls, persistent save, combat, enemy AI, alternate ending or large asset pipeline is planned. The character and furniture remain original procedural models, not scanned or photorealistic assets.
 
-## Next milestone
+## Release connection
 
-Playtest and tune the mirror's visual credibility and the route's readability, then build one mirrored-logic interaction into a complete short ending. See [GAME_DIRECTION.md](GAME_DIRECTION.md) and [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md).
+Cloudflare Pages `mirror-me` exists and is connected to the correct GitHub repository and `main`. Production automation and all-branch previews are enabled. Explicit Git-source builds have succeeded and their source commit/public runtime hashes were verified. Push webhook delivery remains unproven despite enabled settings; use the explicit release command after approval and verify the public manifest. Never equate Git push success with a live build. See [CLOUDFLARE_SETUP.md](CLOUDFLARE_SETUP.md).
 
-Never modify Morlins Quest or Skewer Signals. Keep credentials out of the repository and record asset licensing.
+Do not modify Morlins Quest or Skewer Signals. Keep credentials out of Git and record asset provenance.

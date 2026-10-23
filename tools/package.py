@@ -16,7 +16,7 @@ with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
         if path.is_symlink():
             raise ValueError(f'Refusing a symlink in runtime files: {path}')
         archive.write(path, path.relative_to(root))
-    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — FIRST ENCOUNTER / LOCAL REVIEW BUILD
+    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — HOUSE EXPANSION / LOCAL REVIEW BUILD
 Original concept and direction: Skewernet. AI-assisted development: ChatGPT/Codex.
 
 Extract the entire archive. From the extracted folder, run:
@@ -26,11 +26,12 @@ Do not double-click index.html; JavaScript modules need an HTTP server.
 No build, external asset service, credentials or installation is needed to play.
 
 WASD/arrow keys walk. Mouse looks. E interacts. Tab opens/closes your pocket.
-Escape pauses. Comfort and sound controls are in the menu.
-Look at the folded note and pay attention to the mirror.
+F toggles the flashlight. H gives an optional thought. Escape pauses.
+Picture, comfort and sound controls are in the menu.
+Start with the telephone in the sitting room. Keep discoveries in your journal.
 
-This is a short first encounter, not the complete jam game.
-The seven voice takes are synthetic provisional performances, not human acting.
+Five rooms and five authored passes lead to a complete replacement ending.
+The fifteen voice takes are synthetic provisional performances, not human acting.
 See ATTRIBUTIONS.md and assets/voice/README.md for licenses and provenance.
 
 This archive has not been deployed or submitted anywhere.

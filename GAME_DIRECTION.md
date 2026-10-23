@@ -1,58 +1,65 @@
 # MIRROR ME — direction and performance script
 
-Working script, October 22, 2026 (America/Denver). Original setting and dialogue. The current build implements the first encounter, not the entire proposed final game.
+House expansion 0.3, October 22, 2026 (America/Denver). Original setting, dialogue and assets. This document contains the implemented puzzle solutions and ending.
 
 ## The promise
 
-A house is rehearsing how to be you. At first the glass is an ordinary reflection. Then it becomes a delayed recording. Finally, the person in it can stay behind. The horror comes from losing ownership of a familiar movement, not from a monster attack. INVERTED means the copy slowly acquires the original's freedom.
+A house is rehearsing how to be you. At first the glass is ordinary. Then its occupant becomes a delayed recording. Finally, the copy can leave and you cannot. INVERTED means the reflection acquires the original's freedom.
 
-The house is a modest, lived-in domestic interior: faded olive patterned wallpaper; almost black green wood; an oxblood runner with tarnished gold threads; warm, dirty practical lamps; a cold transom with no visible outside world. Objects should suggest someone stopped living here very recently. No abandoned asylum clichés, blood messages or red emergency lights as the main visual language.
+Take structural inspiration from P.T.: repeat a legible domestic circuit, change something while the player cannot see it, let familiar sounds acquire new meaning, and use uncertain observation rather than combat. Do not reproduce its hallway, characters, recordings or assets.
 
-Render at a deliberate low internal resolution with nearest-neighbour sampling and simple silhouettes. Keep text crisp outside the game canvas. Limit overlays: a little vignette and scanline texture, no constant camera shake or aggressive VHS distortion. The mirror must be readable enough to establish trust before it breaks it. Darkness is a composition tool, not a substitute for art.
+The house should feel recently occupied: faded floral paper, worn timber, stained tile, oxblood upholstery, yellowed linen, photographs and appliances. Warm practical lamps compete with cold rain windows. Smooth silhouettes, believable proportions and detailed materials carry the image. Low internal resolution is optional; it must not excuse primitive shapes or unreadable darkness. Keep UI crisp, grain quiet and head motion optional. No blood-message clichés, constant red lights or loud scare stings.
 
-## First encounter — implemented script
+## Floor plan and pacing
 
-Timing follows the player's actions; do not force a walking speed to hit a timestamp. A new player should have time to inspect, backtrack and test the glass. Experienced players can finish this slice much faster than the intended final game.
+The main hall runs past the console mirror to the bathroom and north clock. A parallel return passage hides changes behind a central partition. The sitting room and bathroom open off the main hall; kitchen, bedroom and utility room open off the return passage. Doors are real navigable openings. The front door begins behind the player.
 
-| Beat / trigger | Picture and action | Sound / performance |
-| --- | --- | --- |
-| Title | The hallway continues behind a quiet editorial title. No animated monster or jump scare. | Silence until ENTER. |
-| Arrival / one second after entering | Warm lamps; front door behind you; an ordinary hallway. | YOU: “I know this house. I just don’t remember the way in.” Tired recognition, almost to yourself. |
-| Console note / E | Pick up the folded paper. It enters the pocket. | Paper text: “IF THE HALL RETURNS, WATCH THE GLASS. WAIT FOR IT TO MOVE. THEN LOOK AWAY.” No voiced exposition. |
-| First mirror | A low-poly person follows position and orientation immediately in a real reflection of the room. Let the player test it. | Hum and footsteps continue. No warning sound. Inspect thought: “You. Exactly where you should be.” |
-| Blind return corner / after seeing the mirror | A continuous circuit returns to the same hall. The landscape is now upside down. The clock runs backward. | One restrained knock to the right. YOU: “That picture. It was the other way up.” |
-| Second mirror / sustained attention | A roughly half-second delay. The reflection's room remains optically correct; its occupant is late. | YOU: “Did I move first?” Do not perform this as a scream. |
-| Turn away / after sustained observation | The occupant stays behind and moves up to the glass while unseen. No cut, flash or camera takeover. | Electrical ambience recedes. No scare sting. Footsteps remain grounded in the real room. |
-| Look back | The occupant holds its position and gaze while the player can still move. Allow a full second to notice. | A tiny metallic sound from the drawer. Hold another 2.4 seconds. THE GLASS: “You can stop now. I remember how to be you.” Familiar tone, too composed. |
-| Drawer / open, then take | The formerly empty drawer now contains a key. It enters the pocket; its tag reads FRONT. | Wood slide, small metal contact. YOU: “It’s warm.” Disgust kept beneath the words. |
-| Front door / E with key | A real door swings open into a cold, narrow exit. | Lock, hinge undertone. THE GLASS: “You always needed someone to open the door.” Almost helpful. |
-| Cross exit | View gradually closes into darkness. Player remains on the wrong side of the ending. | THE GLASS: “Stay there. It’s my turn.” No shouting, no laugh. End on space after the last word. |
-| Ending / replay | “Somewhere behind you, a reflection leaves the glass. You are still in the house.” PLAY AGAIN resets the house. | Silence. |
+Five passes carry distinct discoveries. Progress requires the current task and a physical return through the passage. Incomplete circuits retain progress and give a contextual thought. The small key opens only the bedroom. Avoid time padding: the known-solution route is roughly 3:50; the first-time target of 8–12 minutes must be established through human playtests. The player may pause or consult the journal at any point.
 
-## Performance and audio rules
+## Implemented beat script
 
-YOU and THE GLASS should sound like the same person. YOU is uncertain, dry and close, with small pauses. THE GLASS is the same voice without hesitation; it does not announce itself as a villain. A human actor can record both roles in one session. Ask for two restrained takes per line, 48 kHz mono WAV, no baked music/reverb, with two seconds of room tone at either end. Do not impersonate a real performer without permission.
+| Pass              | Action and trigger                                                                                                                                                      | Picture and sound                                                                                                                                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Arrival           | Enter; inspect the sitting-room telephone. Find the spare ceramic fuse on the kitchen counter and install it in the utility fuse board. Observe the normal mirror.      | A specific warm home, dead kitchen power, distant recording. The mirror is optically correct and obedient. Optional folded note: “IF THE HALL RETURNS, WATCH THE GLASS. WHEN IT LEADS, YOU LEAVE.”                                                        |
+| First return      | Complete the north-to-south return passage after those tasks.                                                                                                           | The framed picture inverts; the clock runs backward. One knock, no flash or camera takeover.                                                                                                                                                              |
+| The glass is late | Watch the mirror for roughly two seconds, turn away nearby, then look back.                                                                                             | Roughly 0.68-second body delay becomes a stationary occupant near the glass with independent gaze. The electrical bed recedes. A small metallic contact reveals a key in the console drawer.                                                              |
+| Bedroom           | Open the drawer and take the key; enter the bedroom and read the diary.                                                                                                 | Radio → running water → lullaby, every night. A breathing shape under the quilt begins on the next pass. The diary mentions writing on the bathroom glass and “What came first must be last.”                                                             |
+| An hour reflected | Complete another circuit; wipe the bathroom glass with E. Set the hall clock to **03:17**, reversing the clue recorded as **71:30**. Answer the sitting-room telephone. | The family vanishes from its photograph. The call reverses the nightly routine. A human silhouette waits in the return passage, vanishing after it is seen and the player looks away or approaches. Two unclaimed footfalls follow.                       |
+| The other side    | Complete the circuit after clock and call. Silence **bedroom music box → bathroom tap → sitting-room telephone/radio**, then return through the passage.                | The mirror loses its occupant. Lighting turns colder, a kitchen chair sits against the ceiling, the television carries the empty family image. Each correct action removes a sound. Incorrect order restarts the sequence; it never locks the player out. |
+| Refusal           | Face the returned mirror occupant. It asks you to come closer. Turn away and walk away instead.                                                                         | The front latch releases. No victory sting. The note's instruction now has a literal use.                                                                                                                                                                 |
+| Replacement       | Open the front door and cross the exit.                                                                                                                                 | A sheet of glass blocks the apparent way out. The view turns back toward the house; a person in your body walks away. The last line has room to finish before darkness.                                                                                   |
+| End / replay      | “You watched someone leave in your body. In the glass, the house is finally quiet.”                                                                                     | Silence; PLAY AGAIN resets the entire house.                                                                                                                                                                                                              |
 
-The current seven shipped takes are **synthetic provisional performances**, generated offline from the public-domain LJ Speech dataset model. They are not recordings by an actor. The glass takes have a mild pitch reduction, restricted bandwidth and short echo. These establish timing and playable dialogue; a directed human performance remains the preferred final polish. Subtitles remain available even with voices muted. Source lines and a reproducible render tool are checked in.
+## Complete voice script
 
-Sound is sparse: low mains hum and filtered air, alternating soft footsteps, one wood knock, drawer scrape, metal key contact. Keep peak transients controlled and voices intelligible. Avoid constantly telling the player when to be afraid. The held-reflection beat removes the electrical bed instead of adding a loud event. Audio starts after a user gesture, pauses with play and has a master slider plus a separate voice toggle.
+These fifteen lines are implemented; exact subtitle/synthesis input is in `src/story.mjs` and `assets/voice/lines.json`.
 
-## Remaining short-game arc — planned, not implemented
+| ID / trigger                           | Speaker and line                                                                                     | Direction                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| arrival / shortly after entry          | YOU: “I know this house. I just don’t remember the way in.”                                          | Tired recognition, close and dry.                       |
+| recording / first telephone inspection | THE TELEPHONE: “If you are hearing this, leave the lights on. There is a spare fuse in the kitchen.” | An old practical message, no menace in delivery.        |
+| power / install fuse                   | YOU: “There. Now why does that feel worse?”                                                          | Relief catches in the second sentence.                  |
+| repeat / first changed circuit         | YOU: “That picture. It was the other way up.”                                                        | Testing a memory, not announcing a scare.               |
+| late / delayed reflection              | YOU: “Did I move first?”                                                                             | Small and uncertain.                                    |
+| returned / held reflection             | THE GLASS: “You can stop now. I remember how to be you.”                                             | Familiar, helpful, too composed.                        |
+| key / collect bedroom key              | YOU: “The bedroom key. Someone has been holding it.”                                                 | Revulsion beneath observation.                          |
+| diary / read bedroom diary             | YOU: “Radio. Water. A lullaby. Every night, in that order.”                                          | Remembering a routine rather than reading instructions. |
+| time / wipe bathroom clue              | YOU: “It isn’t a time. It’s the reflection of one.”                                                  | Quiet recognition.                                      |
+| call / telephone after setting clock   | THE TELEPHONE: “You were never the one making the sounds. Make them stop. Last sound first.”         | Same recording voice, newly personal.                   |
+| inverted / enter inverted pass         | YOU: “This is the same house. Why does everything feel like the other side?”                         | Control the breathing; no scream.                       |
+| command / face final occupant          | THE GLASS: “Come closer. Do exactly what I do.”                                                      | Patient expectation.                                    |
+| released / refuse and leave            | YOU: “No. You can stay there.”                                                                       | First decisive line, still restrained.                  |
+| unlocked / open front door             | THE GLASS: “You always needed someone to open the door.”                                             | Almost kind.                                            |
+| ending / replacement walks away        | THE GLASS: “There. Stay where I used to be. It’s my turn.”                                           | Ordinary finality; space after the last word.           |
 
-Do not build these until the first encounter is convincing in desktop playtests.
+## Performance and sound
 
-1. **Familiarity:** the current ordinary/late/held progression, tightened from feedback.
-2. **Inverted instruction:** one additional pass. A message in the mirror gives an apparently helpful instruction. A single object changes between the visible room and its mirrored state. Solving it requires reversing a learned action, not collecting several keys. Candidate line: THE GLASS — “Do it just like I showed you.”
-3. **Replacement:** the final door opens only after the player stops copying the figure. A short ending reverses who is in the mirror. Candidate final thought: YOU — “Which one of us came home?”
+YOU and THE GLASS should sound like the same person. The glass has removed hesitation, not acquired a villain voice. A human actor can record both in one session: two restrained takes per line, 48 kHz mono WAV, no baked music/reverb and two seconds of room tone. Do not imitate a real performer without permission.
 
-Target a complete 5–8 minutes with 3–5 authored passes. Expand toward 10–15 minutes only if the extra time contains meaningful discovery. Cut extra rooms, enemies and alternate endings before cutting a readable ending, good movement, good sound or the mirror.
+All fifteen current takes are **synthetic provisional performances**, generated offline with the public-domain LJ Speech dataset model. No human acting is claimed. Glass takes have modest pitch/filter/short-echo treatment; telephone takes have restricted bandwidth. Directed human performances remain a preferred polish step. Subtitles continue when voice playback is muted.
 
-## Art review checklist
+Room sources occupy physical positions: telephone/static in the sitting room, water in the bathroom, lullaby in the bedroom. Use headphones to orient the player. Silence is an authored change. Footfalls remain grounded in movement, except the two deliberately unclaimed steps after the watcher. Keep voices intelligible, peaks controlled and the hum low. The browser starts audio only after a gesture; pause, journal and clock inspection suspend it.
 
-- The initial hallway reads as a specific home in one screenshot.
-- Lamps create warm pools separated by quiet, readable shadow.
-- The mirror is colder than its surroundings but not a glowing portal.
-- Low-poly human proportions hold up when approached and viewed obliquely.
-- The first anomaly can be noticed without an explanatory pop-up.
-- Contrast and subtitles survive the low-resolution treatment.
-- No asset enters the project without an attribution/license record.
+## Scope through October 25
+
+Finish and tune this five-room, five-pass arc. Prioritize human playtesting, clearer environmental storytelling, believable reflection and sound balancing. Add no combat, chase AI, second floor, alternate ending, large inventory puzzle tree or save system before the existing route is compelling. Measure first-time duration and real-device performance before making claims. Scanned props and human acting are optional improvements, not dependencies for a complete ending.
