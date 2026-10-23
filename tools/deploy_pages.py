@@ -40,7 +40,7 @@ def main():
     except HTTPError as error:
         if error.code != 404:
             raise RuntimeError(f'Authenticated project lookup failed: HTTP {error.code}. No project was created.') from None
-        subprocess.run([str(WRANGLER), 'pages', 'project', 'create', PROJECT, '--production-branch', 'main'], cwd=ROOT, env=env, check=True)
+        subprocess.run([str(WRANGLER), 'pages', 'project', 'create', PROJECT, '--production-branch', 'main'], cwd=WRANGLER.parents[2], env=env, check=True)
         result = request_json(endpoint, token)
     if not result.get('success') or result.get('result', {}).get('name') != PROJECT:
         raise RuntimeError('Could not positively identify the requested Pages project. No upload attempted.')
@@ -49,7 +49,7 @@ def main():
     if not branch:
         raise RuntimeError('The existing project does not report its production branch. No upload attempted.')
     print(f'Uploading tested revision {manifest["revision"]} to {PROJECT} on its production branch {branch}.', flush=True)
-    subprocess.run([str(WRANGLER), 'pages', 'deploy', str(output), '--project-name', PROJECT, '--branch', branch, '--commit-hash', manifest['revision'], '--commit-message', 'MIRROR ME first playable mirror encounter'], cwd=ROOT, env=env, check=True)
+    subprocess.run([str(WRANGLER), 'pages', 'deploy', str(output), '--project-name', PROJECT, '--branch', branch, '--commit-hash', manifest['revision'], '--commit-message', 'MIRROR ME first playable mirror encounter'], cwd=WRANGLER.parents[2], env=env, check=True)
     project = request_json(endpoint, token)['result']
     subdomain = project.get('subdomain', '')
     if not subdomain.endswith('.pages.dev'):
