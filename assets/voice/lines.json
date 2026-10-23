@@ -2,86 +2,120 @@
   "arrival": {
     "text": "Mum's light is still on. I asked them to leave it.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "recording": {
     "text": "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
     "role": "phone",
-    "speed": 0.94
+    "speed": 0.93,
+    "voice": "bf_isabella",
+    "speaker_id": 22
   },
   "power": {
     "text": "They disconnected this house on Monday.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "repeat": {
     "text": "I straightened that photograph before I left.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "late": {
     "text": "That wasn't a blink.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.91,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "returned": {
     "text": "You always look away before the difficult part.",
     "role": "glass",
-    "speed": 0.9
+    "speed": 0.96,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "key": {
     "text": "Her bedroom. I haven't opened it since the hospital.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "diary": {
     "text": "The kitchen radio. Then her bath. Then the music box. I thought the silence would wake her.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "time": {
     "text": "Three seventeen. That's when the nurse called.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "call": {
     "text": "Listen to me, Mara. That wasn't Mum. The radio, the tap, the music box. End the night in reverse. Don't let it finish for you.",
     "role": "phone",
-    "speed": 0.94
+    "speed": 1.0,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "inverted": {
     "text": "I stopped coming. Something kept doing it for me.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "command": {
     "text": "Come closer. Let me finish taking care of her.",
     "role": "glass",
-    "speed": 0.9
+    "speed": 0.96,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "released": {
     "text": "She's gone. We don't have to do this again.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "unlocked": {
     "text": "I can stay with her. You couldn't.",
     "role": "glass",
-    "speed": 0.9
+    "speed": 0.96,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "ending": {
     "text": "Go on, Mara. I'll tell her you came.",
     "role": "glass",
-    "speed": 0.9
+    "speed": 0.96,
+    "voice": "bf_emma",
+    "speaker_id": 21
   },
   "broadcast": {
     "text": "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
     "role": "radio",
-    "speed": 0.94
+    "speed": 1.02,
+    "voice": "bm_george",
+    "speaker_id": 26
   },
   "letter": {
     "text": "Personal effects. They put her whole life in those two words.",
     "role": "player",
-    "speed": 0.94
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21
   }
 }

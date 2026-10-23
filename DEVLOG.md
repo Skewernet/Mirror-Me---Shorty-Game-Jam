@@ -113,3 +113,10 @@
 - Reconfirmed the existing mirror-me Pages project, correct GitHub source, main production branch and enabled production/preview automation before pushing. No Cloudflare resource or build-setting changes were needed.
 - Explicit Git-source deployment bc5a9ed1-4b58-431c-8b0d-c204fa79ae65 completed successfully for d55c2cf. The live mara-story-0.4 build-id and all 43 runtime SHA256 hashes matched. All sixteen release prerequisite tests passed.
 - Updated README/status to record publication. This release-record commit changes no tested runtime asset; the final source revision and live hashes are verified again after synchronization.
+
+
+## October 23, 2026 — realism development: distinct Kokoro cast
+
+- Started local `develop/realism-threshold-loop` from the verified 0.4 production revision. The owner requested a realistic female protagonist, a tighter complete L-shaped house, rear-door spatial return, redone voices and authored sudden scares. No push or deployment accompanies development.
+- Replaced all seventeen local takes with Kokoro-82M v1.0 through sherpa-onnx CPU: distinct British Mara, Mum and radio presets, with the glass retaining Mara’s natural pitch. Updated reproducible synthesis, exact text/casting manifest, source/model checksums and Apache 2 license.
+- Verified all seventeen encoded hashes and subtitle inputs; every clip decodes and measured true peaks range from -6.6 to -3.7 dBFS. Total encoded voice payload is 493,933 bytes. Integrated headphone balance remains part of the pending scene review.

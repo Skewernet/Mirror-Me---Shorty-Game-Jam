@@ -1,17 +1,36 @@
-# Model card for ljspeech (medium)
+MIRROR ME — synthetic voice source record
 
-* Language: en_US (English, United States)
-* Speakers: 1
-* Quality: medium
-* Samplerate: 22,050Hz
+Model: Kokoro-82M v1.0 (multilingual ONNX conversion, 54 supplied presets).
+Upstream weights/project: https://huggingface.co/hexgrad/Kokoro-82M
+Upstream inference repository: https://github.com/hexgrad/kokoro
+Upstream repository README states that the weights are Apache licensed:
+https://raw.githubusercontent.com/hexgrad/kokoro/main/README.md
+License text: https://raw.githubusercontent.com/hexgrad/kokoro/main/LICENSE
 
-## Dataset
+Official conversion/distribution:
+https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+Archive downloaded over normal verified HTTPS:
+https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2
+Retrieved 2026-10-23 UTC. Archive size: 349906910 bytes.
+Observed archive SHA256 (pinned for reproduction, not an upstream signature):
+c5f7e2d2caf082bc1d20fb70334a61d99d20b484500aad32e7cf84c128ea3298
 
-* URL: https://keithito.com/LJ-Speech-Dataset/
-* License: public domain
+The archive includes the Apache License 2.0 text copied without modification to
+LICENSE_APACHE_2.0.txt. Only rendered speech and these records ship in the game;
+weights, embeddings, phonemizer data and inference runtime stay outside it.
 
-## Training
+Preset IDs use the official conversion's table:
+https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/kokoro/v1.0/generate_voices_bin.py
+  21 bf_emma — Mara and the glass; second telephone call
+  22 bf_isabella — Mum / first telephone call
+  26 bm_george — original kitchen weather bulletin
+The preset labels identify supplied synthetic styles, not actors or cloned
+identifiable people. No human performance is claimed.
 
-See: https://brycebeattie.com/files/tts/
+Tested renderer: sherpa-onnx 1.13.8 CPU, Python 3.12, two inference threads.
+English phonemes: lexicon-gb-en.txt and bundled espeak-ng-data, lang='en'.
+Sample rate: 24000 Hz. Exact line settings and output/model checksums are in
+production.json; source text and voice assignments are in lines.json.
 
-US English female voice. Single speaker. Trained from scratch for 1000 epochs on medium quality settings using the LJ Speech dataset. I reencoded the recordings to a bit rate of 22500 Hz so it would match other voices released for Piper TTS.
+Kokoro v1.0 supersedes the former public-domain LJ Speech/Piper engine in this
+revision. No LJ Speech voice is used in these newly rendered seventeen takes.
