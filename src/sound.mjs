@@ -1,5 +1,104 @@
 import { TARGETS, HALL_CLOCK, EXIT, FRONT_DOOR, MIRROR } from "./layout.mjs";
 import { VOICES } from "./story.mjs";
+
+// Original, nonverbal performances. The mouth resonances shape noise and an
+// irregular air stream; they never synthesize a word or reuse a story voice.
+const DEMON_TEXTURES = {
+  inhale: { duration: 1.65, seed: 239, breath: 1, throat: 0.13 },
+  reveal: { duration: 0.78, seed: 811, breath: 0.35, throat: 0.76 },
+  withdraw: { duration: 0.7, seed: 1709, contact: true },
+  step0: { duration: 0.28, seed: 2351, contact: true },
+  step1: { duration: 0.3, seed: 3511, contact: true },
+  fold: { duration: 0.86, seed: 4733, contact: true },
+  ceiling: { duration: 1.5, seed: 6421, breath: 0.8, throat: 0.2 },
+  witness: { duration: 1.85, seed: 8297, breath: 0.7, throat: 0.1 },
+};
+
+function makeDemonTexture(context, kind) {
+  const profile = DEMON_TEXTURES[kind],
+    rate = context.sampleRate,
+    buffer = context.createBuffer(1, Math.ceil(rate * profile.duration), rate),
+    samples = buffer.getChannelData(0);
+  let seed = profile.seed,
+    softNoise = 0,
+    phase = 0,
+    peak = 0;
+  const resonances = [
+    { frequency: 510, width: 115, weight: 0.68, previous: 0, older: 0 },
+    { frequency: 1370, width: 240, weight: 0.3, previous: 0, older: 0 },
+    { frequency: 2510, width: 420, weight: 0.13, previous: 0, older: 0 },
+  ];
+  for (const resonance of resonances)
+    resonance.radius = Math.exp((-Math.PI * resonance.width) / rate);
+  for (let i = 0; i < samples.length; i++) {
+    const time = i / rate,
+      position = time / profile.duration;
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    const white = ((seed >>> 0) / 4294967296) * 2 - 1;
+    softNoise += (white - softNoise) * 0.17;
+    let value;
+    if (profile.contact) {
+      // A palm takes weight, lets its skin drag, then the sleeve catches up.
+      // Short unequal contacts avoid a mechanical, identical tick every step.
+      const step = kind.startsWith("step"),
+        fold = kind === "fold",
+        first = Math.exp(-time * (step ? 75 : 42)),
+        second = Math.exp(-Math.pow((time - (fold ? 0.23 : 0.115)) / 0.035, 2)),
+        drag = Math.sin(Math.PI * position) ** 1.4 * Math.exp(-position * 1.8),
+        grain = 0.55 + 0.45 * Math.sin(time * 67 + Math.sin(time * 23) * 1.5);
+      value =
+        softNoise * (first * 1.45 + drag * grain * 0.52) +
+        (white - softNoise) * second * (fold ? 0.18 : 0.075) +
+        Math.sin(time * (step ? 414 : 319)) * first * 0.1;
+    } else {
+      // Slow inhale, an involuntary catch, then a strained, almost closed
+      // throat. Nothing loops; a player who keeps looking hears the silence.
+      const pitch =
+        (kind === "reveal" ? 104 - position * 42 : 81 - position * 9) +
+        Math.sin(time * 39) * 3.8 +
+        Math.sin(time * 113) * 1.6;
+      phase += pitch / rate;
+      const cycle = phase % 1,
+        pulse = Math.exp(-cycle * 15) - 0.067,
+        irregular =
+          0.67 + 0.2 * Math.sin(time * 31) + 0.13 * Math.sin(time * 79.1),
+        air = softNoise * (profile.breath || 0),
+        excitation = air + pulse * irregular * (profile.throat || 0);
+      let mouth = 0;
+      for (let index = 0; index < resonances.length; index++) {
+        const resonance = resonances[index],
+          frequency = resonance.frequency * (1 + Math.sin(time * 3.4) * 0.055),
+          next =
+            (1 - resonance.radius) * excitation +
+            2 *
+              resonance.radius *
+              Math.cos((2 * Math.PI * frequency) / rate) *
+              resonance.previous -
+            resonance.radius * resonance.radius * resonance.older;
+        resonance.older = resonance.previous;
+        resonance.previous = next;
+        mouth += next * resonance.weight;
+      }
+      const catchBreath =
+          1 - 0.68 * Math.exp(-Math.pow((position - 0.68) / 0.045, 2)),
+        swell =
+          kind === "reveal"
+            ? Math.sin(Math.PI * position) ** 0.45 * Math.exp(-position * 1.4)
+            : Math.sin(Math.PI * position) ** 1.4;
+      value = (air * 0.31 + mouth * 2.2) * swell * catchBreath;
+    }
+    const edge = Math.min(1, time / 0.012, (profile.duration - time) / 0.065);
+    samples[i] = Math.tanh(value * 2.1) * Math.max(0, edge);
+    peak = Math.max(peak, Math.abs(samples[i]));
+  }
+  // A known ceiling before the per-cue mix, independent of device sample rate.
+  if (peak > 0)
+    for (let i = 0; i < samples.length; i++) samples[i] *= 0.8 / peak;
+  return buffer;
+}
+
 export class Sound {
   constructor(onSubtitle) {
     this.onSubtitle = onSubtitle;
@@ -27,11 +126,18 @@ export class Sound {
     this.tickNext = 0;
     this.creakNext = 0;
     this.creakIndex = 0;
+    this.creatureBuffers = new Map();
+    this.creatureNodes = new Set();
+    this.creatureStep = 0;
   }
   async start() {
     if (!this.context) {
       const c = (this.context = new (window.AudioContext ||
         window.webkitAudioContext)());
+      // Warm these small buffers at the initial audio-unlock screen. Building
+      // a first breath while a body enters the hall would hitch its animation.
+      for (const kind of Object.keys(DEMON_TEXTURES))
+        this.creatureBuffers.set(kind, makeDemonTexture(c, kind));
       this.master = c.createGain();
       this.master.gain.value = this.volume * 0.55;
       const compressor = c.createDynamicsCompressor();
@@ -250,6 +356,13 @@ export class Sound {
   }
   reset() {
     this.stopVoice();
+    for (const source of this.creatureNodes) {
+      try {
+        source.stop();
+      } catch {}
+    }
+    this.creatureNodes.clear();
+    this.creatureStep = 0;
     this.resumeVoice = null;
     this.lastStep = 0;
     this.footfallIndex = undefined;
@@ -284,6 +397,7 @@ export class Sound {
       g.disconnect();
       p.disconnect();
     };
+    return o;
   }
   noiseBurst(duration, gain, frequency, pan = 0, destination = null) {
     if (!this.context || this.paused) return;
@@ -318,6 +432,28 @@ export class Sound {
       envelope.disconnect();
       stereo.disconnect();
     };
+    return source;
+  }
+  creatureTexture(kind, gain, destination) {
+    if (!this.context || this.paused) return;
+    const context = this.context;
+    if (!this.creatureBuffers.has(kind))
+      this.creatureBuffers.set(kind, makeDemonTexture(context, kind));
+    const source = context.createBufferSource(),
+      envelope = context.createGain();
+    source.buffer = this.creatureBuffers.get(kind);
+    envelope.gain.value = gain;
+    source.connect(envelope);
+    envelope.connect(destination || this.effects || this.master);
+    this.creatureNodes.add(source);
+    source.onended = () => {
+      this.creatureNodes.delete(source);
+      source.disconnect();
+      envelope.disconnect();
+    };
+    source.start();
+    source.stop(context.currentTime + source.buffer.duration);
+    return source;
   }
   step(distance, speed, carpet = true) {
     // Same gait phase as Mara's distance-driven heel plant. Unlike a wall-clock
@@ -364,32 +500,50 @@ export class Sound {
         p.refDistance = 3;
         p.rolloffFactor = 1.2;
       }
+      if (
+        id.startsWith("demon-") ||
+        [
+          "crawl-step",
+          "crawl-arrival",
+          "joint-fold",
+          "ceiling-breath",
+          "witness-breath",
+        ].includes(id)
+      ) {
+        p.refDistance = 1.8;
+        p.rolloffFactor = 1.1;
+      }
       p.connect(this.effects || this.master);
     }
-    const destination = p || this.effects || this.master;
+    const destination = p || this.effects || this.master,
+      nodes = [],
+      track = (node) => {
+        if (node) nodes.push(node);
+        return node;
+      };
     const impulse = (frequency, gain, duration) =>
-      this.impulse(frequency, gain, duration, 0, destination);
+      track(this.impulse(frequency, gain, duration, 0, destination));
     const noise = (duration, gain, frequency) =>
-      this.noiseBurst(duration, gain, frequency, 0, destination);
-    if (id === "crawl-step") {
-      noise(0.23, 0.075, 390);
-      noise(0.11, 0.026, 1850);
-      impulse(71, 0.055, 0.14);
+      track(this.noiseBurst(duration, gain, frequency, 0, destination));
+    const texture = (kind, gain) =>
+      track(this.creatureTexture(kind, gain, destination));
+    if (id === "demon-inhale") {
+      texture("inhale", 0.047);
+    } else if (id === "demon-reveal") {
+      texture("reveal", 0.083);
+    } else if (id === "demon-withdraw") {
+      texture("withdraw", 0.075);
+    } else if (id === "crawl-step") {
+      texture(`step${this.creatureStep++ % 2}`, 0.095);
     } else if (id === "crawl-arrival") {
-      noise(1.1, 0.12, 270);
-      noise(0.27, 0.045, 1450);
-      impulse(47, 0.14, 0.65);
+      texture("reveal", 0.088);
+      texture("withdraw", 0.043);
     } else if (id === "joint-fold") {
-      noise(0.22, 0.065, 770);
-      impulse(113, 0.075, 0.23);
-      noise(0.65, 0.043, 390);
+      texture("fold", 0.087);
     } else if (id === "ceiling-breath") {
-      noise(1.25, 0.075, 540);
-      noise(0.6, 0.025, 1820);
-      impulse(62, 0.055, 0.7);
+      texture("ceiling", 0.064);
     } else if (id === "witness-breath") {
-      noise(1.45, 0.045, 790);
-      impulse(93, 0.018, 0.9);
+      texture("witness", 0.04);
     } else if (id === "broken-breath") {
       // A finite caught inhalation under Mara's fractured voiced take.
       // Short noise/formant envelopes supply breath, not another spoken voice.
@@ -431,11 +585,26 @@ export class Sound {
       noise(0.85, 0.045, 330);
       impulse(106, 0.025, 0.42);
     }
-    if (p) setTimeout(() => p.disconnect(), 4200);
+    if (p) {
+      // Audio completion, rather than a wall-clock timer: pausing for several
+      // seconds must not disconnect a cue which still has an unheard tail.
+      let remaining = nodes.length;
+      if (!remaining) p.disconnect();
+      for (const node of nodes) {
+        const clean = node.onended;
+        node.onended = () => {
+          clean?.();
+          if (--remaining === 0) p.disconnect();
+        };
+      }
+    }
   }
   effect(id, position = null) {
     if (
       [
+        "demon-inhale",
+        "demon-reveal",
+        "demon-withdraw",
         "crawl-step",
         "crawl-arrival",
         "joint-fold",
