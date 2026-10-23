@@ -1,12 +1,12 @@
 # MIRROR ME — current status
 
-Updated October 23, 2026 (UTC).
+Updated October 23, 2026 (America/Denver).
 
-**Local development:** 0.6, Crescendo / Through the Glass, is implemented and tested on `develop/crescendo-mirror-world`. It has not been pushed or deployed. The integrated route is complete; duration, subjective quality and target-device performance still need human playtesting.
+**Production:** the owner-approved 0.6, Crescendo / Through the Glass, is live at https://mirror-me.pages.dev and synchronized with GitHub `main`. Automatic production deployment `47e7f18f-dedd-4ec6-991d-8a62e0106f11` succeeded for gameplay revision `5bfb4ee`; all 110 public runtime/credit hashes match the immutable tested package. `/build-id.json` identifies the exact deployed revision, including release-record-only commits.
 
-**Last verified production release:** owner-approved 0.5 at https://mirror-me.pages.dev, revision `db45d9b`. Its gameplay revision `6473461` deployed automatically from GitHub, and release verification recorded 96 matching public runtime files. `/build-id.json` identifies the deployed release. No 0.6 changes have been published.
+The integrated seven-chapter route is complete. First-time duration, subjective horror/voice quality and target-device performance still need human playtesting. The previous 0.5 release remains in deployment history.
 
-## Implemented locally in 0.6
+## Implemented in 0.6
 
 - One complete L-shaped house, 1.28 m hall width and 2.32 m ceiling, with five fully furnished rooms. The kitchen doorway remains lit and labelled before power restoration.
 - Seven puzzle-gated chapters. The first five require, in order: the arrival call/power/faithful reflection; the held reflection/key/diary; the reflected clock/radio tuning/second call; the three keepsakes in care order; and music box → tap → radio in reverse order. The rear door remains physically locked until that chapter is complete, then unlocks automatically. Wrong puzzle attempts remain recoverable.
@@ -18,7 +18,7 @@ Updated October 23, 2026 (UTC).
 - Twenty-three local Kokoro-82M v1.0 voice takes now cover Mara/glass, Mum and the separate radio. The sitting-room telephone carries calls; the kitchen radio has its own tuning interface. Inventory/journal and clock, tuning and keepsake forms pause the game. Performances are synthetic, with voice/model/tool provenance documented.
 - The credit register contains 11 entries covering 56 media/model assets and seven vendor modules. It powers title/pause and ending credits; full source/license texts and the public game description include the free assets and required CC BY wood attribution. The wake reuses the credited Mara asset.
 
-## Local 0.6 validation
+## 0.6 validation
 
 - All 25 movement, threshold and story unit tests pass. Coverage includes closed doors, chapter gates, one-L layout, portal transforms, radio/phone independence, numeric input validation, keepsake order, reverse sounds, mirror/farewell gates and reset. A corrected radio test distinguishes a valid wrong station from invalid form input; the story gate was not relaxed.
 - The full Chromium route passes all seven chapters using actual player acceleration/collision through all five rooms. It exercises early locked-door attempts, exactly-once unlocks, five rear portals without a transition fade, continued held movement and transformed velocity/overshoot, radio and keepsake form mistakes/recovery, the clock clue, separate second-call playback, reverse-sound mistakes/recovery, the solid vanished-door wall, physical mirror crossing and inverted farewell.
@@ -30,11 +30,11 @@ Updated October 23, 2026 (UTC).
 - The immutable 0.6 package contains 110 runtime/credit files plus its revision manifest. Every payload byte and SHA-256 matches the clean source checkout. An additional ordinary-mode browser smoke against the staged `6229641` payload passes with no errors or failed requests; its manifest, 11 credit entries and all 23 Ogg files are accessible. Tests, tools, Git metadata and environment files are excluded. Later documentation/tool-only records must preserve these same tested payload hashes.
 - The known-solution route takes **317.895 simulated game seconds**, excluding real voice waits. This is not a first-time duration measurement. Screenshots from the integrated route and normal smoke are in `/workspace/artifacts/crescendo-qa/` in this development environment.
 
-The existing named deployment verifier, using normal HTTPS validation, freshly confirmed the public manifest remains 0.5 at `db45d9b` with 96 payload entries. This was a manifest check, not a repeat of the earlier full production hash audit. A generic Python request was rejected with Cloudflare code 1010; a separate Chromium profile rejected the local certificate issuer. Neither required a production change. No 0.6 production or public-URL validation has occurred. No push, deployment or Cloudflare mutation was performed during this local work.
+After specific owner approval, the existing named HTTPS verifier confirmed the production 0.6 revision and all 110 runtime/credit SHA-256 hashes against the immutable tested package. The GitHub push automatically created a successful production deployment; no duplicate deployment, Cloudflare project or build-setting change was needed. Browser checks documented above cover the local and staged runtime. A fresh production Chromium smoke was blocked by this environment's certificate trust (`ERR_CERT_AUTHORITY_INVALID`), even though the existing proxy CA is already in its NSS trust store and normal HTTPS verification succeeds. No certificate change or TLS bypass was used; this does not invalidate the 110 verified public asset hashes.
 
 ## Remaining before jam submission
 
-The local 0.6 route and immutable review package are complete, and automated checks pass. It still needs the owner's review and specific publication approval before a potentially publishing push or deployment. After approval, preserve the tested payload, check remote changes before promotion, and validate the public build separately. The release helper now gates all unit-test files, including the new instant-transform checks.
+The 0.6 route is complete, its automated checks pass, and the owner approved and published the tested build. The immutable payload and production verification receipt are retained outside the checkout. The release helper gates all unit-test files, including the new instant-transform checks. Further gameplay changes need their own release approval.
 
 Human playtesting must judge first-time puzzle clarity, scare effectiveness, perceived duration, voice acting and headphone balance. The target is **10–15 minutes on a first play**, without added idle timers; automated known-solution timing does not establish that target. Test Chrome/Firefox and real desktop GPUs before jam submission; cloud software rendering is not performance evidence. Gait, faces and creature poses remain procedural. There is no save system, combat, chase AI, second floor or branching ending.
 
@@ -42,4 +42,4 @@ October 25 remains the deadline. Freeze scope around the five-room/seven-chapter
 
 ## Publication
 
-The Pages project is Git-connected to `main`, with production and branch-preview deployment enabled. Pushing any branch may publish. The owner approved the specific 0.5 release now identified by `db45d9b`; automatic deployment `282d572e-4daa-49ad-bec3-046c7d68f98b` succeeded for gameplay revision `6473461`, and all 96 public payload hashes matched. That approval does not authorize publication of local 0.6. Keep this branch local until its changes receive specific approval, then check the deployment result and public hashes. Do not change other Cloudflare projects.
+The Pages project is Git-connected to `main`, with production and branch-preview deployment enabled. Pushing any branch may publish. The owner specifically approved 0.6 revision `5bfb4ee` before promotion. Rechecked the project, repository, production branch and build settings, then fast-forwarded and pushed the tested source. Automatic deployment `47e7f18f-dedd-4ec6-991d-8a62e0106f11` succeeded, and all 110 public payload hashes matched. Release-record documentation may advance the manifest revision while preserving those game/credit bytes. Future game changes require their own approval. Do not change other Cloudflare projects.

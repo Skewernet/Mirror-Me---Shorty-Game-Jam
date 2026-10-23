@@ -2,9 +2,9 @@
 
 A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
 
-## Crescendo / through the glass — local 0.6
+## Crescendo / through the glass — 0.6
 
-**0.6 is a local development build on `develop/crescendo-mirror-world`; it has not been pushed or deployed.** The last verified, owner-approved production release is **0.5 at `db45d9b`**, at [mirror-me.pages.dev](https://mirror-me.pages.dev). The changes described below have not been published; validation below covers the local build. See [current status](PROJECT_STATUS.md).
+**The owner-approved 0.6 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** Gameplay revision `5bfb4ee` deployed automatically; all 110 runtime/credit files matched the tested package. `/build-id.json` identifies the exact deployed revision, including release-record-only commits. See [current status](PROJECT_STATUS.md).
 
 Mara Vale returns to collect her mother's belongings. An impossible telephone call asks her to finish an ordinary evening. A reflection learns the routine, then offers to take her place.
 
@@ -68,6 +68,6 @@ All 25 unit tests pass. The integrated browser route passes all seven chapters t
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. Only the 0.5 release at `db45d9b` is approved for production; its deployment verification recorded 96 matching public runtime files. Local 0.6 requires the owner's specific approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication of this 0.6 build, and its automatic GitHub deployment and 110 public payload hashes are verified. Future game changes require their own specific approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

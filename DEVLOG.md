@@ -176,3 +176,12 @@
 - An additional normal-mode Chromium smoke against that exact staged folder passes startup, pointer lock, walking, flashlight, pause/journal, credits, picture/comfort controls and resize with no page, console or network errors. All 23 voice files are accessible and have valid Ogg data; the package serves all 11 credit entries. Reports are retained under `/workspace/artifacts/crescendo-staged-qa/`.
 - Updated the future release helper to run every unit-test file, including the new momentum/threshold checks, and label uploads with the manifest's current version. This is a local tool change; no deploy command was run.
 - A read-only public-manifest check through the existing named HTTPS verifier confirms production still identifies the approved 0.5 `db45d9b` release. It is not a repeat of the full 0.5 asset audit. The new 0.6 build remains local, awaiting specific release approval and first-time human playtesting.
+
+
+## October 23, 2026 — owner-approved 0.6 production release
+
+- The owner explicitly approved publication of reviewed build `5bfb4ee`. Independently rechecked its clean source, identical tested payload, full credits and 25 passing unit tests. Fetched remote `main`, confirmed the fast-forward and rechecked the correct Cloudflare project, GitHub source, production branch and build settings before pushing.
+- Fast-forwarded and pushed the exact approved source to GitHub `main`. The existing webhook automatically created production deployment `47e7f18f-dedd-4ec6-991d-8a62e0106f11`, which succeeded. No extra deployment, project creation, build-setting change or other Cloudflare project mutation was needed.
+- The read-only HTTPS verifier confirmed the live 0.6 build ID and all 110 public runtime/credit SHA-256 hashes against the immutable tested package. Preserved the gameplay-release receipt at `/workspace/artifacts/mirror-me-5bfb4ee-production-receipt.json`.
+- A fresh live Chromium smoke was blocked by the environment's certificate issuer despite the existing approved NSS trust entry; the current chain verifies normally with the environment CA. No new import or TLS bypass was attempted. The complete local/staged browser passes and normal-HTTPS production hash verification remain the release evidence.
+- Updated the README, project status and reusable Cloudflare prompt for the published release. This follow-up record changes no tested game or credit payload. Future gameplay changes still require specific production approval.
