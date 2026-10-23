@@ -63,9 +63,9 @@
     "speaker_id": 21
   },
   "call": {
-    "text": "Listen to me, Mara. That wasn't Mum. The radio, the tap, the music box. End the night in reverse. Don't let it finish for you.",
+    "text": "Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.",
     "role": "phone",
-    "speed": 1.0,
+    "speed": 1,
     "voice": "bf_emma",
     "speaker_id": 21
   },
@@ -77,7 +77,7 @@
     "speaker_id": 21
   },
   "command": {
-    "text": "Come closer. Let me finish taking care of her.",
+    "text": "You wanted an empty house. Go on.",
     "role": "glass",
     "speed": 0.96,
     "voice": "bf_emma",
@@ -91,18 +91,18 @@
     "speaker_id": 21
   },
   "unlocked": {
-    "text": "I can stay with her. You couldn't.",
+    "text": "Don't leave the light on for me.",
     "role": "glass",
     "speed": 0.96,
     "voice": "bf_emma",
     "speaker_id": 21
   },
   "ending": {
-    "text": "Go on, Mara. I'll tell her you came.",
-    "role": "glass",
-    "speed": 0.96,
-    "voice": "bf_emma",
-    "speaker_id": 21
+    "text": "There you are, Mara. I kept your place.",
+    "role": "mum",
+    "speed": 0.93,
+    "voice": "bf_isabella",
+    "speaker_id": 22
   },
   "broadcast": {
     "text": "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
@@ -117,5 +117,47 @@
     "speed": 0.95,
     "voice": "bf_emma",
     "speaker_id": 21
+  },
+  "watch": {
+    "role": "player",
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "They gave this back in a sealed bag. It's warm."
+  },
+  "ring": {
+    "role": "player",
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "She wore this for forty-three years. It used to catch on my hair."
+  },
+  "ribbon": {
+    "role": "player",
+    "speed": 0.95,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "I tied the lid open. She hated when the music stopped."
+  },
+  "ritual": {
+    "role": "glass",
+    "speed": 0.96,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "There. You haven't forgotten how to be her daughter."
+  },
+  "empty": {
+    "role": "player",
+    "speed": 0.94,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "I'm still here. I should still be there."
+  },
+  "farewell": {
+    "role": "player",
+    "speed": 0.91,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum."
   }
 }

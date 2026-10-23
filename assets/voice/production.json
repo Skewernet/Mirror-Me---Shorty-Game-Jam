@@ -122,13 +122,13 @@
       "voice": "bf_emma",
       "speaker_id": 21,
       "role": "phone",
-      "speed": 1.0,
-      "text": "Listen to me, Mara. That wasn't Mum. The radio, the tap, the music box. End the night in reverse. Don't let it finish for you.",
-      "speech_seconds": 7.682,
-      "file_seconds": 7.7,
+      "speed": 1,
+      "text": "Mara. I can hear the music box through your receiver. You closed it after the hospital called. I remember your hand on the lid. Put her things back. Then end the evening in reverse. Please. Let it stay finished.",
+      "speech_seconds": 12.154,
+      "file_seconds": 12.2,
       "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
-      "sha256": "184a6c05b3e5051b163256ecbeef715eb554d18a480af82ec8601fc268fe38e7",
-      "decoded_true_peak_dbfs": -3.7
+      "sha256": "d01ebc4bc669a1fbbb13c60f643fe082296d10ff997fd4e088908ae2485f8460",
+      "decoded_true_peak_dbfs": -3.8
     },
     "inverted": {
       "voice": "bf_emma",
@@ -147,12 +147,12 @@
       "speaker_id": 21,
       "role": "glass",
       "speed": 0.96,
-      "text": "Come closer. Let me finish taking care of her.",
-      "speech_seconds": 2.962,
-      "file_seconds": 2.994,
+      "text": "You wanted an empty house. Go on.",
+      "speech_seconds": 2.058,
+      "file_seconds": 2.09,
       "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "e2679cd3cd350cd06054934efa843614e2e6c9fc953f2ca4e2c8452c227bba73",
-      "decoded_true_peak_dbfs": -5.5
+      "sha256": "0d2f257c8dbfc3859be5f57239d2f1674848938415229daf964b1dddbbda3a1a",
+      "decoded_true_peak_dbfs": -6.1
     },
     "released": {
       "voice": "bf_emma",
@@ -171,24 +171,24 @@
       "speaker_id": 21,
       "role": "glass",
       "speed": 0.96,
-      "text": "I can stay with her. You couldn't.",
-      "speech_seconds": 2.325,
-      "file_seconds": 2.357,
+      "text": "Don't leave the light on for me.",
+      "speech_seconds": 1.651,
+      "file_seconds": 1.683,
       "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "f8be0141be4f67c8b16432478c8b099e0f4655814440d381167cbff5da335b71",
-      "decoded_true_peak_dbfs": -3.9
+      "sha256": "e24928b18930b3bd0b0baaa7473efe6e51b9a7a1041aa348b4b3e642eabeae87",
+      "decoded_true_peak_dbfs": -5.3
     },
     "ending": {
-      "voice": "bf_emma",
-      "speaker_id": 21,
-      "role": "glass",
-      "speed": 0.96,
-      "text": "Go on, Mara. I'll tell her you came.",
-      "speech_seconds": 2.615,
-      "file_seconds": 2.647,
-      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "df6bf5d976dc97545db8e7200d357cc2a13401147f445b01073e551254fb5d98",
-      "decoded_true_peak_dbfs": -5.8
+      "voice": "bf_isabella",
+      "speaker_id": 22,
+      "role": "mum",
+      "speed": 0.93,
+      "text": "There you are, Mara. I kept your place.",
+      "speech_seconds": 2.865,
+      "file_seconds": 2.865,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "1661b9300cec0a43ac38c2058a427c32f750775850a3fda1095463667e0bcf1a",
+      "decoded_true_peak_dbfs": -4.9
     },
     "broadcast": {
       "voice": "bm_george",
@@ -213,6 +213,78 @@
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
       "sha256": "ae4362fa03625f362a8a5dfe555e6696f61275ada769dba8c013457dff4668da",
       "decoded_true_peak_dbfs": -4.8
+    },
+    "watch": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.95,
+      "text": "They gave this back in a sealed bag. It's warm.",
+      "speech_seconds": 2.977,
+      "file_seconds": 2.977,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "697e67b67c0324a5e9f7558b3121597167120e882eafb170af69443fbb712f96",
+      "decoded_true_peak_dbfs": -4.0
+    },
+    "ring": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.95,
+      "text": "She wore this for forty-three years. It used to catch on my hair.",
+      "speech_seconds": 3.861,
+      "file_seconds": 3.872,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "109dcd245287dcf337891cf0ed052aafe67aad8c7b48a881300e298f76dd669b",
+      "decoded_true_peak_dbfs": -4.6
+    },
+    "ribbon": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.95,
+      "text": "I tied the lid open. She hated when the music stopped.",
+      "speech_seconds": 3.479,
+      "file_seconds": 3.49,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "b68668f14cef913bda157f20d9c1e6f6fce846b1efabfce7afd2372b383fb349",
+      "decoded_true_peak_dbfs": -4.8
+    },
+    "ritual": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.96,
+      "text": "There. You haven't forgotten how to be her daughter.",
+      "speech_seconds": 3.062,
+      "file_seconds": 3.1,
+      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
+      "sha256": "ddfc0cdc2d645a931b5d1ed9bbf904c8003e3579657fcb52cc29b9bbe49d735a",
+      "decoded_true_peak_dbfs": -4.3
+    },
+    "empty": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.94,
+      "text": "I'm still here. I should still be there.",
+      "speech_seconds": 2.685,
+      "file_seconds": 2.685,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "3837771229100502aed4fee860a1b00c88491ba7ea197e0f1062cf628d4714f4",
+      "decoded_true_peak_dbfs": -5.8
+    },
+    "farewell": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.91,
+      "text": "I kept coming back because I couldn't remember the last ordinary night. This isn't it. Good night, Mum.",
+      "speech_seconds": 6.351,
+      "file_seconds": 6.4,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "4cc1a7e07fccdaf9a218bc7c039fd50ef27610744152fb6110bec51caeb0aafb",
+      "decoded_true_peak_dbfs": -3.6
     }
   }
 }

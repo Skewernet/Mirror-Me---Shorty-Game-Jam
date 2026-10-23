@@ -1,19 +1,19 @@
 # Kokoro voice performances
 
-The seventeen shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
+The twenty-three shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
 
 Casting uses three of Kokoro's supplied synthetic British-English presets:
 
-| Character/source | Preset | Speaker ID | Treatment |
-| --- | --- | --- | --- |
-| Mara, including the second telephone caller | `bf_emma` | 21 | Close, clear speech at the character's natural pitch |
-| The glass | `bf_emma` | 21 | The same identity, steadier pace and a restrained short reflection |
-| Mum on the first telephone call | `bf_isabella` | 22 | A distinct woman, passed through telephone bandwidth |
-| Kitchen weather service | `bm_george` | 26 | A distinct man, radio filtering and an eighteen-second quiet tail |
+| Character/source                                    | Preset        | Speaker ID | Treatment                                                                   |
+| --------------------------------------------------- | ------------- | ---------- | --------------------------------------------------------------------------- |
+| Mara, including the second telephone caller         | `bf_emma`     | 21         | Close, clear speech at the character's natural pitch                        |
+| The glass                                           | `bf_emma`     | 21         | The same identity, steadier pace and a restrained short reflection          |
+| Mum on the first telephone call and final reception | `bf_isabella` | 22         | Telephone bandwidth for the call; clear, full-range speech at the reception |
+| Kitchen weather service                             | `bm_george`   | 26         | A distinct man, radio filtering and an eighteen-second quiet tail           |
 
 The model is not a substitute for directed acting: phrase delivery is controlled through the written punctuation, preset and pace, with role-specific post-processing. The glass retains Mara's real preset and pitch instead of becoming a pitch-shifted monster. Human performances remain a possible final improvement.
 
-Exact text, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
+There are twenty-two story performances and one ambient bulletin. Thirteen unchanged takes are retained from the 0.5 release, including the opening and ambient bulletin; four later lines are revised and six takes are added for the expanded ritual and farewell. Exact text, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
 
 ## Provenance and license
 
