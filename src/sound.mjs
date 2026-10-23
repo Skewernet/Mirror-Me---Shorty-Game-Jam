@@ -9,11 +9,17 @@ export class Sound {
     this.buffers = new Map();
     this.playingVoice = null;
     this.voiceTimer = null;
+    this.captionTimer = null;
+    this.voiceNodes = [];
     this.voiceToken = 0;
     this.paused = true;
     this.busy = false;
     this.currentVoice = null;
-    this.resumeId = null;
+    this.resumeVoice = null;
+    this.voiceOptions = null;
+    this.voiceOffset = 0;
+    this.voiceStartedAt = 0;
+    this.voiceDuration = 0;
     this.musicNext = 0;
     this.dripNext = 0;
     this.noteIndex = 0;
@@ -138,11 +144,22 @@ export class Sound {
     }
     this.paused = false;
     await this.context.resume();
-    if (this.resumeId) {
-      const id = this.resumeId;
-      this.resumeId = null;
-      this.voice(id);
-    }
+    this.resumeDialogue();
+  }
+  resumeDialogue() {
+    this.paused = false;
+    if (!this.resumeVoice) return;
+    const { id, options } = this.resumeVoice;
+    this.resumeVoice = null;
+    this.voice(id, options);
+  }
+  voiceElapsed() {
+    if (!this.busy) return this.resumeVoice?.options.offset || 0;
+    return Math.min(
+      this.voiceDuration,
+      this.voiceOffset +
+        Math.max(0, performance.now() / 1000 - this.voiceStartedAt),
+    );
   }
   panner(x, y, z) {
     const p = this.context.createPanner();
@@ -196,10 +213,19 @@ export class Sound {
       } catch {}
       this.playingVoice = null;
     }
+    if (value && this.currentVoice && !this.playingVoice && !this.paused)
+      this.voice(this.currentVoice, {
+        ...this.voiceOptions,
+        offset: this.voiceElapsed(),
+      });
   }
   async pause() {
     this.paused = true;
-    if (this.currentVoice) this.resumeId = this.currentVoice;
+    if (this.currentVoice)
+      this.resumeVoice = {
+        id: this.currentVoice,
+        options: { ...this.voiceOptions, offset: this.voiceElapsed() },
+      };
     this.stopVoice();
     if (this.context?.state === "running") await this.context.suspend();
   }
@@ -207,6 +233,8 @@ export class Sound {
     this.voiceToken++;
     this.busy = false;
     this.currentVoice = null;
+    this.voiceOptions = null;
+    this.voiceOffset = this.voiceStartedAt = this.voiceDuration = 0;
     if (this.playingVoice) {
       this.playingVoice.onended = null;
       try {
@@ -215,11 +243,14 @@ export class Sound {
       this.playingVoice = null;
     }
     clearTimeout(this.voiceTimer);
+    clearInterval(this.captionTimer);
+    for (const node of this.voiceNodes) node.disconnect();
+    this.voiceNodes = [];
     if (clear) this.onSubtitle("");
   }
   reset() {
     this.stopVoice();
-    this.resumeId = null;
+    this.resumeVoice = null;
     this.lastStep = 0;
     this.footfallIndex = undefined;
     this.musicNext = this.dripNext = this.noteIndex = 0;
@@ -359,6 +390,12 @@ export class Sound {
     } else if (id === "witness-breath") {
       noise(1.45, 0.045, 790);
       impulse(93, 0.018, 0.9);
+    } else if (id === "broken-breath") {
+      // A finite caught inhalation under Mara's fractured voiced take.
+      // Short noise/formant envelopes supply breath, not another spoken voice.
+      noise(0.16, 0.025, 980);
+      noise(0.31, 0.013, 1750);
+      impulse(184, 0.008, 0.23);
     } else if (id === "light-relay") {
       noise(0.045, 0.034, 2300);
       impulse(104, 0.025, 0.09);
@@ -404,6 +441,7 @@ export class Sound {
         "joint-fold",
         "ceiling-breath",
         "witness-breath",
+        "broken-breath",
         "light-relay",
         "mirror-crossed",
         "mirror-enter",
@@ -635,54 +673,112 @@ export class Sound {
     }
     return this.buffers.get(id);
   }
-  async voice(id) {
+  async voice(id, options = {}) {
     const line = VOICES[id];
     if (!line) return;
     this.stopVoice();
     this.busy = true;
     this.currentVoice = id;
+    this.voiceOptions = options;
+    this.voiceOffset = Math.max(0, options.offset || 0);
+    this.voiceStartedAt = performance.now() / 1000;
+    this.voiceDuration = Math.max(3.5, line.text.length * 0.065);
     const token = this.voiceToken;
-    this.onSubtitle(`${line.speaker} — “${line.text}”`);
+    const chunks = options.segmented
+      ? line.text
+          .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
+          ?.map((part) => part.trim()) || [line.text]
+      : [line.text];
+    const total = chunks.reduce((sum, part) => sum + part.length, 0);
+    let previousCaption = -1;
+    const caption = () => {
+      if (token !== this.voiceToken) return;
+      let position = (this.voiceElapsed() / this.voiceDuration) * total;
+      let index = 0;
+      while (index < chunks.length - 1 && position > chunks[index].length)
+        position -= chunks[index++].length;
+      if (index !== previousCaption) {
+        previousCaption = index;
+        this.onSubtitle(`${line.speaker} — “${chunks[index]}”`);
+      }
+    };
+    caption();
+    this.captionTimer = setInterval(caption, 100);
     const done = () => {
-      if (token === this.voiceToken) {
+      if (token === this.voiceToken && this.busy) {
+        clearInterval(this.captionTimer);
         this.onSubtitle("");
         this.busy = false;
         this.currentVoice = null;
+        this.voiceOptions = null;
+        options.onComplete?.(id);
       }
     };
-    this.voiceTimer = setTimeout(done, Math.max(3500, line.text.length * 65));
-    if (!this.voiceEnabled || !this.context || this.paused) return;
+    const schedule = () => {
+      clearTimeout(this.voiceTimer);
+      this.voiceTimer = setTimeout(
+        done,
+        Math.max(0, this.voiceDuration - this.voiceOffset) * 1000 + 650,
+      );
+      options.onDuration?.(this.voiceDuration);
+    };
+    schedule();
+    if (!this.context || this.paused) return;
     try {
       await this.loadBuffer(id);
-      if (token !== this.voiceToken || this.paused) return;
+      if (token !== this.voiceToken || this.paused || !this.busy) return;
+      const buffer = this.buffers.get(id);
+      this.voiceDuration = buffer.duration;
+      this.voiceOffset = Math.min(
+        this.voiceOffset,
+        Math.max(0, buffer.duration - 0.01),
+      );
+      this.voiceStartedAt = performance.now() / 1000;
+      previousCaption = -1;
+      caption();
+      schedule();
+      if (!this.voiceEnabled) return;
       const c = this.context,
         source = c.createBufferSource(),
         g = c.createGain(),
         filter = c.createBiquadFilter();
-      source.buffer = this.buffers.get(id);
-      g.gain.value = line.speaker === "THE TELEPHONE" ? 1.65 : 0.95;
+      source.buffer = buffer;
+      g.gain.value = options.position
+        ? (options.gain ?? 1.15)
+        : line.speaker === "THE TELEPHONE"
+          ? 1.65
+          : 0.95;
       filter.type = "lowpass";
-      filter.frequency.value =
-        line.speaker === "THE GLASS"
+      filter.frequency.value = options.radio
+        ? 3700
+        : line.speaker === "THE GLASS"
           ? 3200
           : line.speaker === "THE TELEPHONE"
             ? 3300
             : 6000;
       source.connect(filter);
       filter.connect(g);
-      g.connect(
-        line.speaker === "THE TELEPHONE" ? this.phonePanner : this.master,
-      );
+      if (options.position) {
+        const p = options.position,
+          spatial = this.panner(p.x, p.y, p.z);
+        spatial.refDistance = options.radio ? 4 : 2.2;
+        spatial.rolloffFactor = options.radio ? 0.65 : 0.8;
+        spatial.connect(this.master);
+        g.connect(spatial);
+        this.voiceNodes.push(spatial);
+      } else
+        g.connect(
+          line.speaker === "THE TELEPHONE" ? this.phonePanner : this.master,
+        );
+      this.voiceNodes.push(filter, g);
       this.playingVoice = source;
-      clearTimeout(this.voiceTimer);
-      this.voiceTimer = setTimeout(done, source.buffer.duration * 1000 + 650);
       source.onended = () => {
         if (this.playingVoice === source) this.playingVoice = null;
         source.disconnect();
         filter.disconnect();
         g.disconnect();
       };
-      source.start();
+      source.start(0, this.voiceOffset);
     } catch (error) {
       console.warn("Voice unavailable; subtitles retained.", error.message);
     }

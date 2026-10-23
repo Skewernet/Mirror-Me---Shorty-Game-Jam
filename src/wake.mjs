@@ -2,6 +2,8 @@ import * as T from "three";
 import { createFigure } from "./figure.mjs";
 import { FigureRig } from "./figure-motion.mjs";
 
+export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
+
 // A single reception room beyond the real front entrance. Its ordinary daylight
 // and a place already reserved for Mara form the ending, rather than a corridor
 // into another level.
@@ -405,6 +407,60 @@ export function buildWake(b, m, surfaces, photos) {
     return parent;
   }
   const portraitTable = table(0, 11.94, 1.52, 0.55, 0.8, darkWood);
+  // A separate, visible source for the final report. It never shares the
+  // kitchen radio's weather loop or switch state.
+  const radioTable = table(1.12, 11.98, 0.72, 0.48, 0.8, darkWood);
+  const funeralRadio = group(
+    FUNERAL_RADIO.x,
+    0.84,
+    FUNERAL_RADIO.z,
+    Math.PI,
+    wake,
+  );
+  funeralRadio.name = "The funeral-room news radio";
+  const radioCase = tag(surfaces.material("wood", 0.75, 0.45, 0x5b3929));
+  const bakelite = plain(0x282723, 0.37);
+  const grille = tag(surfaces.material("linen", 2.1, 1.6, 0x5b5948));
+  slab(0.58, 0.33, 0.23, 0, 0.165, 0, radioCase, funeralRadio, 0.025);
+  slab(0.52, 0.27, 0.012, 0, 0.165, 0.122, bakelite, funeralRadio, 0.012);
+  slab(0.285, 0.205, 0.008, -0.095, 0.165, 0.132, grille, funeralRadio, 0.008);
+  const dial = plain(0xd8c79c, 0.5);
+  dial.emissive.set(0xb7864a);
+  dial.emissiveIntensity = 0.19;
+  slab(0.17, 0.07, 0.009, 0.157, 0.23, 0.134, dial, funeralRadio, 0.004);
+  for (let tick = 0; tick < 13; tick++)
+    slab(
+      0.002,
+      tick % 3 === 0 ? 0.035 : 0.018,
+      0.001,
+      0.083 + tick * 0.012,
+      0.232,
+      0.14,
+      bakelite,
+      funeralRadio,
+    );
+  slab(0.002, 0.049, 0.002, 0.158, 0.23, 0.143, plain(0x974128), funeralRadio);
+  for (const x of [0.105, 0.205]) {
+    const knob = cylinder(
+      0.023,
+      0.023,
+      0.018,
+      x,
+      0.105,
+      0.144,
+      bakelite,
+      funeralRadio,
+      20,
+    );
+    knob.rotation.x = Math.PI / 2;
+    slab(0.002, 0.012, 0.001, x, 0.113, 0.154, dial, funeralRadio);
+  }
+  const radioLamp = plain(0x8c9271, 0.45);
+  radioLamp.emissive.set(0xa8ba76);
+  radioLamp.emissiveIntensity = 0.8;
+  sphere(0.006, 0.006, 0.004, 0.248, 0.23, 0.143, radioLamp, funeralRadio);
+  for (const x of [-0.21, 0.21])
+    slab(0.043, 0.012, 0.12, x, 0.003, 0, bakelite, funeralRadio, 0.003);
   const cloth = tag(surfaces.material("linen", 1.5, 0.8, 0xe5dfd3));
   slab(1.3, 0.008, 0.52, 0, 0.832, 0, cloth, portraitTable);
   for (const sx of [-1, 1])
@@ -555,6 +611,7 @@ export function buildWake(b, m, surfaces, photos) {
   point(0xe3e9e8, 4.5, 4.5, 0, 2.02, 11.25);
   let active = false,
     startedAt = null,
+    reportAt = null,
     sequenceTime = 0;
   function animate(_time, state) {
     const next = !!(
@@ -578,13 +635,19 @@ export function buildWake(b, m, surfaces, photos) {
     return true;
   }
   const headPosition = new T.Vector3();
+  function beginReport(time) {
+    if (reportAt !== null) return false;
+    reportAt = time;
+    return true;
+  }
   function update(time, dt, state, player) {
     animate(time, state);
     if (startedAt === null) return { elapsed: 0, done: false };
     sequenceTime = Math.max(0, time - startedAt);
+    const reportTime = reportAt === null ? 0 : Math.max(0, time - reportAt);
     for (const mourner of mourners) {
       const progress = T.MathUtils.smoothstep(
-        sequenceTime,
+        reportTime,
         7 + mourner.index * 1.1,
         12 + mourner.index * 1.1,
       );
@@ -600,21 +663,24 @@ export function buildWake(b, m, surfaces, photos) {
       const yaw = T.MathUtils.clamp(offset, -2.98, 2.98) * progress;
       mourner.yaw = T.MathUtils.damp(mourner.yaw, yaw, 2.2, Math.max(0, dt));
       const rise = T.MathUtils.smoothstep(
-        sequenceTime,
+        reportTime,
         15 + mourner.index * 0.5,
         19,
       );
       poseMourner(mourner, progress, rise);
       mourner.turned = progress > 0.95;
     }
-    if (sequenceTime > 7 && sequenceTime < 19)
+    if (reportTime > 7 && reportTime < 19)
       for (const light of lights)
         if (light.castShadow) light.shadow.needsUpdate = true;
-    return { elapsed: sequenceTime, done: sequenceTime >= 20 };
+    // The controller waits for the complete news report and final voice; this
+    // room never ends a long report on an unrelated animation timer.
+    return { elapsed: sequenceTime };
   }
   function reset() {
     active = false;
     startedAt = null;
+    reportAt = null;
     sequenceTime = 0;
     wake.visible = false;
     for (const mourner of mourners) {
@@ -636,19 +702,24 @@ export function buildWake(b, m, surfaces, photos) {
     reserved,
     mourners,
     portraitTable,
+    funeralRadio,
+    radioTable,
     bounds,
     entry,
     animate,
     prepare,
     begin,
+    beginReport,
     update,
     snapshot: () => ({
       active,
       startedAt,
+      reportAt,
       elapsed: sequenceTime,
       mourners: prepared ? mourners.length : mournerSeats.length,
       prepared,
       turned: mourners.filter((mourner) => mourner.turned).length,
+      radioPosition: { ...FUNERAL_RADIO },
     }),
     reset,
   };

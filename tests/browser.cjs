@@ -199,6 +199,7 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(after.time, before.time);
       assert.deepEqual(after.pose, before.pose);
       assert.deepEqual(after.story, before.story);
+      assert.deepEqual(after.ending, before.ending);
       assert.equal(after.flashlight, before.flashlight);
       assert.deepEqual(after.input.keys, []);
       assert.equal(after.audio, "suspended");
@@ -214,6 +215,26 @@ fs.mkdirSync(out, { recursive: true });
       }
       throw Error(
         "Dialogue did not finish: " + JSON.stringify((await snap()).dialogue),
+      );
+    }
+    async function waitEndingFlag(flag) {
+      const deadline = Date.now() + 90000;
+      while (Date.now() < deadline) {
+        const state = await snap();
+        if (state.ending?.[flag]) return state;
+        assert.equal(
+          state.mode,
+          "playing",
+          "The final report and response complete before ending credits",
+        );
+        await p.waitForTimeout(350);
+        await advance(0.15);
+      }
+      throw Error(
+        "Ending phase did not complete: " +
+          flag +
+          " " +
+          JSON.stringify((await snap()).ending),
       );
     }
     async function encounter(id, x, y, z) {
@@ -329,6 +350,10 @@ fs.mkdirSync(out, { recursive: true });
     await playing();
     const initial = await snap();
     assert.equal(initial.character, "Mara Vale");
+    assert.equal(initial.story.truthFound, false);
+    assert.equal(initial.revelation.visible, false);
+    assert.equal(initial.revelation.truthAcknowledged, false);
+    assert.equal(initial.revelation.newColliders, 0);
     assert.equal(initial.scares.flashes, false);
     await use("front-door");
     assert.equal((await snap()).story.frontOpen, false);
@@ -625,6 +650,7 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal((await snap()).story.backdoorGone, true);
     assert.equal((await snap()).story.mirrorReady, true);
     assert.equal((await snap()).body.visible, false);
+    assert.equal((await snap()).revelation.visible, false);
     await p.waitForTimeout(800);
     const quiet = (await snap()).roomSound;
     assert.ok(quiet.radio < 0.005 && quiet.water < 0.005);
@@ -663,6 +689,14 @@ fs.mkdirSync(out, { recursive: true });
     }
     assert.equal(inverted.story.stage, 6);
     assert.equal(inverted.story.inverted, true);
+    assert.equal(inverted.revelation.visible, true);
+    assert.equal(inverted.revelation.coveredBody, true);
+    assert.equal(inverted.revelation.truthAcknowledged, false);
+    assert.equal(
+      inverted.story.truthFound,
+      false,
+      "Crossing into the real house does not acknowledge the bedside evidence",
+    );
     assert.equal(inverted.portalCount, portalCount + 1);
     checkTransform(inverted.lastPortal, "mirror");
     assert.ok(inverted.input.keys.includes("KeyW"));
@@ -673,6 +707,13 @@ fs.mkdirSync(out, { recursive: true });
     await p.keyboard.up("KeyW");
     await advance(0.15);
     await photo("inverted-house");
+    await aim(MIRROR.x, MIRROR.y, MIRROR.z);
+    assert.equal(
+      (await snap()).body.visible,
+      true,
+      "The real house restores Mara's reflection instead of hiding her from the evidence",
+    );
+    await photo("truthful-mirror");
     console.log(
       "PASS 6: passable empty mirror, continuous movement and inverted house",
     );
@@ -687,6 +728,10 @@ fs.mkdirSync(out, { recursive: true });
     await walk(7.4, -1.7);
     await use("bed-farewell");
     assert.equal((await snap()).story.farewellSaid, true);
+    assert.equal((await snap()).story.truthFound, true);
+    assert.equal((await snap()).revelation.truthAcknowledged, true);
+    assert.equal((await snap()).story.frontReleased, false);
+    await photo("bedside-truth");
     await walk(8.7, -1.65);
     await walk(8.7, -2.55);
     await use("bedside-lamp");
@@ -715,11 +760,11 @@ fs.mkdirSync(out, { recursive: true });
     }
     await p.keyboard.up("KeyW");
     assert.equal(wake.story.wakeEntered, true);
+    assert.equal(wake.story.truthFound, true);
     assert.equal(wake.story.endingStarted, true);
     assert.equal(wake.mode, "playing");
     await advance(0.3);
     await photo("wake-arrival");
-    const wakeStart = (await snap()).time;
     await p.keyboard.down("KeyW");
     await advance(0.5);
     await p.keyboard.up("KeyW");
@@ -741,14 +786,80 @@ fs.mkdirSync(out, { recursive: true });
     await frozenModal("paused");
     await p.click("#start");
     await playing();
-    await advance(8);
-    await photo("wake-mourners");
+    await advance(2);
+    await waitEndingFlag("newsStarted");
+    assert.equal((await snap()).dialogue.id, "news");
+    await p.waitForFunction(
+      () => {
+        const voice = window.__mirror.snapshot().dialogue;
+        return voice.id === "news" && voice.offset > 0.6;
+      },
+      {},
+      { timeout: 15000 },
+    );
+    const newsPlaying = await snap();
+    assert.equal(newsPlaying.dialogue.id, "news");
+    assert.ok(
+      newsPlaying.dialogue.offset > 0.5,
+      "The funeral report advances on the audio clock",
+    );
+    close(newsPlaying.dialogue.position.x, 1.04);
+    close(newsPlaying.dialogue.position.y, 1.04);
+    close(newsPlaying.dialogue.position.z, 11.92);
+    assert.ok(
+      newsPlaying.roomSound.radio < 0.005,
+      "The kitchen weather loop stays silent during the funeral report",
+    );
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+    await frozenModal("paused");
+    await p.click("#start");
+    await playing();
+    await p.waitForTimeout(250);
+    await advance(0.05);
+    const newsResumed = await snap();
+    assert.equal(newsResumed.dialogue.id, "news");
+    assert.ok(
+      newsResumed.dialogue.offset >= newsPlaying.dialogue.offset - 0.15,
+      "Pausing the report preserves its offset instead of repeating its opening",
+    );
+    const reportCaption = await p.locator("#subtitle").innerText();
+    const captionPrefix = VOICES.news.speaker + " — “";
+    assert.ok(reportCaption.startsWith(captionPrefix));
+    assert.ok(
+      VOICES.news.text.includes(reportCaption.slice(captionPrefix.length, -1)),
+      "The resumed report retains its current readable subtitle segment",
+    );
+    await advance(50);
     assert.equal(
       (await snap()).mode,
       "playing",
-      "The twenty-second reception does not end early",
+      "Fast simulated time cannot cut off the real funeral report",
     );
-    await advance(21 - ((await snap()).time - wakeStart));
+    assert.equal((await snap()).ending.newsFinished, false);
+    assert.equal(
+      await p.locator("#veil").evaluate((e) => e.classList.contains("closing")),
+      false,
+      "The room stays visible until the final report and response finish",
+    );
+    await aim(1.04, 1.04, 11.92);
+    await photo("wake-news-radio");
+    await face(Math.PI);
+    await photo("wake-mourners");
+    await waitEndingFlag("newsFinished");
+    assert.equal((await snap()).mode, "playing");
+    assert.equal((await snap()).ending.lastLineFinished, false);
+    await advance(2);
+    assert.equal((await snap()).dialogue.id, null);
+    await advance(1);
+    assert.equal((await snap()).dialogue.id, "ending");
+    await waitEndingFlag("lastLineFinished");
+    const finalPause = await snap();
+    assert.equal(finalPause.mode, "playing");
+    assert.ok(finalPause.ending.endsAt > finalPause.time + 2);
+    await advance(2);
+    assert.equal((await snap()).mode, "playing");
+    await advance(0.65);
     assert.equal((await snap()).mode, "ending");
     assert.equal((await snap()).story.ended, true);
     assert.deepEqual(
@@ -772,7 +883,7 @@ fs.mkdirSync(out, { recursive: true });
     await p.waitForFunction(() => !document.querySelector("#menu").hidden);
     assert.equal((await snap()).mode, "ending");
     console.log(
-      "PASS 7: farewell, lamp, front departure and playable reception ending",
+      "PASS 7: bedside acknowledgment, lamp, playable wake and complete spatial news with pause recovery",
     );
 
     await p.click("#start");
@@ -791,6 +902,11 @@ fs.mkdirSync(out, { recursive: true });
     });
     assert.deepEqual(reset.story.placedKeepsakes, []);
     assert.equal(reset.story.inverted, false);
+    assert.equal(reset.story.truthFound, false);
+    assert.equal(reset.revelation.visible, false);
+    assert.equal(reset.revelation.truthAcknowledged, false);
+    assert.equal(reset.revelation.coveredBody, false);
+    assert.equal(reset.revelation.newColliders, 0);
     assert.equal(reset.story.wakeEntered, false);
     assert.equal(reset.story.backdoorGone, false);
     assert.equal(reset.story.doors.lounge, false);
@@ -827,7 +943,9 @@ fs.mkdirSync(out, { recursive: true });
       return result;
     });
     assert.equal(Object.keys(voices).length, Object.keys(VOICES).length);
-    assert.equal(Object.keys(voices).length, 23);
+    assert.equal(Object.keys(voices).length, 25);
+    assert.ok(voices.news > 10, "The funeral news is a complete voiced report");
+    assert.ok(voices.sob > 0, "Mara's broken confession has audible content");
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
     console.log(
@@ -839,6 +957,7 @@ fs.mkdirSync(out, { recursive: true });
           rearReturns: 5,
           mirrorCrossings: 1,
           gameSeconds: playTime,
+          intentionalEndingClockStressSeconds: 50,
           voices: Object.keys(voices).length,
           scares,
           screenshots: out,
@@ -857,8 +976,10 @@ fs.mkdirSync(out, { recursive: true });
             "reverse silence",
             "vanished rear wall",
             "inverted house",
-            "farewell and lamp order",
+            "bedside truth acknowledgment and lamp order",
             "front threshold and playable wake",
+            "one-shot funeral report with spatial origin and preserved pause offset",
+            "credits wait for the complete report, response and final pause",
             "ending credits and full reset",
             "all Kokoro voices decode",
           ],

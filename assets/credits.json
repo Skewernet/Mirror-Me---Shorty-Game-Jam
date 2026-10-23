@@ -1,10 +1,10 @@
 {
-  "title": "MIRROR ME — credits and asset sources",
+  "title": "MIRROR ME \u2014 credits and asset sources",
   "updated": "2026-10-23",
   "entries": [
     {
       "id": "mirror-me-original-work",
-      "title": "MIRROR ME — concept, story, house and sound",
+      "title": "MIRROR ME \u2014 concept, story, house and sound",
       "creator": "Skewernet; AI-assisted development with OpenAI ChatGPT/Codex",
       "license": "Original project work; no separate asset-license grant",
       "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam",
@@ -14,12 +14,12 @@
         "index.html",
         "style.css"
       ],
-      "changes": "Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, authored props, blood/handprint/vein artwork, interface and procedural animation. Ambience, footsteps, crawling, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound library."
+      "changes": "Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, funeral-radio geometry, authored props, interface and procedural animation. Layered blood, pools, bedding/shroud forms, knife and care-room evidence in src/revelation.mjs are original project geometry and canvas artwork. Ambience, footsteps, crawling, breaths, sob-like textures, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound or prop library."
     },
     {
       "id": "threejs",
       "title": "Three.js 0.160.1 and addons",
-      "creator": "Three.js authors; copyright 2010–2023",
+      "creator": "Three.js authors; copyright 2010\u20132023",
       "license": "MIT",
       "source": "https://github.com/mrdoob/three.js/tree/r160",
       "licenseUrl": "https://github.com/mrdoob/three.js/blob/r160/LICENSE",
@@ -37,7 +37,7 @@
     },
     {
       "id": "kokoro-voices",
-      "title": "Kokoro-82M v1.0 — synthetic dialogue",
+      "title": "Kokoro-82M v1.0 \u2014 synthetic dialogue",
       "creator": "Kokoro / hexgrad; ONNX conversion and runtime by k2-fsa / sherpa-onnx; original dialogue by MIRROR ME",
       "license": "Engine and model weights: Apache-2.0; dialogue: original project writing",
       "source": "https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models",
@@ -49,12 +49,12 @@
         "assets/voice/MODEL_CARD.txt",
         "assets/voice/LICENSE_APACHE_2.0.txt"
       ],
-      "changes": "Twenty-three original takes synthesized offline: twenty-two story performances and one ambient radio bulletin. Mara and the glass: bf_emma; Mum: bf_isabella; weather bulletin: bm_george. The first Mum call uses telephone bandwidth; the final Mum line uses clear full-range speech. Pacing, telephone/radio filtering, restrained glass echo and loudness/headroom mastering by the project. Supplied synthetic presets; no human actor performance or real-person voice clone is claimed."
+      "changes": "Twenty-five original takes synthesized offline: twenty-three narrative/broken-word performances, one ambient kitchen weather bulletin and one finite fictional funeral news report. Mara and the glass: bf_emma; Mum: bf_isabella; both radio readers: bm_george. The first Mum call uses telephone bandwidth; the final Mum line uses clear full-range speech. The broken-word take uses scripted phrase spacing and restrained amplitude modulation; it is not a recorded human sob. Telephone/radio filtering, restrained glass echo, spatial playback and loudness/headroom mastering are project work. Only the weather loop has a padded quiet tail; the funeral report plays once. Supplied synthetic presets; no human actor performance or real-person voice clone is claimed."
     },
     {
       "id": "makehuman-mara-base",
-      "title": "MakeHuman / MPFB — female base, morphology and game rig",
-      "creator": "MakeHuman Team — Data Collection AB, Joel Palmius and Jonas Hauquier",
+      "title": "MakeHuman / MPFB \u2014 female base, morphology and game rig",
+      "creator": "MakeHuman Team \u2014 Data Collection AB, Joel Palmius and Jonas Hauquier",
       "license": "CC0 1.0",
       "source": "https://github.com/makehumancommunity/mpfb2/tree/b1a2dc98776da9d1eea751b159d42cf61778fe2e/src/mpfb/data",
       "licenseUrl": "https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md",
@@ -67,12 +67,12 @@
         "assets/character/LICENSE-CC0.md",
         "assets/character/MPFB-LICENSE.md"
       ],
-      "changes": "Adult female morphological blend at 1.74 m; helper removal, anatomical subdivision, resting pose and glTF export. MPFB mouth-opening expression added as a jaw morph; the CC0 inside-mouth texture is copied unmodified as inside-mouth-mask.jpg. The project adds distance-driven foot planting, measured-bind-axis limb solving, crawling/ceiling poses and anatomical horror deformation."
+      "changes": "Adult female morphological blend at 1.74 m; helper removal, anatomical subdivision, resting pose and glTF export. MPFB mouth-opening expression added as a jaw morph; the CC0 inside-mouth texture is copied unmodified as inside-mouth-mask.jpg. The project adds distance-driven foot planting, measured-bind-axis limb solving, crawling/ceiling poses and anatomical horror deformation. The existing credited rig is also reused for the seated wake figures and covered adult hand in the revealed room; no new body or monster model is downloaded."
     },
     {
       "id": "makehuman-system-character",
-      "title": "MakeHuman — system skin, eyes, hair, clothing and shoes",
-      "creator": "MakeHuman Team — Data Collection AB, Joel Palmius and Jonas Hauquier",
+      "title": "MakeHuman \u2014 system skin, eyes, hair, clothing and shoes",
+      "creator": "MakeHuman Team \u2014 Data Collection AB, Joel Palmius and Jonas Hauquier",
       "license": "CC0 1.0",
       "source": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
       "licenseUrl": "https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md",
@@ -80,11 +80,11 @@
         "assets/character/mara.glb",
         "assets/character/mara.json"
       ],
-      "changes": "System skin, detailed eyes, bob hairstyle, brows, lashes, casual clothing and shoes03 black shoes fitted to the female character; chestnut hair tint, PBR tuning and authored horror variants. The clothed mesh and skeleton are reused for the crawling and distorted figures; those poses are project-authored, not a separately downloaded monster asset."
+      "changes": "System skin, detailed eyes, bob hairstyle, brows, lashes, casual clothing and shoes03 black shoes fitted to the female character; chestnut hair tint, PBR tuning, authored blood/material variants and desaturated mourning clothes. The clothed mesh and skeleton are reused for crawling and distorted figures, seated mourners and the covered adult hand; those poses and variants are project-authored, not separately downloaded assets."
     },
     {
       "id": "margaret-toigo-mara-costume",
-      "title": "Red Shirt with Black Jeans — costume material",
+      "title": "Red Shirt with Black Jeans \u2014 costume material",
       "creator": "Margaret Toigo",
       "license": "CC0 1.0",
       "source": "http://www.makehumancommunity.org/node/997",
@@ -97,8 +97,8 @@
     },
     {
       "id": "wayfair-wood",
-      "title": "Chair Damask Purplegold — wood PBR maps",
-      "creator": "Eric Chadwick (models and textures); © 2021 Wayfair",
+      "title": "Chair Damask Purplegold \u2014 wood PBR maps",
+      "creator": "Eric Chadwick (models and textures); \u00a9 2021 Wayfair",
       "license": "CC BY 4.0",
       "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/15cd02d304e54cb42a4db4eefe719f76190f4b68/Models/ChairDamaskPurplegold",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
@@ -113,7 +113,7 @@
     },
     {
       "id": "polyhaven-fabric",
-      "title": "Fabric Pattern 07 — fabric PBR maps",
+      "title": "Fabric Pattern 07 \u2014 fabric PBR maps",
       "creator": "Poly Haven (publisher)",
       "license": "CC0 1.0",
       "source": "https://polyhaven.com/a/fabric_pattern_07",
@@ -128,7 +128,7 @@
     },
     {
       "id": "polyhaven-hdr",
-      "title": "St Fagans Interior — HDR environment",
+      "title": "St Fagans Interior \u2014 HDR environment",
       "creator": "Poly Haven (publisher)",
       "license": "CC0 1.0",
       "source": "https://polyhaven.com/a/st_fagans_interior",
@@ -141,7 +141,7 @@
     {
       "id": "original-pbr-surfaces",
       "title": "Original house PBR surfaces",
-      "creator": "MIRROR ME — AI-assisted procedural artwork/code",
+      "creator": "MIRROR ME \u2014 AI-assisted procedural artwork/code",
       "license": "Original project work; no separate asset-license grant",
       "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/materials_prep.py",
       "licenseUrl": "",

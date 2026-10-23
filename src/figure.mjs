@@ -1,7 +1,7 @@
 import * as T from "three";
 import { GLTFLoader } from "../vendor/GLTFLoader.js";
 import { clone as cloneSkeleton } from "../vendor/SkeletonUtils.js";
-import { FigureRig, FigureGait } from "./figure-motion.mjs";
+import { FigureRig, FigureGait, CreatureGait } from "./figure-motion.mjs";
 
 let template;
 let loading;
@@ -54,9 +54,48 @@ export function createFigure(_house, layer = 1) {
   body.add(visual);
   const materials = new Map();
   const horrorUniform = { value: 0 };
+  const evidenceUniform = { value: 0 };
   body.traverse((object) => {
     object.layers.set(layer);
     if (!object.isMesh) return;
+    if (
+      object.isSkinnedMesh &&
+      /Mara_(Skin|Clothes)/.test(object.name) &&
+      !object.geometry.getAttribute("maraBloodWeight")
+    ) {
+      // The skin weights locate palms/forearms in every pose without guessing
+      // at UV islands. Geometry can share this fixed mask; colour is per figure.
+      const indices = object.geometry.getAttribute("skinIndex"),
+        weights = object.geometry.getAttribute("skinWeight");
+      const boneMask = object.skeleton.bones.map((bone) =>
+        /^(hand_|(?:index|middle|ring|pinky|thumb)_)/.test(bone.name)
+          ? 1
+          : /^lowerarm_/.test(bone.name)
+            ? 0.58
+            : 0,
+      );
+      const mask = new Float32Array(indices.count);
+      for (let i = 0; i < indices.count; i++) {
+        const ids = [
+          indices.getX(i),
+          indices.getY(i),
+          indices.getZ(i),
+          indices.getW(i),
+        ];
+        const values = [
+          weights.getX(i),
+          weights.getY(i),
+          weights.getZ(i),
+          weights.getW(i),
+        ];
+        for (let component = 0; component < 4; component++)
+          mask[i] += (boneMask[ids[component]] || 0) * values[component];
+      }
+      object.geometry.setAttribute(
+        "maraBloodWeight",
+        new T.BufferAttribute(mask, 1),
+      );
+    }
     object.castShadow = object.receiveShadow = true;
     object.frustumCulled = false; // Limb motion may leave a glTF rest-pose bound.
     const ownMaterial = (material) => {
@@ -91,6 +130,39 @@ export function createFigure(_house, layer = 1) {
         };
         own.customProgramCacheKey = () => "mara-oral-depth-v1";
       }
+      if (/Skin|Clothes/.test(own.name)) {
+        const previousCompile = own.onBeforeCompile,
+          previousKey = own.customProgramCacheKey();
+        own.onBeforeCompile = (shader, renderer) => {
+          previousCompile.call(own, shader, renderer);
+          shader.uniforms.maraEvidenceBlood = evidenceUniform;
+          shader.vertexShader =
+            "attribute float maraBloodWeight;\nvarying float vMaraBloodWeight;\nvarying vec3 vMaraEvidenceRest;\n" +
+            shader.vertexShader;
+          shader.vertexShader = shader.vertexShader.replace(
+            "#include <begin_vertex>",
+            "#include <begin_vertex>\nvMaraBloodWeight=maraBloodWeight;\nvMaraEvidenceRest=position;",
+          );
+          shader.fragmentShader =
+            "uniform float maraEvidenceBlood;\nvarying float vMaraBloodWeight;\nvarying vec3 vMaraEvidenceRest;\n" +
+            shader.fragmentShader;
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <map_fragment>",
+            `#include <map_fragment>
+            float evidenceSmear=sin(vMaraEvidenceRest.y*91.+sin(vMaraEvidenceRest.z*41.)*2.4+vMaraEvidenceRest.x*37.);
+            float evidenceBreak=sin(vMaraEvidenceRest.x*171.+vMaraEvidenceRest.z*143.)*.27;
+            float evidenceCoverage=maraEvidenceBlood*smoothstep(.08,.65,vMaraBloodWeight)*(.68+.32*smoothstep(-.7,.8,evidenceSmear+evidenceBreak));
+            vec3 evidenceRed=mix(vec3(.038,.0015,.001),vec3(.125,.004,.002),smoothstep(-1.,1.,evidenceSmear));
+            diffuseColor.rgb=mix(diffuseColor.rgb,evidenceRed,evidenceCoverage);`,
+          );
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <roughnessmap_fragment>",
+            "#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.28,evidenceCoverage*.75);",
+          );
+        };
+        own.customProgramCacheKey = () =>
+          previousKey + "|mara-evidence-blood-v1";
+      }
       own.needsUpdate = true;
       return own;
     };
@@ -108,6 +180,7 @@ export function createFigure(_house, layer = 1) {
   });
   const rig = new FigureRig(body, visual);
   const gait = new FigureGait(rig);
+  const creatureGait = new CreatureGait(rig);
   const controls = [];
   let applyingControls = true;
   function control(name, boneName) {
@@ -153,6 +226,9 @@ export function createFigure(_house, layer = 1) {
   let baseline = null;
   let poseCache = null;
   let horrorOptions = {};
+  let creatureMode = null;
+  let foldPose = null;
+  let foldStarted = 0;
   const mesh = visual.getObjectByName("Mara_Skin");
   const eyeMesh = visual.getObjectByName("Mara_Eyes");
   const colors = new Map(
@@ -309,6 +385,7 @@ export function createFigure(_house, layer = 1) {
   }
   function resetMotion(options = {}) {
     gait.reset(options);
+    creatureGait.reset();
   }
   function resetPose() {
     applyingControls = false;
@@ -316,10 +393,15 @@ export function createFigure(_house, layer = 1) {
     applyingControls = true;
     rig.reset();
     gait.reset();
+    creatureGait.reset();
     baseline = snapshot();
     horror = 0;
+    evidenceUniform.value = 0;
+    body.userData.evidenceBlood = 0;
     unease = 0;
     horrorOptions = {};
+    creatureMode = null;
+    foldPose = null;
     morph("Mara_Jaw_Open", 0);
     morph("Mara_Hollow", 0);
     morph("Mara_Recessed", 0, eyeMesh);
@@ -327,7 +409,31 @@ export function createFigure(_house, layer = 1) {
     captureControls();
     body.userData.pose = "standing";
   }
+  function setEvidenceBlood(level = 0) {
+    evidenceUniform.value = T.MathUtils.clamp(
+      Number.isFinite(level) ? level : 0,
+      0,
+      1,
+    );
+    body.userData.evidenceBlood = evidenceUniform.value;
+  }
   function setCreaturePose(time, progress = 0, options = {}) {
+    const mode = options.mode || "crawl";
+    if (creatureMode === "twisted" && mode === "crawl") {
+      // Folding takes a breath. Never exchange an upright skeleton for a low
+      // one in a single frame as the apparition starts to withdraw.
+      foldPose = {
+        position: visual.position.clone(),
+        quaternion: visual.quaternion.clone(),
+        joints: [...rig.joints.values()].map(({ bone }) => [
+          bone.position.clone(),
+          bone.quaternion.clone(),
+          bone.scale.clone(),
+        ]),
+      };
+      foldStarted = time;
+    } else if (mode !== creatureMode) foldPose = null;
+    creatureMode = mode;
     applyingControls = false;
     for (const { proxy } of controls) proxy.rotation.set(0, 0, 0);
     applyingControls = true;
@@ -335,9 +441,8 @@ export function createFigure(_house, layer = 1) {
     horror = T.MathUtils.clamp(options.intensity ?? 1, 0, 1);
     baseline = snapshot();
     distort(horror, time, options);
-    const mode = options.mode || "crawl";
     const cycle = Number.isFinite(options.distance)
-      ? options.distance / 0.6
+      ? options.distance / 0.82
       : progress * 2.2;
     if (mode === "twisted") {
       rig.offset("pelvis", new T.Vector3(0, -0.1, 0));
@@ -372,103 +477,19 @@ export function createFigure(_house, layer = 1) {
       const crawlPhase = cycle * Math.PI * 2;
       rig.offset(
         "pelvis",
-        new T.Vector3(0, -0.46 + Math.sin(crawlPhase * 2) * 0.009, 0.12),
+        new T.Vector3(0, -0.51 + Math.sin(crawlPhase * 2) * 0.007, 0.12),
       );
-      rig.rotate("pelvis", -1.3, 0, Math.sin(crawlPhase) * 0.045);
-      rig.rotate("spine_01", -0.08, 0, -Math.sin(crawlPhase) * 0.025);
-      rig.rotate("neck_01", 1.28, 0, 0.12);
+      rig.rotate("pelvis", -1.34, 0, Math.sin(crawlPhase) * 0.022);
+      rig.rotate("spine_01", -0.08, 0, -Math.sin(crawlPhase) * 0.018);
+      rig.rotate("neck_01", 1.32, 0, 0.08);
       rig.rotate("head", 0.04, Math.sin(time * 0.45) * 0.05, -0.12);
       rig.update();
-      const retreat = mode === "retreat" ? -1 : 1;
-      const limbStep = (phase, baseZ, baseX, hand, ankleHeight = 0) => {
-        const p = ((phase % 1) + 1) % 1;
-        const contact = p < 0.7;
-        const s = contact ? p / 0.7 : (p - 0.7) / 0.3;
-        const travel = contact
-          ? 0.21 - s * 0.42
-          : -0.21 + s * s * (3 - 2 * s) * 0.42;
-        const lift = contact
-          ? 0
-          : Math.sin(s * Math.PI) * (hand ? 0.075 : 0.055);
-        return rig.bodyPoint(
-          new T.Vector3(
-            baseX,
-            (hand ? 0.105 : ankleHeight) + lift,
-            baseZ - travel * retreat,
-          ),
-        );
-      };
-      for (let i = 0; i < 2; i++) {
-        const side = rig.sides[i],
-          suffix = side.side,
-          sign = i ? 1 : -1;
-        const ankle = limbStep(
-          cycle + i * 0.5,
-          0.39,
-          sign * 0.16,
-          false,
-          side.ankle.y,
-        );
-        const hip = rig.point(`thigh_${suffix}`);
-        const legPole = hip
-          .clone()
-          .add(rig.bodyVector(new T.Vector3(sign * 0.12, -0.45, -0.12)));
-        const upperLeg = rig.point(`calf_${suffix}`).distanceTo(hip);
-        const lowerLeg = rig
-          .point(`foot_${suffix}`)
-          .distanceTo(rig.point(`calf_${suffix}`));
-        rig.solveLimb(
-          `thigh_${suffix}`,
-          `calf_${suffix}`,
-          `foot_${suffix}`,
-          ankle,
-          legPole,
-          upperLeg,
-          lowerLeg,
-        );
-        rig.setWorldQuaternion(
-          `foot_${suffix}`,
-          rig.bodyQuaternion(rig.joint(`foot_${suffix}`).bodyQuaternion),
-        );
-        const wrist = limbStep(cycle + i * 0.5 + 0.5, -0.57, sign * 0.22, true);
-        const shoulder = rig.point(`upperarm_${suffix}`);
-        const armPole = shoulder
-          .clone()
-          .add(rig.bodyVector(new T.Vector3(sign * 0.06, 0.04, 0.2)));
-        const upperArm = rig.point(`lowerarm_${suffix}`).distanceTo(shoulder);
-        const lowerArm = rig
-          .point(`hand_${suffix}`)
-          .distanceTo(rig.point(`lowerarm_${suffix}`));
-        rig.solveLimb(
-          `upperarm_${suffix}`,
-          `lowerarm_${suffix}`,
-          `hand_${suffix}`,
-          wrist,
-          armPole,
-          upperArm,
-          lowerArm,
-        );
-        const finger = rig
-          .restPoint(`middle_03_${suffix}`)
-          .sub(rig.restPoint(`hand_${suffix}`))
-          .normalize();
-        const handTurn = new T.Quaternion().setFromUnitVectors(
-          finger,
-          new T.Vector3(0, 0, -1),
-        );
-        const handQ = handTurn.multiply(
-          rig.joint(`hand_${suffix}`).bodyQuaternion,
-        );
-        handQ.premultiply(
-          new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, -1), Math.PI),
-        );
-        rig.setWorldQuaternion(`hand_${suffix}`, rig.bodyQuaternion(handQ));
-        for (const finger of ["index", "middle", "ring", "pinky", "thumb"])
-          for (let segment = 1; segment <= 3; segment++) {
-            const joint = rig.joint(`${finger}_0${segment}_${suffix}`);
-            joint.bone.quaternion.copy(joint.quaternion);
-          }
-      }
+      const diagnostic = creatureGait.update(time, {
+        ...options,
+        mode,
+        distance: options.distance ?? progress * 0.82,
+      });
+      body.userData.creatureGait = diagnostic;
       if (mode === "ceiling") {
         visual.quaternion.premultiply(
           new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), Math.PI),
@@ -478,6 +499,20 @@ export function createFigure(_house, layer = 1) {
         visual.position.y = options.ceilingClearance ?? 0.075;
         rig.update();
       }
+    }
+    if (foldPose && mode === "crawl") {
+      const blend = T.MathUtils.smoothstep(time - foldStarted, 0, 0.55);
+      visual.position.lerpVectors(foldPose.position, visual.position, blend);
+      visual.quaternion.slerp(foldPose.quaternion, 1 - blend);
+      let index = 0;
+      for (const { bone } of rig.joints.values()) {
+        const [position, quaternion, scale] = foldPose.joints[index++];
+        bone.position.lerpVectors(position, bone.position, blend);
+        bone.quaternion.slerp(quaternion, 1 - blend);
+        bone.scale.lerpVectors(scale, bone.scale, blend);
+      }
+      if (blend === 1) foldPose = null;
+      rig.update();
     }
     morph("Mara_Jaw_Open", horror * (0.93 + Math.sin(time * 1.3) * 0.05));
     baseline = snapshot();
@@ -501,6 +536,7 @@ export function createFigure(_house, layer = 1) {
     animate,
     setUnease,
     setHorror,
+    setEvidenceBlood,
     setCreaturePose,
     resetMotion,
     resetPose,

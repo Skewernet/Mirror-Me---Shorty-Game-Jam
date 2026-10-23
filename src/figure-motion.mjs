@@ -557,3 +557,212 @@ export class FigureGait {
     return this.diagnostics;
   }
 }
+
+export const CREATURE_STRIDE_METERS = 0.82;
+export const CREATURE_STEP_METERS = CREATURE_STRIDE_METERS / 2;
+
+// The apparition is carried by its hands and toes. Contacts belong to the
+// room, not to the moving body: a planted palm does not slide with the root.
+// Ceiling contacts use the same solve in an inverted surface frame.
+export class CreatureGait {
+  constructor(rig) {
+    this.rig = rig;
+    this.stride = CREATURE_STRIDE_METERS;
+    this.stance = 0.68;
+    this.reset();
+  }
+  reset() {
+    this.time = null;
+    this.distance = 0;
+    this.mode = null;
+    this.previousRoot = null;
+    this.direction = null;
+    this.contacts = new Map();
+    this.diagnostics = { contacts: [], distance: 0 };
+  }
+  update(time, options = {}) {
+    const rig = this.rig;
+    const mode = options.mode || "crawl";
+    const dt = clamp(
+      options.delta ?? (this.time === null ? 1 / 60 : time - this.time),
+      0,
+      0.08,
+    );
+    const root = rig.body.getWorldPosition(new T.Vector3());
+    const moved = this.previousRoot
+      ? root.clone().sub(this.previousRoot)
+      : new T.Vector3();
+    const distance = Math.max(0, options.distance ?? this.distance);
+    if (
+      this.mode !== mode ||
+      moved.length() > 0.8 ||
+      distance < this.distance - 0.01
+    )
+      this.reset();
+    const bodyQ = rig.body.getWorldQuaternion(new T.Quaternion());
+    const frame = rig.body.matrixWorld.clone();
+    if (mode === "ceiling")
+      frame
+        .multiply(
+          new T.Matrix4().makeTranslation(
+            0,
+            options.ceilingClearance ?? 0.075,
+            0,
+          ),
+        )
+        .multiply(new T.Matrix4().makeRotationZ(Math.PI));
+    const inverseFrame = frame.clone().invert();
+    const frameQ = new T.Quaternion().setFromRotationMatrix(frame);
+    const unmapQuaternion = bodyQ.clone().multiply(frameQ.clone().invert());
+    const toVirtual = (point) =>
+      rig.body.localToWorld(point.clone().applyMatrix4(inverseFrame));
+    const toSurface = (point) =>
+      point
+        .clone()
+        .applyMatrix4(rig.body.matrixWorld.clone().invert())
+        .applyMatrix4(frame);
+    let direction = new T.Vector3(
+      options.vx ?? moved.x / Math.max(dt, 0.001),
+      0,
+      options.vz ?? moved.z / Math.max(dt, 0.001),
+    );
+    if (direction.lengthSq() < 0.0001)
+      direction =
+        this.direction?.clone() || FORWARD.clone().applyQuaternion(bodyQ);
+    else direction.normalize();
+    this.direction = direction;
+    const cycle = distance / this.stride;
+    const reports = [];
+    for (let i = 0; i < 2; i++) {
+      const side = rig.sides[i],
+        suffix = side.side,
+        sign = i ? 1 : -1;
+      for (const hand of [true, false]) {
+        const name = `${hand ? "hand" : "foot"}_${suffix}`;
+        // Slightly stagger the diagonals. The body has a weight-bearing pause,
+        // rather than four limbs windmilling in a perfectly mirrored sine.
+        const phase = fraction(cycle + (hand ? i * 0.5 : i * 0.5 + 0.56));
+        const stance = phase < this.stance;
+        const nominal = new T.Vector3(
+          sign * (hand ? 0.16 : 0.13),
+          hand ? 0.1 : side.ankle.y,
+          hand ? -0.49 : 0.43,
+        ).applyMatrix4(frame);
+        let restQ;
+        if (hand) {
+          const finger = rig
+            .restPoint(`middle_03_${suffix}`)
+            .sub(rig.restPoint(name))
+            .normalize();
+          restQ = new T.Quaternion()
+            .setFromUnitVectors(finger, FORWARD)
+            .multiply(rig.joint(name).bodyQuaternion);
+          restQ.premultiply(
+            new T.Quaternion().setFromAxisAngle(FORWARD, Math.PI),
+          );
+        } else restQ = rig.joint(name).bodyQuaternion.clone();
+        restQ.premultiply(frameQ);
+        let contact = this.contacts.get(name);
+        if (!contact) {
+          const anchor = nominal
+            .clone()
+            .addScaledVector(
+              direction,
+              (this.stance * 0.5 - Math.min(phase, this.stance)) * this.stride,
+            );
+          contact = {
+            anchor,
+            start: anchor.clone(),
+            end: anchor.clone(),
+            quaternion: restQ.clone(),
+            wasStance: stance,
+            frameCycle: Math.floor(cycle),
+          };
+          this.contacts.set(name, contact);
+        }
+        let target,
+          lift = 0;
+        if (stance) {
+          if (!contact.wasStance) {
+            contact.anchor.copy(contact.end);
+            contact.quaternion.copy(restQ);
+          }
+          target = contact.anchor.clone();
+        } else {
+          const swing = (phase - this.stance) / (1 - this.stance);
+          if (contact.wasStance) contact.start.copy(contact.anchor);
+          // Predict a landing ahead of the travelling root. This also works
+          // when she pulls backwards while keeping her face toward the player.
+          contact.end
+            .copy(nominal)
+            .addScaledVector(
+              direction,
+              (1 - phase + this.stance * 0.5) * this.stride,
+            );
+          target = contact.start.clone().lerp(contact.end, smooth(swing));
+          lift = Math.sin(Math.PI * swing) * (hand ? 0.095 : 0.065);
+          target.y += (mode === "ceiling" ? -1 : 1) * lift;
+          contact.quaternion.slerp(restQ, 1 - Math.exp(-dt * 16));
+        }
+        const virtualTarget = toVirtual(target);
+        const upperName = `${hand ? "upperarm" : "thigh"}_${suffix}`;
+        const lowerName = `${hand ? "lowerarm" : "calf"}_${suffix}`;
+        const origin = rig.point(upperName);
+        // Keep the knee bend plane away from the ankle line. An almost
+        // parallel pole lets a small lateral bias kick both knees into jambs.
+        const pole = origin
+          .clone()
+          .add(
+            rig.bodyVector(
+              hand
+                ? new T.Vector3(sign * 0.025, 0.06, 0.23)
+                : new T.Vector3(sign * 0.005, 0.35, 0.6),
+            ),
+          );
+        const upper = rig.point(lowerName).distanceTo(origin);
+        const lower = rig.point(name).distanceTo(rig.point(lowerName));
+        const solution = rig.solveLimb(
+          upperName,
+          lowerName,
+          name,
+          virtualTarget,
+          pole,
+          upper,
+          lower,
+        );
+        rig.setWorldQuaternion(
+          name,
+          unmapQuaternion.clone().multiply(contact.quaternion),
+        );
+        if (hand)
+          for (const finger of ["index", "middle", "ring", "pinky", "thumb"])
+            for (let segment = 1; segment <= 3; segment++) {
+              const joint = rig.joint(`${finger}_0${segment}_${suffix}`);
+              joint.bone.quaternion.copy(joint.quaternion);
+            }
+        const actual = toSurface(solution.target);
+        reports.push({
+          name,
+          stance,
+          phase,
+          target: actual.toArray(),
+          anchor: contact.anchor.toArray(),
+          error: actual.distanceTo(target),
+          lift,
+        });
+        contact.wasStance = stance;
+      }
+    }
+    this.time = time;
+    this.previousRoot = root;
+    this.distance = distance;
+    this.mode = mode;
+    this.diagnostics = {
+      distance,
+      phase: fraction(cycle),
+      direction: direction.toArray(),
+      contacts: reports,
+    };
+    return this.diagnostics;
+  }
+}

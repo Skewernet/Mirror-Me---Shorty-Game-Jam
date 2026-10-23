@@ -19,6 +19,8 @@ import {
   atFrontThreshold,
 } from "./layout.mjs";
 import { preloadCharacterAssets } from "./figure.mjs";
+import { FUNERAL_RADIO } from "./wake.mjs";
+import { CHAPTERS } from "./chapters.mjs";
 const $ = (id) => document.getElementById(id),
   scene = new T.Scene();
 scene.background = new T.Color(0x101417);
@@ -50,6 +52,7 @@ let house;
 try {
   [house] = await Promise.all([buildHouse(scene), preloadCharacterAssets()]);
   await house.wake?.prepare?.();
+  await house.revelation?.prepare?.();
 } catch (error) {
   $("error").textContent =
     "A house or character asset could not load. Reload the page; if it persists, inspect the asset request.";
@@ -73,6 +76,12 @@ let mode = "title",
   endingStart = 0,
   endingSpoken = false,
   wakeTurned = false,
+  newsStarted = false,
+  newsStartedAt = 0,
+  newsFinished = false,
+  newsFinishedAt = 0,
+  lastLineFinished = false,
+  sobQueued = false,
   lateSpoken = false,
   flashlightOn = false,
   hintUntil = 0,
@@ -96,9 +105,16 @@ function say(text, duration = 4) {
   $("message").textContent = text;
   messageUntil = elapsed + duration;
 }
-function queueVoice(id, delay = 0) {
+function queueVoice(id, delay = 0, options = {}) {
   if (VOICES[id] && !pending.some((q) => q.id === id))
-    pending.push({ id, at: elapsed + delay });
+    pending.push({ id, at: elapsed + delay, options });
+}
+function playPendingVoice() {
+  const ready = pending.findIndex((line) => line.at <= elapsed);
+  if (!sound.busy && ready >= 0) {
+    const [line] = pending.splice(ready, 1);
+    sound.voice(line.id, line.options);
+  }
 }
 function resize() {
   renderRequested = true;
@@ -116,15 +132,10 @@ window.addEventListener("resize", resize);
 function setText(element, text) {
   $(element).textContent = text;
 }
-const CHAPTER_NAMES = [
-  "I · THE LIGHT LEFT ON",
-  "II · THE DIFFICULT PART",
-  "III · THREE SEVENTEEN",
-  "IV · WHAT HER HANDS REMEMBER",
-  "V · END THE EVENING",
-  "VI · NO WAY BACK",
-  "VII · A PLACE KEPT FOR YOU",
-];
+const CHAPTER_NAMES = CHAPTERS.map(
+  ({ title }, index) =>
+    `${["I", "II", "III", "IV", "V", "VI", "VII"][index]} · ${title}`,
+);
 const safeText = (text) =>
   String(text).replace(
     /[&<>"']/g,
@@ -155,7 +166,7 @@ function updateInventory() {
   if (story.hasKey)
     item("Bedroom key", "The little brass tag reads BEDROOM.", "⚿");
   if (story.hasDiary) item("Mara’s bedside diary", WRITINGS.diary);
-  if (story.hasLetter) item("The hospital letter", WRITINGS.letter);
+  if (story.hasLetter) item("The discharge receipt", WRITINGS.letter);
   if (story.hasTimeClue)
     item(
       "Writing in the steam",
@@ -204,9 +215,9 @@ function updateInventory() {
   if (story.inverted)
     item(
       "The other side",
-      story.farewellSaid
-        ? "The letter is on her bed. Leave the light when you are ready."
-        : "Her room is still waiting for you. There is one thing to leave there.",
+      story.truthFound
+        ? WRITINGS.truth
+        : "The glass has brought you back to her room. Look at what you left there.",
       "◐",
     );
   $("inventory").textContent = cards.length
@@ -231,6 +242,8 @@ function reset() {
   pending = [];
   target = null;
   arrival = lateSpoken = endingSpoken = wakeTurned = mirrorSnap = false;
+  newsStarted = newsFinished = lastLineFinished = sobQueued = false;
+  newsStartedAt = newsFinishedAt = 0;
   lastPortal = null;
   portalCount = 0;
   offeringTarget = null;
@@ -270,10 +283,9 @@ function showMenu() {
   $("menu").hidden = false;
   $("hud").hidden = true;
   if (mode === "ending") {
-    $("chapter").textContent = "THEY KEPT YOUR PLACE";
-    $("title").innerHTML = "WELCOME<span>HOME</span>";
-    $("description").textContent =
-      "You left the light off. They knew you would come back.";
+    $("chapter").textContent = "THE CALL WAS YOURS";
+    $("title").innerHTML = "MIRROR<span>ME</span>";
+    $("description").textContent = "No one else was in the room.";
     $("start").textContent = "PLAY AGAIN";
     $("restart").hidden = true;
     $("ending-credits").hidden = false;
@@ -291,6 +303,7 @@ async function enter() {
   try {
     await sound.start();
   } catch {
+    sound.resumeDialogue();
     $("error").textContent =
       "Audio could not start. You can still play with subtitles.";
   }
@@ -660,8 +673,8 @@ function respond(event) {
     "radio-on": "The kitchen radio catches the valley weather service.",
     "radio-off": "The tuning light goes out. A small, ordinary silence.",
     letter:
-      "ST. ANNE’S — PERSONAL EFFECTS. E. Vale. Collected by Mara Vale. The envelope has been opened and folded shut again.",
-    "letter-repeat": "Mum’s things. My signature. The date I stopped coming.",
+      "The discharge receipt. Her things came home with her. The care did not end at the hospital.",
+    "letter-repeat": "A discharge to home care. My signature under the list.",
     fuse: "A spare ceramic fuse. The utility room is across from the bathroom, near the corner.",
     "panel-empty": "One fuse is missing. Someone left its outline in the dust.",
     "panel-on": "Power is restored. Every switch is on.",
@@ -725,11 +738,10 @@ function respond(event) {
     "mirror-empty":
       "There is no one on the other side. The glass is deeper than the frame.",
     "mirror-crossed":
-      "The air on this side is warm. Nothing has been touched for years.",
-    farewell:
-      "You leave the letter on her bed. There is nothing left to collect.",
-    "farewell-repeat": "The letter is where it belongs.",
-    "bed-waiting": "The bed is waiting. You cannot name what is in it.",
+      "The glass has not changed the house. It has stopped hiding it.",
+    farewell: WRITINGS.truth,
+    "farewell-repeat": "You cannot make this into a different evening.",
+    "bed-waiting": "Her side of the bed. You remember keeping it clean.",
     "lamp-stay": "She asked you to leave the light on.",
     "lamp-already-off": "Her light is off.",
     "ritual-wrong": "Not there. Not yet. The diary remembers her evening.",
@@ -738,11 +750,12 @@ function respond(event) {
     "ritual-inactive": "The little mark has been here a long time.",
     "mirror-enter":
       "Nothing returns your gaze. You can walk through the glass.",
-    "mirror-inverted": "The glass is a wall on this side.",
+    "mirror-inverted":
+      "Your hands are steady in the glass. The blood is yours to remember.",
     "front-open": "The front door is open.",
     "invalid-time": "Leave an hour from 1 to 12, and minutes from 0 to 59.",
-    "lamp-not-yet": "You have not said goodbye.",
-    "lamp-off": "The room is dark. For once, nothing asks you to fix it.",
+    "lamp-not-yet": "Look at the bed. You have not said what happened.",
+    "lamp-off": "The light goes out. It does not change what is on the sheets.",
     "front-unlocked":
       "At the front of the house, a door opens against the daylight.",
     "ending-open": "Cold daylight. A place outside.",
@@ -809,14 +822,24 @@ function finish() {
 }
 function beginEnding() {
   endingStart = elapsed;
-  endingAt = elapsed + 20;
+  endingAt = elapsed + 45;
   wakeTurned = false;
-  pending = [];
-  sound.stopVoice();
+  newsStarted = newsFinished = lastLineFinished = false;
+  newsStartedAt = newsFinishedAt = 0;
+  endingSpoken = false;
+  const essential = ["sob", "farewell", "unlocked"];
+  pending = pending.filter((line) => essential.includes(line.id));
+  if (!essential.includes(sound.currentVoice)) sound.stopVoice();
+  target = null;
+  $("prompt").textContent = $("chapter-mark").textContent = "";
+  $("cross").classList.remove("active");
+  $("location").textContent = "THE FUNERAL ROOM";
+  $("hint").textContent =
+    "WASD · WALK    MOUSE · LOOK    F · LIGHT    ESC · PAUSE";
   mirror.body.visible = false;
   house.wake?.begin?.(elapsed, player);
   sound.effect("wake-entered", { x: 0, y: 1.4, z: 11 });
-  say("They kept a place for you.", 5);
+  say("Someone has left a radio on.", 4);
 }
 function updateFlashlight(dt) {
   const direction = new T.Vector3();
@@ -884,17 +907,46 @@ function update(dt) {
     player.update(dt, house.colliders);
     house.animate(elapsed, dt, story, player);
     sound.update(story, player);
-    if (t > 7 && !wakeTurned) {
+    if (elapsed >= messageUntil) $("message").textContent = "";
+    playPendingVoice();
+    if (newsStarted && elapsed - newsStartedAt > 7 && !wakeTurned) {
       wakeTurned = true;
       sound.effect("wake-turn", { x: 1.62, y: 1.2, z: 9.65 });
     }
-    if (t > 15 && !endingSpoken) {
-      endingSpoken = true;
-      sound.voice("ending");
+    if (t >= 1.8 && !newsStarted && !sound.busy && !pending.length) {
+      newsStarted = true;
+      newsStartedAt = elapsed;
+      house.wake.beginReport(elapsed);
+      const startedAt = endingStart;
+      sound.voice("news", {
+        position: FUNERAL_RADIO,
+        radio: true,
+        segmented: true,
+        onComplete: () => {
+          if (!endingAt || startedAt !== endingStart) return;
+          newsFinished = true;
+          newsFinishedAt = elapsed;
+          endingAt = elapsed + 10;
+        },
+      });
     }
-    if (t > 17) $("veil").classList.add("closing");
+    if (newsFinished && elapsed - newsFinishedAt >= 2.6 && !endingSpoken) {
+      endingSpoken = true;
+      const startedAt = endingStart;
+      sound.voice("ending", {
+        position: { x: 1.62, y: 1.2, z: 9.65 },
+        gain: 1.05,
+        onComplete: () => {
+          if (!endingAt || startedAt !== endingStart) return;
+          lastLineFinished = true;
+          endingAt = elapsed + 2.5;
+        },
+      });
+    }
+    if (lastLineFinished && elapsed >= endingAt - 1.5)
+      $("veil").classList.add("closing");
     updateFlashlight(dt);
-    if (elapsed >= endingAt) finish();
+    if (lastLineFinished && elapsed >= endingAt) finish();
     return;
   }
   player.update(dt, house.colliders);
@@ -909,6 +961,14 @@ function update(dt) {
   }
   const room = roomAt(player.x, player.z),
     visit = story.visit(room);
+  if (story.inverted && room === "bedroom" && !sobQueued) {
+    sobQueued = true;
+    queueVoice("sob", 0.4, {
+      position: { x: 7.2, y: 1.1, z: -2.6 },
+      gain: 1.05,
+    });
+    sound.effect("broken-breath", { x: 7.2, y: 1.1, z: -2.6 });
+  }
   if (visit && story.stage === 0 && room === "bathroom") sound.effect("drip");
   const looking = mirror.looking(player, camera),
     distance = Math.hypot(player.x - MIRROR.x, player.z - MIRROR.z),
@@ -957,11 +1017,7 @@ function update(dt) {
     room !== "bathroom" && room !== "kitchen" && room !== "utility",
   );
   sound.update(story, player);
-  const ready = pending.findIndex((q) => q.at <= elapsed);
-  if (ready >= 0 && !sound.busy) {
-    const [line] = pending.splice(ready, 1);
-    sound.voice(line.id);
-  }
+  playPendingVoice();
   target = findTarget();
   let label = target?.label || "";
   if (target?.id === "drawer" && story.drawerOpen)
@@ -1055,6 +1111,20 @@ if (testMode) {
       id: sound.currentVoice,
       busy: sound.busy,
       queued: pending.map((q) => q.id),
+      offset: sound.voiceElapsed(),
+      duration: sound.voiceDuration,
+      position:
+        sound.voiceOptions?.position ||
+        sound.resumeVoice?.options.position ||
+        null,
+    },
+    ending: {
+      startedAt: endingStart,
+      newsStarted,
+      newsStartedAt,
+      newsFinished,
+      lastLineFinished,
+      endsAt: endingAt,
     },
     roomSound: {
       radio: sound.radio?.gain.value,
@@ -1074,6 +1144,7 @@ if (testMode) {
     },
     quality,
     dressing: house.dressing?.snapshot(),
+    revelation: house.revelation?.snapshot?.(),
     character: mirror.figure.identity,
     drawCalls: picture.stats?.calls,
     triangles: picture.stats?.triangles,

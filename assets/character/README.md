@@ -118,3 +118,20 @@ and `retreat`. These functions alter the inner model and rig; the encounter
 director owns the outer `body` transform. `resetPose()` restores the healthy
 standing character. The ceiling pose assumes a body origin .08m below the roof
 and applies .075m internal clearance, placing the fingers against the surface.
+
+Creature locomotion is separate from `FigureGait`. `CreatureGait` uses a .82 m
+travelled stride with alternating .41 m scrape cues; palms and feet hold fixed
+room-space anchors during stance, then lift and land ahead of the moving root.
+Travel direction also supports a backward withdrawal without reversing the
+contact physics. An inverted surface frame applies the same contacts to the
+ceiling. Stable sagittal knee bend planes keep the folded legs within narrow
+doorways rather than letting a near-parallel pole flip both knees sideways.
+The director eases corner turns and upright-to-low folds and limits the speed
+of an accelerated retreat. These changes do not modify the human walking gait.
+
+`setEvidenceBlood(level)` adds an independent 0–1 blood layer to palms,
+fingers, forearms and clothing cuffs. The fixed mask comes from the actual
+skin weights; original procedural smears and roughness changes use a per-figure
+uniform. It does not open the jaw, hollow the face or alter the skeleton, so
+the truthful reflection can remain recognizably human. `resetPose()` clears
+this layer. No additional texture or external asset is used.

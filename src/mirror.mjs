@@ -36,7 +36,7 @@ export class Mirror {
         warped.x += (pulse + emptyGlass * sin(screen.y * 19. - glassTime * .55) * .003) * warped.w;
         vec4 base = texture2DProj(tDiffuse, warped);
         base.rgb *= mix(vec3(1.),vec3(.91,.94,.92),dread);
-        base.rgb = mix(base.rgb, vec3(.012,.017,.014), otherSide * .96);
+        base.rgb *= mix(vec3(1.), vec3(.87,.95,1.02), otherSide * .32);
       `,
       );
     const centerY = CEILING_HEIGHT / 2 - 0.03;
@@ -228,7 +228,7 @@ export class Mirror {
     while (this.history.length > 2 && this.history[1].time < time - 1.7)
       this.history.shift();
     if (looking && !story.frozen) this.lastLooking = { ...pose };
-    if (story.frozen && !this.heldPose)
+    if (story.frozen && !story.inverted && !this.heldPose)
       this.heldPose = {
         ...(this.lastLooking || pose),
         x: MIRROR.x + this.normal.x * 0.42,
@@ -239,8 +239,8 @@ export class Mirror {
         vz: 0,
       };
     let shown = pose;
-    if (story.frozen) shown = this.heldPose;
-    else if (story.stage >= 1) {
+    if (story.frozen && !story.inverted) shown = this.heldPose;
+    else if (story.stage >= 1 && !story.inverted) {
       const delayedTime = time - 0.68;
       let before = this.history[0],
         after = before;
@@ -276,13 +276,13 @@ export class Mirror {
         vz: T.MathUtils.lerp(before.vz ?? 0, after.vz ?? 0, t),
       };
     }
-    const held = story.frozen;
-    this.body.visible = story.stage < 5;
+    const held = story.frozen && !story.inverted;
+    this.body.visible = story.stage < 5 || story.inverted;
     this.body.position.set(shown.x, 0, shown.z);
     // The last reflection turns its body away while its twisted neck keeps looking back.
     this.body.rotation.y = shown.yaw + (story.stage === 4 ? Math.PI : 0);
     const dread =
-      story.stage === 0
+      story.inverted || story.stage === 0
         ? 0
         : story.stage === 1
           ? held
@@ -293,12 +293,17 @@ export class Mirror {
             : story.stage === 3
               ? 0.74
               : 0.98;
-    this.figure.setUnease(story.stage >= 2 ? 2 : held ? 1 : 0);
+    this.figure.setUnease(
+      story.inverted ? 0 : story.stage >= 2 ? 2 : held ? 1 : 0,
+    );
     this.figure.animate(time, shown.speed ?? player.speed, held, {
       ...shown,
       time,
     });
     this.figure.setHorror?.(dread, time, { held, stage: story.stage });
+    this.figure.setEvidenceBlood?.(
+      story.inverted ? 1 : story.stage >= 3 ? 0.34 : 0,
+    );
     if (story.stage === 4)
       this.figure.setCreaturePose?.(time, 0.5, {
         mode: "twisted",

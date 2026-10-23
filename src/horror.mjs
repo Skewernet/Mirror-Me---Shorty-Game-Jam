@@ -1,6 +1,7 @@
 import * as T from "three";
 import { createFigure } from "./figure.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
+import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
 
 // One body, six authored sightings. Every encounter starts from a visible,
 // unobstructed sightline and withdraws into a real room or behind its dressing.
@@ -67,7 +68,7 @@ const SIGHTINGS = [
     minDistance: 2.0,
     path: [
       [5.75, 0, 0],
-      [5.08, 0, 0],
+      [6.55, 0, 0],
       [7.4, 0, 0],
       [7.4, 0, -1.72],
     ],
@@ -427,12 +428,22 @@ export class HorrorDirector {
         body.position,
         T.MathUtils.smoothstep(progress, 0, 1),
       );
+      let remainingLength = 0;
+      for (let i = 1; i < active.retreatPath.length; i++)
+        remainingLength += new T.Vector3()
+          .fromArray(active.retreatPath[i])
+          .distanceTo(new T.Vector3().fromArray(active.retreatPath[i - 1]));
+      active.retreatDuration = T.MathUtils.clamp(
+        remainingLength / 1.7,
+        0.65,
+        2.8,
+      );
     }
     if (active.closeRetreat) {
       const exit = definition.path[definition.path.length - 1];
       const retreatProgress = Math.min(
         1,
-        (time - active.retreatStarted) / 0.85,
+        (time - active.retreatStarted) / active.retreatDuration,
       );
       const distance = active.retreatOrigin.distanceTo(
         new T.Vector3().fromArray(exit),
@@ -447,9 +458,18 @@ export class HorrorDirector {
       pathPoint(definition.path, eased, body.position);
     }
     this.updateShadows();
+    const velocity = body.position
+      .clone()
+      .sub(this.previousPosition)
+      .divideScalar(Math.max(dt, 0.001));
     active.travelled += body.position.distanceTo(this.previousPosition);
     this.previousPosition.copy(body.position);
-    body.rotation.y = facingFor(definition, body.position, player);
+    const desiredYaw = facingFor(definition, body.position, player);
+    const turn = Math.atan2(
+      Math.sin(desiredYaw - body.rotation.y),
+      Math.cos(desiredYaw - body.rotation.y),
+    );
+    body.rotation.y += turn * (1 - Math.exp(-dt * 9));
     const mode =
       definition.mode === "twisted" && progress > 0.38
         ? "crawl"
@@ -461,6 +481,8 @@ export class HorrorDirector {
         intensity: 1,
         distance: active.travelled,
         delta: dt,
+        vx: velocity.x,
+        vz: velocity.z,
       });
     } else {
       // During asset development this legacy path keeps the app runnable. The
@@ -479,8 +501,8 @@ export class HorrorDirector {
     active.away = visible ? 0 : active.away + dt;
     active.progress = progress;
     if (active.travelled >= active.nextStepDistance && mode !== "twisted") {
-      // The rig's crawl cycle covers .60m; alternating hand plants are .30m.
-      active.nextStepDistance = active.travelled + 0.3;
+      // The contact gait and scrape cadence use the same travelled stride.
+      active.nextStepDistance = active.travelled + CREATURE_STEP_METERS;
       if (!dialogueBusy)
         this.events.push({
           id: "crawl-step",
@@ -535,6 +557,7 @@ export class HorrorDirector {
       seen: this.active?.seen || 0,
       position: this.figure.body.position.toArray(),
       completed: { ...this.completed },
+      gait: this.figure.body.userData.creatureGait || null,
       ...this.light,
     };
   }

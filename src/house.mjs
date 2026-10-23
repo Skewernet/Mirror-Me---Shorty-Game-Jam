@@ -5,6 +5,7 @@ import { furnish } from "./props.mjs";
 import { dressHouse } from "./dressing.mjs";
 import { ThresholdPortal } from "./portal.mjs";
 import { buildWake } from "./wake.mjs";
+import { buildRevelation } from "./revelation.mjs";
 import { WRITINGS } from "./story.mjs";
 import {
   ROOMS,
@@ -295,6 +296,12 @@ export async function buildHouse(scene) {
   function makeDoor(id, x, z, rotation, width = 0.9) {
     const g = group(x, 0, z, rotation),
       pivot = group(-width / 2, 0, 0, 0, g);
+    // The rear leaf stays on this side of the portal and folds against the
+    // corridor wall. Its old outward sweep crossed the portal surface, which
+    // cut off the leaf and made it appear embedded in the destination wall.
+    // Move the hinge just in front of the raised jamb so the entire sweep,
+    // including the door's thickness, clears that woodwork.
+    if (id === "back") pivot.position.z = 0.106;
     const doorPaint =
       id === "kitchen"
         ? basic(0xb8b8a2, 0.66)
@@ -384,7 +391,7 @@ export async function buildHouse(scene) {
         0.048,
         2.13,
         0.14,
-        side * (width / 2 + 0.016),
+        side * (width / 2 + (id === "back" ? 0.028 : 0.016)),
         1.065,
         0.005,
         m.wood,
@@ -414,7 +421,17 @@ export async function buildHouse(scene) {
         0.003,
       );
     }
-    const proxy = box(width, 2.07, 0.12, 0, 1.035, 0, m.invisible, false, g),
+    const proxy = box(
+        width,
+        2.07,
+        0.12,
+        0,
+        1.035,
+        id === "back" ? pivot.position.z : 0,
+        m.invisible,
+        false,
+        g,
+      ),
       collider = b.solid(proxy);
     const targetId =
       id === "back" ? "door" : id === "front" ? "front-door" : "room-" + id;
@@ -437,6 +454,8 @@ export async function buildHouse(scene) {
       z,
       width,
       rotation,
+      openAngle: id === "back" ? -Math.PI : Math.PI * 0.5,
+      clearanceAngle: id === "back" ? Math.PI * 0.5 + 0.04 : 1.18,
       group: g,
       containsThreshold(px, pz, padding = 0.27) {
         const dx = px - x,
@@ -485,6 +504,7 @@ export async function buildHouse(scene) {
   const furnishings = furnish(b, m),
     dressing = dressHouse(b, m, surfaces, furnishings);
   const wake = buildWake(b, m, surfaces, photos);
+  const revelation = buildRevelation(b, m, surfaces);
   const portal = new ThresholdPortal(scene, back);
   // Shallow hall console. Its drawer travels toward the hall but never occupies
   // the centre line, which remains navigable in this 1.28m-wide corridor.
@@ -802,7 +822,7 @@ export async function buildHouse(scene) {
     hallHero.color.set(stage >= 6 ? 0xc7dce9 : 0xffd4a7);
   }
   function updateDoor(d, opened, dt, rate = 5) {
-    const desired = opened ? Math.PI * 0.5 : 0;
+    const desired = opened ? d.openAngle : 0;
     const moving = Math.abs(d.pivot.rotation.y - desired) > 0.015;
     d.pivot.rotation.y = T.MathUtils.damp(
       d.pivot.rotation.y,
@@ -810,7 +830,8 @@ export async function buildHouse(scene) {
       rate,
       dt,
     );
-    d.collider.disabled = opened && d.pivot.rotation.y > 1.18;
+    d.collider.disabled =
+      opened && Math.abs(d.pivot.rotation.y) > d.clearanceAngle;
     if (moving) {
       hallHero.shadow.needsUpdate = true;
       mirrorHero.shadow.needsUpdate = true;
@@ -900,6 +921,7 @@ export async function buildHouse(scene) {
     );
     furnishings.animate?.(time, state, player);
     dressing.animate?.(time, state, player);
+    revelation.animate(time, state, player);
     if (wake.update) wake.update(time, dt, state, player);
     else wake.animate?.(time, state);
     for (const light of lights) {
@@ -921,6 +943,7 @@ export async function buildHouse(scene) {
     wakeSealed = false;
     previousArchitecture = "";
     wake.reset();
+    revelation.reset();
     portal.reset();
     drawerSlide.position.z = -0.11;
     key.visible = false;
@@ -946,6 +969,7 @@ export async function buildHouse(scene) {
     lostDoorWall,
     portal,
     wake,
+    revelation,
     drawer: consoleBody,
     drawerFace,
     drawerSlide,

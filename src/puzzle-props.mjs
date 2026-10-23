@@ -25,10 +25,10 @@ export function addPuzzleProps(b, m, rooms, { diary, bedsideLamp }) {
   const ink = new T.MeshStandardMaterial({ color: 0x302d23, roughness: 0.8 });
   const white = m.ceramic.clone();
   white.color.set(0xc7c5b6);
-  const paper = (lines) =>
+  const paper = (lines, font = 31) =>
     new T.MeshStandardMaterial({
       map: writingTexture(lines, {
-        font: 31,
+        font,
         background: "#c9c1a6",
         color: "#423d32",
       }),
@@ -262,14 +262,15 @@ export function addPuzzleProps(b, m, rooms, { diary, bedsideLamp }) {
     0.006,
     0.37,
     0,
-    -0.014,
+    0.09,
     0,
-    paper([
-      "MUM,",
-      "I CAN'T KEEP THE HOUSE",
-      "AWAKE FOR YOU.",
-      "I CAN SAY GOODBYE.",
-    ]),
+    paper(
+      WRITINGS.truth
+        .split("\n")
+        .filter(Boolean)
+        .flatMap((line) => line.match(/.{1,36}(?:\s|$)/g) || [line]),
+      18,
+    ),
     false,
     farewell,
   );
@@ -288,7 +289,7 @@ export function addPuzzleProps(b, m, rooms, { diary, bedsideLamp }) {
   target(
     "bed-farewell",
     farewellProxy,
-    "SAY GOODBYE AT THE BED",
+    "FACE WHAT HAPPENED AT THE BED",
     2.4,
     farewell,
   );
