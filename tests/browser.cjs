@@ -1,14 +1,15 @@
-// Complete collision-respecting route through the L-shaped house and rear portal.
+// Complete route uses actual collision-respecting movement, never pose teleports.
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const url = process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000";
-const out = process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-threshold-checks";
+const out = process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-crescendo-checks";
 fs.mkdirSync(out, { recursive: true });
 (async () => {
-  const { TARGETS, ROOMS, SPAWN, MIRROR, EXIT } = await import(
+  const { TARGETS, ROOMS, SPAWN, MIRROR, EXIT, PORTAL } = await import(
     "../src/layout.mjs"
   );
+  const { VOICES } = await import("../src/story.mjs");
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
@@ -31,7 +32,17 @@ fs.mkdirSync(out, { recursive: true });
     });
     await p.goto(url + "/?test=1");
     await p.waitForFunction(() => !!window.__mirror, {}, { timeout: 120000 });
-    const snap = () => p.evaluate(() => window.__mirror.snapshot());
+    const snap = async () => {
+      const state = await p.evaluate(() => window.__mirror.snapshot());
+      for (const id of [state.dialogue.id, ...state.dialogue.queued].filter(
+        Boolean,
+      ))
+        assert.ok(
+          Object.hasOwn(VOICES, id),
+          "Queued voice has a registered script and take: " + id,
+        );
+      return state;
+    };
     const advance = (s) => p.evaluate((s) => window.__mirror.advance(s), s);
     const face = (yaw, pitch = 0) =>
       p.evaluate((v) => window.__mirror.face(...v), [yaw, pitch]);
@@ -41,6 +52,8 @@ fs.mkdirSync(out, { recursive: true });
           !!document.pointerLockElement &&
           !document.querySelector("#hud").hidden,
       );
+    const close = (a, b, tolerance = 1e-8) =>
+      assert.ok(Math.abs(a - b) < tolerance, `${a} ≈ ${b}`);
     async function photo(name) {
       await p.evaluate(() => window.__mirror.render());
       await p.screenshot({ path: out + "/" + name + ".png", timeout: 60000 });
@@ -56,21 +69,22 @@ fs.mkdirSync(out, { recursive: true });
       await advance(0.035);
     }
     async function walk(x, z) {
+      const portals = (await snap()).portalCount;
       for (let i = 0; i < 160; i++) {
         const s = await snap(),
           dx = x - s.pose.x,
           dz = z - s.pose.z,
           d = Math.hypot(dx, dz);
+        assert.equal(
+          s.portalCount,
+          portals,
+          "An ordinary room route must not cross a spatial threshold",
+        );
         if (d < 0.055) {
           await p.keyboard.up("KeyW");
           await advance(0.13);
           return;
         }
-        assert.equal(
-          s.portal,
-          null,
-          "Walk target must not cross a portal accidentally",
-        );
         await face(Math.atan2(-dx, -dz));
         await p.keyboard.down("KeyW");
         await advance(Math.min(0.32, d / 2.1));
@@ -88,7 +102,7 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(
         s.target,
         id,
-        "Target " + id + " at " + [x, y, z] + " from " + JSON.stringify(s.pose),
+        "Target " + id + " from " + JSON.stringify(s.pose),
       );
       await p.keyboard.press("KeyE");
       await advance(0.1);
@@ -127,6 +141,15 @@ fs.mkdirSync(out, { recursive: true });
       await walk(-1.45, 5.85);
       await use("telephone");
     }
+    async function enterUtility() {
+      await walk(0, 1.8);
+      await openRoom("utility");
+      await walk(-1.3, 1.8);
+    }
+    async function leaveUtility() {
+      await walk(-1.3, 1.8);
+      await walk(0, 1.8);
+    }
     async function enterKitchen() {
       await hallCorner();
       await walk(2.4, 0);
@@ -162,101 +185,183 @@ fs.mkdirSync(out, { recursive: true });
       await walk(7.4, -1.3);
       await walk(7.4, 0);
     }
-    async function crossRear(expectedStage, pauseDuring = false) {
-      await rearDoor();
-      if (!(await snap()).story.doorOpen) await use("door");
-      await advance(1.4);
+    async function frozenModal(mode) {
       const before = await snap();
-      assert.equal(before.story.doorOpen, true);
-      await face(Math.PI);
+      assert.equal(before.mode, mode);
+      assert.equal(before.active, false);
+      assert.deepEqual(before.input.keys, []);
       await p.keyboard.down("KeyW");
-      let transition;
-      for (let i = 0; i < 60; i++) {
-        await advance(0.08);
-        transition = await snap();
-        if (transition.portal) break;
-      }
+      await p.keyboard.press("KeyE");
+      await p.keyboard.press("KeyF");
+      await advance(2);
       await p.keyboard.up("KeyW");
-      assert.ok(
-        transition.portal,
-        "Crossing the actual rear porch starts a threshold transition",
-      );
-      assert.ok(
-        transition.pose.z > 1.6,
-        "Portal begins beyond the open door, not in the hall",
-      );
-      if (pauseDuring) {
-        await p.keyboard.press("Escape");
-        await p.waitForFunction(() => !document.querySelector("#menu").hidden);
-        const paused = await snap();
-        await advance(3);
-        assert.equal((await snap()).time, paused.time);
-        assert.deepEqual((await snap()).pose, paused.pose);
-        await p.click("#start");
-        await playing();
-      }
-      await advance(1.1);
       const after = await snap();
-      assert.equal(after.story.stage, expectedStage);
+      assert.equal(after.time, before.time);
+      assert.deepEqual(after.pose, before.pose);
+      assert.deepEqual(after.story, before.story);
+      assert.equal(after.flashlight, before.flashlight);
+      assert.deepEqual(after.input.keys, []);
+      assert.equal(after.audio, "suspended");
+    }
+    async function waitDialogue(onLine = () => {}) {
+      const deadline = Date.now() + 90000;
+      while (Date.now() < deadline) {
+        const s = await snap();
+        onLine(s.dialogue.id);
+        if (!s.dialogue.busy && !s.dialogue.queued.length) return;
+        await p.waitForTimeout(500);
+        await advance(0.2);
+      }
+      throw Error(
+        "Dialogue did not finish: " + JSON.stringify((await snap()).dialogue),
+      );
+    }
+    async function encounter(id, x, y, z) {
+      await aim(x, y, z);
+      const deadline = Date.now() + 90000;
+      while (Date.now() < deadline) {
+        const s = await snap();
+        if (s.scares.active === id) return s;
+        assert.equal(
+          s.scares.completed[id],
+          false,
+          "The intended encounter was not consumed unseen",
+        );
+        await p.waitForTimeout(500);
+        await advance(0.15);
+      }
+      throw Error(
+        "Encounter unavailable: " +
+          id +
+          " " +
+          JSON.stringify((await snap()).scares),
+      );
+    }
+    function checkTransform(last, kind) {
+      assert.equal(last.kind, kind);
+      const { from, to } = last;
+      close(to.pitch, from.pitch);
+      close(to.distance, from.distance);
+      close(to.speed, from.speed);
+      close(to.vx, -from.vx);
+      close(to.vz, -from.vz);
+      close(Math.sin(to.yaw), -Math.sin(from.yaw));
+      close(Math.cos(to.yaw), -Math.cos(from.yaw));
+      if (kind === "rear") {
+        close(to.x, PORTAL.returnX - (from.x - EXIT.x));
+        close(to.z, PORTAL.returnZ - (from.z - PORTAL.thresholdZ));
+        assert.ok(from.z > PORTAL.thresholdZ);
+      } else {
+        close(to.x, MIRROR.x - 0.48 - (from.x - MIRROR.x));
+        close(to.z, MIRROR.z - (from.z - MIRROR.z));
+        assert.ok(from.x >= MIRROR.x);
+      }
+    }
+    async function crossRear(stage, offset = 0) {
+      await rearDoor();
+      if (offset) await walk(EXIT.x + offset, 0);
+      const before = await snap();
+      assert.equal(
+        before.story.doorOpen,
+        true,
+        "The completed puzzle opens the latch without another E interaction",
+      );
+      await advance(1.4);
+      await face(Math.PI, 0.17);
+      if (stage === 1) await photo("open-rear-portal");
+      await p.keyboard.down("KeyW");
+      let after;
+      for (let i = 0; i < 100; i++) {
+        await advance(1 / 60);
+        after = await snap();
+        assert.equal(
+          after.portal,
+          null,
+          "A rear crossing never inserts a fade or frozen transition state",
+        );
+        if (after.portalCount > before.portalCount) break;
+      }
+      assert.equal(after.portalCount, before.portalCount + 1);
+      assert.equal(after.story.stage, stage);
       assert.equal(after.story.laps, before.story.laps + 1);
       assert.equal(after.story.doorOpen, false);
-      assert.equal(after.portal, null);
-      assert.ok(
-        Math.hypot(after.pose.x - SPAWN.x, after.pose.z - SPAWN.z) < 0.08,
-        "Rear door returns to the front entrance",
+      close(after.time, after.lastPortal.time);
+      assert.equal(
+        await p
+          .locator("#transition")
+          .evaluate((e) => getComputedStyle(e).opacity),
+        "0",
+        "The crossing never covers the scene with a fade",
       );
+      checkTransform(after.lastPortal, "rear");
+      assert.ok(after.input.keys.includes("KeyW"));
       assert.ok(
-        Math.abs(
-          Math.atan2(
-            Math.sin(after.pose.yaw - SPAWN.yaw),
-            Math.cos(after.pose.yaw - SPAWN.yaw),
-          ),
-        ) < 0.02,
-        "Facing the rear exit maps to facing into the front hall",
+        after.speed > 1.6,
+        "Momentum survives the exact crossing frame",
       );
+      const z = after.pose.z;
+      await advance(0.12);
       assert.ok(
-        after.speed < 0.01,
-        "Transition clears movement so the player cannot drift",
+        (await snap()).pose.z < z - 0.15,
+        "Held forward input continues into the front hall",
       );
-      return after;
+      await p.keyboard.up("KeyW");
+      await advance(0.15);
+      return snap();
+    }
+    async function offer(target, item, testPause = false) {
+      await use(target);
+      assert.equal((await snap()).mode, "offering");
+      if (testPause) await frozenModal("offering");
+      await p.locator(`#offering-choices button[data-item="${item}"]`).click();
+      await playing();
+      await advance(0.15);
     }
 
     console.log(
-      "BEGIN: one L, a closed rear door and an incomplete impossible exit",
+      "BEGIN: seven chapters, locked unfinished exit and continuous spatial returns",
     );
     await photo("title");
+    await p.locator("#settings summary").click();
+    await p.locator("#flashing-lights").uncheck();
+    await p.locator("#settings summary").click();
     await p.click("#start");
     await playing();
     const initial = await snap();
     assert.equal(initial.character, "Mara Vale");
+    assert.equal(initial.scares.flashes, false);
     await use("front-door");
-    assert.equal((await snap()).story.doorOpen, false);
+    assert.equal((await snap()).story.frontOpen, false);
     await rearDoor();
+    await use("door");
+    assert.equal((await snap()).story.doorOpen, false);
     await face(Math.PI);
     await p.keyboard.down("KeyW");
     await advance(1);
     await p.keyboard.up("KeyW");
-    assert.ok((await snap()).pose.z < 0.52, "Closed rear leaf blocks movement");
-    assert.equal((await snap()).story.laps, 0);
-    await crossRear(0, true);
-    assert.equal((await snap()).story.power, false);
-    await photo("returned-front-door");
-
-    console.log(
-      "PASS: incomplete back-door exit returns to the entrance and pauses safely",
+    await advance(0.15);
+    assert.ok(
+      (await snap()).pose.z < 0.52,
+      "The unfinished chapter's rear leaf physically blocks leaving",
     );
+    assert.equal((await snap()).portalCount, 0);
+    assert.equal((await snap()).story.laps, 0);
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+    await frozenModal("paused");
+    await p.click("#start");
+    await playing();
+
+    await hallCorner();
     await enterLounge();
     await phone();
-    assert.equal((await snap()).story.heardArrival, true);
     await walk(-1.55, 5.5);
     await use("letter");
-    assert.equal((await snap()).story.hasLetter, true);
     await photo("sitting-room");
     await leaveLounge();
     await hallCorner();
     await walk(4.7, -0.12);
     await use("note");
-    assert.equal((await snap()).story.hasNote, true);
     await walk(7.3, 0);
     await aim(MIRROR.x, MIRROR.y, MIRROR.z);
     await advance(1.5);
@@ -265,29 +370,21 @@ fs.mkdirSync(out, { recursive: true });
     await enterKitchen();
     await walk(2.1, -3.25);
     await use("fuse");
-    assert.equal((await snap()).story.hasFuse, true);
     await photo("kitchen");
     await leaveKitchen();
     await hallCorner();
-    await walk(0, 1.8);
-    await openRoom("utility");
-    await walk(-1.3, 1.8);
+    await enterUtility();
     await walk(-2.3, 1.85);
     await use("panel");
     assert.equal((await snap()).story.power, true);
-    await walk(-1.3, 1.8);
-    await walk(0, 1.8);
-    await rearDoor();
-    assert.equal(
-      (await snap()).story.stage,
-      0,
-      "Walking the complete L does not count as a loop",
-    );
-    const pass1 = await crossRear(1);
-    assert.equal(pass1.story.hasLetter, true);
-    assert.equal(pass1.story.power, true);
+    assert.equal((await snap()).story.doorOpen, true);
+    await leaveUtility();
+    const first = await crossRear(1, 0.1);
+    assert.equal(first.story.hasLetter, true);
+    assert.equal(first.story.power, true);
+    await photo("seamless-front-return");
     console.log(
-      "PASS 1: power, ordinary reflection and actual rear-to-front discontinuity",
+      "PASS 1: chapter gate and seamless rear half-turn with held movement",
     );
 
     await hallCorner();
@@ -300,7 +397,7 @@ fs.mkdirSync(out, { recursive: true });
     const lag = await snap();
     assert.ok(
       Math.hypot(lag.pose.x - lag.body.x, lag.pose.z - lag.body.z) > 0.1,
-      "Reflection is measurably late",
+      "The reflection visibly lags real movement",
     );
     await advance(1.6);
     await face(Math.PI / 2);
@@ -316,7 +413,6 @@ fs.mkdirSync(out, { recursive: true });
         (await snap()).body.x - held.body.x,
         (await snap()).body.z - held.body.z,
       ) < 0.01,
-      "Held occupant stays at the glass",
     );
     await photo("held-reflection");
     await walk(4.7, -0.12);
@@ -329,84 +425,177 @@ fs.mkdirSync(out, { recursive: true });
     await walk(8.7, -2.55);
     await use("diary");
     assert.equal((await snap()).story.hasDiary, true);
-    await photo("bedroom");
+    await photo("bedroom-diary");
+    await p.keyboard.press("Tab");
+    await p.waitForFunction(() => !document.querySelector("#pocket").hidden);
+    await frozenModal("pocket");
+    assert.ok((await p.locator("#items").innerText()).includes("93.7"));
+    await p.keyboard.press("Tab");
+    await playing();
     await walk(8.7, -1.65);
     await leaveBedroom();
     await crossRear(2);
-    console.log("PASS 2: delayed/held reflection, bedroom key and diary");
+    console.log(
+      "PASS 2: delayed/held reflection, key, diary and paused readable journal",
+    );
 
     await enterBathroom();
     await use("bath-clue");
     assert.equal((await snap()).story.hasTimeClue, true);
-    await photo("bathroom-clue");
+    await walk(1.2, 2.3);
+    const ceiling = await encounter("bathroom-ceiling", 2.6, 1.55, 2.2);
+    assert.equal(ceiling.scares.mode, "ceiling");
+    await advance(0.3);
+    assert.equal(
+      (await snap()).scares.lightMultiplier,
+      1,
+      "Disabling flicker leaves the visible creature encounter intact",
+    );
+    await photo("ceiling-encounter");
+    await advance(5);
+    assert.equal((await snap()).scares.visible, false);
     await leaveBathroom();
     await hallCorner();
     await walk(5.05, -0.15);
     await use("clock");
-    assert.equal((await snap()).mode, "clock");
-    const stopped = (await snap()).time;
-    await advance(3);
-    assert.equal((await snap()).time, stopped);
+    await frozenModal("clock");
     await p.locator("#clock-hour").fill("3");
     await p.locator("#clock-minute").fill("17");
     await p.locator("#clock-form button[type=submit]").click();
     await playing();
     await advance(0.2);
     assert.equal((await snap()).story.clockSolved, true);
+    await enterKitchen();
+    await kitchenRadio();
+    await frozenModal("radio");
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+    assert.equal(await p.locator("#radio-inspect").isVisible(), false);
+    await p.click("#start");
+    await playing();
+    await kitchenRadio();
+    await p.locator("#radio-frequency").fill("93.8");
+    await p.locator("#radio-form button[type=submit]").click();
+    await playing();
+    await advance(0.2);
+    assert.equal((await snap()).story.radioTuned, false);
+    await kitchenRadio();
+    await p.locator("#radio-frequency").fill("93.7");
+    await p.locator("#radio-form button[type=submit]").click();
+    await playing();
+    await advance(0.2);
+    assert.equal((await snap()).story.radioTuned, true);
+    assert.equal((await snap()).story.heardCall, false);
+    await photo("tuned-kitchen-radio");
+    await leaveKitchen();
     await hallCorner();
     await enterLounge();
     await phone();
     assert.equal((await snap()).story.heardCall, true);
     await leaveLounge();
-    await face(0);
-    const callDeadline = Date.now() + 60000;
     let heardCallVoice = false;
-    while (!(await snap()).scares.hallAppearance && Date.now() < callDeadline) {
-      heardCallVoice ||= (await snap()).dialogue.id === "call";
-      await p.waitForTimeout(500);
-      await advance(0.15);
-    }
+    await waitDialogue((id) => {
+      heardCallVoice ||= id === "call";
+    });
     assert.equal(
       heardCallVoice,
       true,
       "The second telephone performance actually plays",
     );
-    assert.equal(
-      (await snap()).scares.hallAppearance,
-      true,
-      "The entry-hall appearance waits for the actual queued telephone dialogue",
-    );
-    assert.equal((await snap()).scares.visible, true);
-    assert.equal(
-      await p.locator("#subtitle").innerText(),
-      "",
-      "The sudden encounter does not interrupt a spoken line",
-    );
-    await photo("hall-appearance");
-    await advance(0.7);
-    assert.equal(
-      (await snap()).scares.visible,
-      false,
-      "The transient figure clears after its authored duration",
-    );
+    assert.equal(await p.locator("#subtitle").innerText(), "");
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+    await p.locator("#settings summary").click();
+    await p.locator("#flashing-lights").check();
+    await p.locator("#settings summary").click();
+    await p.click("#start");
+    await playing();
     await crossRear(3);
-    assert.equal((await snap()).body.visible, false);
-    console.log("PASS 3: reflected time and the separate telephone call");
+    console.log(
+      "PASS 3: ceiling creature, comfort switch, reflected clock, tuning UI and separate telephone call",
+    );
+
+    await hallCorner();
+    await walk(2, 0);
+    const crawler = await encounter("far-hall-crawler", 5.75, 0.44, 0);
+    assert.equal(crawler.scares.mode, "crawl");
+    await advance(0.3);
+    await photo("floor-crawler");
+    await advance(5);
+    assert.equal((await snap()).scares.visible, false);
+    await hallCorner();
+    await enterLounge();
+    await walk(-1.55, 5.5);
+    await use("keepsake-ribbon");
+    assert.equal((await snap()).story.keepsakes.ribbon, true);
+    await leaveLounge();
+    await enterUtility();
+    await walk(-2.3, 1.85);
+    await walk(-2.05, 2.1);
+    await use("keepsake-ring");
+    assert.equal((await snap()).story.keepsakes.ring, true);
+    await walk(-2.3, 1.85);
+    await leaveUtility();
+    await enterKitchen();
+    await walk(3.25, -2);
+    await walk(3.65, -2.17);
+    await use("keepsake-watch");
+    assert.equal((await snap()).story.keepsakes.watch, true);
+    await photo("found-keepsakes");
+    await walk(3.25, -2);
+    await walk(2.4, -1.25);
+    await walk(2.1, -2.7);
+    await use("radio-altar");
+    await frozenModal("offering");
+    await p.click("#offering-back");
+    await playing();
+    assert.equal((await snap()).story.ritualIndex, 0);
+    assert.deepEqual((await snap()).story.keepsakes, {
+      watch: true,
+      ring: true,
+      ribbon: true,
+    });
+    await offer("radio-altar", "ring");
+    assert.equal((await snap()).story.ritualIndex, 0);
+    assert.equal((await snap()).story.keepsakes.ring, true);
+    assert.equal((await snap()).story.keepsakes.watch, true);
+    await offer("radio-altar", "watch");
+    assert.equal((await snap()).story.ritualIndex, 1);
+    assert.equal((await snap()).story.keepsakes.watch, false);
+    await leaveKitchen();
+    await hallCorner();
+    await enterBathroom();
+    await offer("bath-dish", "ring");
+    assert.equal((await snap()).story.ritualIndex, 2);
+    await leaveBathroom();
+    await enterBedroom();
+    await walk(6, -1.65);
+    await walk(6, -3.2);
+    await offer("musicbox-base", "ribbon");
+    assert.equal((await snap()).story.ritualIndex, 3);
+    assert.deepEqual((await snap()).story.placedKeepsakes, [
+      "watch",
+      "ring",
+      "ribbon",
+    ]);
+    await photo("returned-keepsakes");
+    await walk(6, -1.65);
+    await leaveBedroom();
+    await crossRear(4);
+    console.log(
+      "PASS 4: floor crawler, three physical pickups and ordered offerings with wrong-choice recovery",
+    );
 
     await enterKitchen();
     await kitchenRadio();
-    assert.equal(
-      (await snap()).story.echoIndex,
-      0,
-      "Wrong first sound recovers",
-    );
+    assert.equal((await snap()).story.echoIndex, 0);
     await leaveKitchen();
     await enterBedroom();
     await walk(6, -1.65);
     await walk(6, -3.2);
     await use("musicbox");
     assert.equal((await snap()).story.echoIndex, 1);
-    await photo("inverted-bedroom");
+    await photo("closed-music-box");
     await walk(6, -1.65);
     await leaveBedroom();
     await hallCorner();
@@ -419,13 +608,12 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(
       (await snap()).story.echoIndex,
       2,
-      "The dead phone cannot reset two quiet sounds",
+      "The telephone cannot reset two quiet ritual sounds",
     );
     await leaveLounge();
     await enterKitchen();
     await kitchenRadio();
     assert.equal((await snap()).story.echoIndex, 3);
-    await photo("separate-kitchen-radio");
     await p.keyboard.press("Tab");
     await p.waitForFunction(() => !document.querySelector("#pocket").hidden);
     assert.ok((await p.locator("#items").innerText()).includes("3 / 3"));
@@ -433,49 +621,134 @@ fs.mkdirSync(out, { recursive: true });
     await p.keyboard.press("Tab");
     await playing();
     await leaveKitchen();
-    await crossRear(4);
+    await crossRear(5);
+    assert.equal((await snap()).story.backdoorGone, true);
+    assert.equal((await snap()).story.mirrorReady, true);
+    assert.equal((await snap()).body.visible, false);
     await p.waitForTimeout(800);
     const quiet = (await snap()).roomSound;
-    assert.ok(
-      quiet.radio < 0.005 && quiet.water < 0.005,
-      "Solved sounds stay quiet after another impossible exit",
-    );
-    console.log(
-      "PASS 4: independent sound sources, reverse order and persistent silence",
-    );
+    assert.ok(quiet.radio < 0.005 && quiet.water < 0.005);
+    console.log("PASS 5: reverse silence and the vanished back door");
 
-    await hallCorner();
-    await walk(7.3, 0);
-    await aim(MIRROR.x, MIRROR.y, MIRROR.z);
-    await advance(0.5);
-    assert.equal((await snap()).story.finalFaced, true);
-    await photo("final-reflection");
-    await p.keyboard.press("Escape");
-    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
-    const paused = await snap();
-    await p.keyboard.press("KeyE");
-    await p.keyboard.down("KeyW");
-    await advance(3);
-    await p.keyboard.up("KeyW");
-    assert.equal((await snap()).time, paused.time);
-    assert.deepEqual((await snap()).pose, paused.pose);
-    assert.equal((await snap()).audio, "suspended");
-    await p.click("#start");
-    await playing();
-    await walk(3.0, -0.12);
-    assert.equal((await snap()).story.exitReleased, true);
     await rearDoor();
-    if (!(await snap()).story.doorOpen) await use("door");
-    await advance(1.4);
+    await aim(TARGETS.door.x, TARGETS.door.y, TARGETS.door.z);
+    assert.notEqual((await snap()).target, "door");
+    const portalCount = (await snap()).portalCount;
     await face(Math.PI);
     await p.keyboard.down("KeyW");
-    for (let i = 0; i < 60; i++) {
-      await advance(0.08);
-      if ((await snap()).portal) break;
+    await advance(1);
+    await p.keyboard.up("KeyW");
+    await advance(0.15);
+    assert.ok(
+      (await snap()).pose.z < 0.52,
+      "The missing rear doorway is replaced by a solid wall",
+    );
+    assert.equal((await snap()).portalCount, portalCount);
+    await walk(7.4, 0);
+    await aim(MIRROR.x, MIRROR.y, MIRROR.z);
+    await use("mirror");
+    assert.equal(
+      (await snap()).story.stage,
+      5,
+      "E cannot substitute for physically entering the empty glass",
+    );
+    await photo("empty-mirror");
+    await face(-Math.PI / 2, 0.07);
+    await p.keyboard.down("KeyW");
+    let inverted;
+    for (let i = 0; i < 120; i++) {
+      await advance(1 / 60);
+      inverted = await snap();
+      if (inverted.portalCount > portalCount) break;
+    }
+    assert.equal(inverted.story.stage, 6);
+    assert.equal(inverted.story.inverted, true);
+    assert.equal(inverted.portalCount, portalCount + 1);
+    checkTransform(inverted.lastPortal, "mirror");
+    assert.ok(inverted.input.keys.includes("KeyW"));
+    assert.ok(inverted.speed > 1.6);
+    const mx = inverted.pose.x;
+    await advance(0.12);
+    assert.ok((await snap()).pose.x < mx - 0.15);
+    await p.keyboard.up("KeyW");
+    await advance(0.15);
+    await photo("inverted-house");
+    console.log(
+      "PASS 6: passable empty mirror, continuous movement and inverted house",
+    );
+
+    await enterBedroom();
+    await walk(8.7, -1.65);
+    await walk(8.7, -2.55);
+    await use("bedside-lamp");
+    assert.equal((await snap()).story.lampOff, false);
+    assert.equal((await snap()).story.frontReleased, false);
+    await walk(8.7, -1.65);
+    await walk(7.4, -1.7);
+    await use("bed-farewell");
+    assert.equal((await snap()).story.farewellSaid, true);
+    await walk(8.7, -1.65);
+    await walk(8.7, -2.55);
+    await use("bedside-lamp");
+    assert.equal((await snap()).story.lampOff, true);
+    assert.equal((await snap()).story.frontReleased, true);
+    await photo("farewell-bedroom");
+    await walk(8.7, -1.65);
+    await leaveBedroom();
+    await hallCorner();
+    await walk(0, 6.6);
+    await use("front-door");
+    assert.equal((await snap()).story.frontOpen, true);
+    assert.equal(
+      (await snap()).story.endingStarted,
+      false,
+      "Opening the door alone does not start the reception",
+    );
+    await advance(1.7);
+    await face(Math.PI);
+    await p.keyboard.down("KeyW");
+    let wake;
+    for (let i = 0; i < 130; i++) {
+      await advance(1 / 60);
+      wake = await snap();
+      if (wake.story.wakeEntered) break;
     }
     await p.keyboard.up("KeyW");
-    const playTime = (await snap()).time;
-    await advance(11);
+    assert.equal(wake.story.wakeEntered, true);
+    assert.equal(wake.story.endingStarted, true);
+    assert.equal(wake.mode, "playing");
+    await advance(0.3);
+    await photo("wake-arrival");
+    const wakeStart = (await snap()).time;
+    await p.keyboard.down("KeyW");
+    await advance(0.5);
+    await p.keyboard.up("KeyW");
+    assert.ok(
+      (await snap()).pose.z > wake.pose.z + 0.2,
+      "The reception retains player movement",
+    );
+    await p.mouse.move(640, 400);
+    const yaw = (await snap()).pose.yaw;
+    await p.mouse.move(700, 400);
+    assert.notEqual(
+      (await snap()).pose.yaw,
+      yaw,
+      "The reception retains mouse look",
+    );
+    await face(Math.PI);
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+    await frozenModal("paused");
+    await p.click("#start");
+    await playing();
+    await advance(8);
+    await photo("wake-mourners");
+    assert.equal(
+      (await snap()).mode,
+      "playing",
+      "The twenty-second reception does not end early",
+    );
+    await advance(21 - ((await snap()).time - wakeStart));
     assert.equal((await snap()).mode, "ending");
     assert.equal((await snap()).story.ended, true);
     assert.deepEqual(
@@ -483,26 +756,23 @@ fs.mkdirSync(out, { recursive: true });
       ROOMS.map((r) => r.id).sort(),
     );
     await photo("ending");
-    const scares = (await snap()).scares;
-    assert.equal(
-      scares.mirrorSnap,
-      true,
-      "The mirror encounter fires its authored sudden scare",
-    );
-    assert.equal(scares.hallAppearance, true);
+    const completed = await snap(),
+      scares = completed.scares,
+      playTime = completed.time;
+    assert.equal(scares.mirrorSnap, true);
+    assert.equal(scares.completed["bathroom-ceiling"], true);
+    assert.equal(scares.completed["far-hall-crawler"], true);
+    assert.equal(completed.portalCount, 6);
     assert.equal(await p.locator("#ending-credits").isVisible(), true);
     await p.click("#credits-open");
     await p.waitForFunction(() => !document.querySelector("#credits").hidden);
-    assert.equal(await p.evaluate(() => document.pointerLockElement), null);
-    assert.ok(
-      (await p.locator("#credit-list").innerText()).length > 100,
-      "The ending exposes substantive asset and contributor credits",
-    );
-    await p.click("#credits-close");
+    await frozenModal("credits");
+    assert.ok((await p.locator("#credit-list").innerText()).length > 100);
+    await p.keyboard.press("Escape");
+    await p.waitForFunction(() => !document.querySelector("#menu").hidden);
     assert.equal((await snap()).mode, "ending");
     console.log(
-      "PASS 5: refusal and rear-door mirror-trap ending, game seconds",
-      playTime.toFixed(1),
+      "PASS 7: farewell, lamp, front departure and playable reception ending",
     );
 
     await p.click("#start");
@@ -514,34 +784,35 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(reset.story.hasKey, false);
     assert.equal(reset.story.hasLetter, false);
     assert.equal(reset.story.echoIndex, 0);
-    assert.equal(reset.story.exitReleased, false);
+    assert.deepEqual(reset.story.keepsakes, {
+      watch: false,
+      ring: false,
+      ribbon: false,
+    });
+    assert.deepEqual(reset.story.placedKeepsakes, []);
+    assert.equal(reset.story.inverted, false);
+    assert.equal(reset.story.wakeEntered, false);
+    assert.equal(reset.story.backdoorGone, false);
     assert.equal(reset.story.doors.lounge, false);
     assert.equal(reset.pose.x, SPAWN.x);
     assert.equal(reset.pose.z, SPAWN.z);
-    assert.equal(reset.portal, null);
+    assert.equal(reset.portalCount, 0);
+    assert.equal(reset.lastPortal, null);
     assert.equal(reset.scares.mirrorSnap, false);
-    assert.equal(reset.scares.hallAppearance, false);
+    assert.ok(Object.values(reset.scares.completed).every((v) => v === false));
     assert.deepEqual(reset.dressing, initial.dressing);
     await p.keyboard.press("KeyF");
     await advance(0.1);
     assert.equal((await snap()).flashlight, true);
-    assert.ok(
-      assets.some((name) =>
-        /\/assets\/character\/.*\.(glb|gltf)(\?|$)/.test(name),
-      ),
-      "A real character asset was loaded by the game",
-    );
+    assert.ok(assets.some((u) => /\/assets\/character\/.*\.glb(\?|$)/.test(u)));
     const voices = await p.evaluate(async () => {
-      const { VOICES } = await import("./src/story.mjs");
-      const lines = await (await fetch("assets/voice/lines.json")).json();
-      const credit = await (await fetch("assets/voice/README.md")).text();
-      if (!/kokoro/i.test(credit))
-        throw Error("Voice engine provenance is not upgraded");
+      const { VOICES } = await import("./src/story.mjs"),
+        lines = await (await fetch("assets/voice/lines.json")).json();
       const c = new AudioContext(),
         result = {};
       try {
-        for (const id of Object.keys(VOICES)) {
-          if (lines[id].text !== VOICES[id].text)
+        for (const [id, line] of Object.entries(VOICES)) {
+          if (lines[id]?.text !== line.text)
             throw Error("Stale synthesis text " + id);
           const r = await fetch("assets/voice/" + id + ".ogg");
           if (!r.ok) throw Error("Missing voice " + id);
@@ -555,37 +826,41 @@ fs.mkdirSync(out, { recursive: true });
       }
       return result;
     });
-    assert.equal(Object.keys(voices).length, 17);
+    assert.equal(Object.keys(voices).length, Object.keys(VOICES).length);
+    assert.equal(Object.keys(voices).length, 23);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
     console.log(
       JSON.stringify(
         {
           result: "PASS",
-          stages: 5,
+          chapters: 7,
           rooms: 5,
-          loops: 5,
+          rearReturns: 5,
+          mirrorCrossings: 1,
           gameSeconds: playTime,
           voices: Object.keys(voices).length,
           scares,
           screenshots: out,
           checks: [
-            "closed rear-door collision",
-            "incomplete threshold loop",
-            "portal pause and orientation",
-            "one L-shaped route",
-            "five room doors and props",
-            "power and faithful/delayed/held reflection",
-            "actual GLB protagonist",
+            "locked incomplete exit",
+            "automatic one-shot latch",
+            "instant rear/mirror transforms and held movement",
+            "five furnished rooms",
+            "faithful/delayed/held/empty reflection",
+            "readable script journal",
+            "clock and tuning UI pause",
             "separate telephone/radio",
-            "hospital letter and diary",
-            "clock UI",
-            "reverse sound order recovery",
-            "persistent final silence",
-            "authored mirror and hallway scares",
-            "rear-door ending and credits",
-            "full reset",
-            "Kokoro voice decoding",
+            "ceiling and floor creatures",
+            "flicker comfort control",
+            "keepsake UI and wrong-choice recovery",
+            "reverse silence",
+            "vanished rear wall",
+            "inverted house",
+            "farewell and lamp order",
+            "front threshold and playable wake",
+            "ending credits and full reset",
+            "all Kokoro voices decode",
           ],
         },
         null,
@@ -593,14 +868,13 @@ fs.mkdirSync(out, { recursive: true });
       ),
     );
   } catch (error) {
-    if (currentPage && !currentPage.isClosed()) {
+    if (currentPage && !currentPage.isClosed())
       console.error(
         "Last game state:",
         await currentPage
           .evaluate(() => window.__mirror?.snapshot())
           .catch(() => null),
       );
-    }
     throw error;
   } finally {
     await browser.close();

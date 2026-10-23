@@ -1,6 +1,7 @@
 {
   "identity": "Mara Vale",
   "heightMeters": 1.74,
+  "eyeHeightMeters": 1.6228829622268677,
   "triangles": 87648,
   "meshVertices": 44916,
   "bones": 53,
@@ -19,7 +20,7 @@
       "african": 0.15
     }
   },
-  "sha256": "220f8e0f46e49b10bc9f5956cbab861e0e9f8925bffb6973d19b6495fd5c7fe3",
+  "sha256": "ad495f13124468b3eb2800337423500e46d46bfac8d3d188c84a9019541eeabd",
   "rigBones": [
     "Root",
     "pelvis",
@@ -75,5 +76,7 @@
     "foot_r",
     "ball_r"
   ],
-  "eyeHeightMeters": 1.6228829622268677
+  "morphTargets": [
+    "Mara_Jaw_Open"
+  ]
 }

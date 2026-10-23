@@ -61,6 +61,15 @@ export class Player {
     this.camera.updateMatrixWorld();
   }
   pose() {
-    return { x: this.x, z: this.z, yaw: this.yaw, pitch: this.pitch };
+    return {
+      x: this.x,
+      z: this.z,
+      yaw: this.yaw,
+      pitch: this.pitch,
+      distance: this.distance,
+      speed: this.speed,
+      vx: this.vx,
+      vz: this.vz,
+    };
   }
 }

@@ -60,6 +60,7 @@ export function dressHouse(b, m, surfaces, furnishings) {
   coatMesh.position.y = -0.42;
   coatMesh.castShadow = coatMesh.receiveShadow = true;
   coat.add(coatMesh);
+  const entryBoots = [];
   for (const side of [-1, 1]) {
     const sleeve = box(
       0.105,
@@ -89,6 +90,7 @@ export function dressHouse(b, m, surfaces, furnishings) {
       entry,
     );
     boot.rotation.y = Math.PI / 2 + side * 0.1;
+    entryBoots.push(boot);
   }
   contact(0.34, 0.5, 0.42, 6.95, 0.4, entry);
 
@@ -244,11 +246,11 @@ export function dressHouse(b, m, surfaces, furnishings) {
     0.29,
     0.43,
     1.44,
-    0.95,
+    0.954,
     -3.03,
     surfaces.material("linen", 1, 1, 0xb0aa91),
     kitchen,
-    0.006,
+    0.003,
   );
   const looseCup = furnishings.mug(1.41, 0.95, -1.53, kitchen, blueCeramic),
     cupStart = looseCup.position.clone();
@@ -314,9 +316,9 @@ export function dressHouse(b, m, surfaces, furnishings) {
     0.13,
     0.025,
     0.075,
-    2.25,
+    2.5,
     0.998,
-    1.3,
+    1.55,
     m.lampGlaze,
     false,
     bathroom,
@@ -355,9 +357,9 @@ export function dressHouse(b, m, surfaces, furnishings) {
       0.17,
       0.034,
       0.24,
-      5.5,
-      0.769 + i * 0.034,
-      -3.87,
+      5.83,
+      0.04 + i * 0.034,
+      -4.27,
       [m.book, m.linen][i],
       false,
       bedroom,
@@ -469,16 +471,120 @@ export function dressHouse(b, m, surfaces, furnishings) {
   underlight.position.set(6, 0.22, 0.43);
   scene.add(underlight);
   negative.visible = false;
+
+  // These are traces on physical surfaces, not a red screen filter. The first
+  // handprint is small; later passages reveal where wet hands were dragged.
+  const evidence = [group(), group(), group()];
+  const wet = (texture) =>
+    new T.MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0.85,
+      roughness: 0.19,
+      metalness: 0.06,
+      depthWrite: false,
+      alphaTest: 0.012,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      side: T.DoubleSide,
+    });
+  const handMaterial = wet(handprintTexture()),
+    dragMaterial = wet(dragTexture()),
+    veinMaterial = wet(veinTexture());
+  veinMaterial.roughness = 0.43;
+  function trace(w, h, x, y, z, rotation, material, parent, tilt = 0) {
+    const p = plane(w, h, x, y, z, material, rotation, parent);
+    p.rotation.z = tilt;
+    p.castShadow = false;
+    p.userData.horrorEvidence = true;
+    return p;
+  }
+  trace(
+    0.26,
+    0.46,
+    0.636,
+    1.39,
+    3.5,
+    -Math.PI / 2,
+    handMaterial,
+    evidence[0],
+    -0.13,
+  );
+  trace(
+    0.22,
+    0.38,
+    -3.394,
+    1.27,
+    2.35,
+    Math.PI / 2,
+    handMaterial,
+    evidence[0],
+    0.12,
+  );
+  trace(0.29, 0.49, 3.45, 1.43, -0.636, 0, handMaterial, evidence[1], 0.18);
+  trace(0.31, 0.54, 6.18, 1.48, -0.636, 0, handMaterial, evidence[1], -0.19);
+  trace(
+    0.37,
+    0.78,
+    0.905,
+    1.72,
+    -2.18,
+    Math.PI / 2,
+    veinMaterial,
+    evidence[1],
+    0.13,
+  );
+  trace(0.45, 0.95, 3.22, 1.48, 0.905, 0, veinMaterial, evidence[2], -0.14);
+  trace(0.36, 0.63, 8.55, 1.41, -4.594, 0, handMaterial, evidence[2], 0.04);
+  trace(
+    0.53,
+    1.1,
+    -4.494,
+    1.62,
+    6.12,
+    Math.PI / 2,
+    veinMaterial,
+    evidence[2],
+    -0.16,
+  );
+  for (const [x, z, angle, w, h] of [
+    [2.4, -1.05, -0.08, 0.23, 0.62],
+    [2.4, -0.38, 0.04, 0.25, 0.46],
+    [1.65, 0, Math.PI / 2, 0.19, 0.65],
+    [0.8, 0.05, Math.PI / 2, 0.16, 0.5],
+    [0.05, 0.65, 0.12, 0.17, 0.6],
+    [-0.1, 1.35, -0.12, 0.19, 0.48],
+    [7.4, -1.18, 0, 0.25, 0.62],
+    [7.4, -1.87, 0.06, 0.22, 0.51],
+  ]) {
+    const g = group(x, 0.014, z, angle, evidence[2]),
+      p = trace(w, h, 0, 0, 0, 0, dragMaterial, g);
+    p.rotation.x = -Math.PI / 2;
+  }
+  evidence.forEach((g) => (g.visible = false));
+  const looseBooks = [];
+  for (let i = 0; i < 2; i++) {
+    const g = group(-1.02, 1.916 + i * 0.034, 3.88 - i * 0.02, 0, lounge);
+    box(0.17, 0.029, 0.24, 0, 0, 0, [m.book, m.linen][i], false, g, 0.004);
+    box(0.145, 0.019, 0.212, 0, 0.001, -0.006, m.paper, false, g, 0.002);
+    looseBooks.push({
+      group: g,
+      position: g.position.clone(),
+      rotation: g.rotation.clone(),
+    });
+  }
   let frameAt = null,
     cupAt = null,
+    booksAt = null,
     frameImpact = false,
     cupImpact = false,
+    bookImpact = false,
     lastTime = -1,
     lastStage = 0;
   function reset() {
     events.length = 0;
-    frameAt = cupAt = null;
-    frameImpact = cupImpact = false;
+    frameAt = cupAt = booksAt = null;
+    frameImpact = cupImpact = bookImpact = false;
     lastTime = -1;
     lastStage = 0;
     fallingFrame.position.copy(frameStart);
@@ -491,19 +597,44 @@ export function dressHouse(b, m, surfaces, furnishings) {
     gallery.forEach((f) => f.face.material.color.set(0xffffff));
     negative.visible = false;
     underlight.intensity = 0;
+    coat.position.y = -0.11;
+    coat.rotation.z = 0;
+    entryBoots.forEach((boot) => {
+      boot.position.y = 0.09;
+      boot.rotation.z = 0;
+    });
+    evidence.forEach((g) => (g.visible = false));
+    looseBooks.forEach((b) => {
+      b.group.position.copy(b.position);
+      b.group.rotation.copy(b.rotation);
+    });
   }
   function animate(time, state, player) {
     if (time < lastTime || (state.stage === 0 && lastStage > 0)) reset();
     lastTime = time;
     lastStage = state.stage;
-    const inverted = state.stage >= 3;
+    const inverted = state.inverted || state.stage >= 6;
     negative.visible = inverted;
     underlight.intensity = inverted ? 0.8 : 0;
     loungeVase.rotation.z = inverted ? Math.PI : 0;
     loungeVase.position.y = inverted ? 1.0 : 0.48;
+    coat.position.y = inverted ? -0.58 : -0.11;
+    coat.rotation.z = inverted ? Math.PI : 0;
+    entryBoots.forEach((boot) => {
+      boot.position.y = inverted ? 2.12 : 0.09;
+      boot.rotation.z = inverted ? Math.PI : 0;
+    });
     gallery.forEach((f, i) =>
       f.face.material.color.set(inverted && i % 2 ? 0x91a6b2 : 0xffffff),
     );
+    evidence.forEach((g, i) => (g.visible = state.stage >= i + 2));
+    handMaterial.opacity = state.stage === 2 ? 0.43 : 0.85;
+    for (let i = 0; i < gallery.length; i++)
+      if (gallery[i].group !== fallingFrame)
+        gallery[i].group.rotation.z =
+          state.stage >= 3
+            ? (i % 2 ? 1 : -1) * (0.035 + (state.stage >= 4 ? 0.03 : 0))
+            : 0;
     if (player) {
       if (
         frameAt === null &&
@@ -525,6 +656,18 @@ export function dressHouse(b, m, surfaces, furnishings) {
       ) {
         cupAt = time;
         events.push({ id: "cup-slide", x: 1.41, y: 0.97, z: -1.53 });
+      }
+      if (
+        booksAt === null &&
+        state.stage >= 3 &&
+        (state.ritualIndex || 0) >= 1 &&
+        player.x > -0.7 &&
+        player.x < 0.5 &&
+        player.z > 4.2 &&
+        player.z < 5.8
+      ) {
+        booksAt = time;
+        events.push({ id: "frame-shift", x: -1.02, y: 1.94, z: 3.88 });
       }
     }
     if (frameAt !== null) {
@@ -553,6 +696,25 @@ export function dressHouse(b, m, surfaces, furnishings) {
         events.push({ id: "cup-fall", x: 1.71, y: 0.06, z: -1.53 });
       }
     }
+    if (booksAt !== null) {
+      const t = Math.max(0, time - booksAt),
+        fall = T.MathUtils.clamp((t - 0.15) / 0.68, 0, 1);
+      looseBooks.forEach((b, i) => {
+        b.group.position.y =
+          b.position.y - (b.position.y - 0.045 - i * 0.02) * fall * fall;
+        b.group.position.x = b.position.x - 0.33 * fall;
+        b.group.position.z = b.position.z + 0.27 * fall;
+        b.group.rotation.set(
+          fall * 0.2,
+          fall * (i ? -0.6 : 0.45),
+          fall * (i ? -0.12 : 0.09),
+        );
+      });
+      if (fall >= 1 && !bookImpact) {
+        bookImpact = true;
+        events.push({ id: "frame-fall", x: -1.35, y: 0.08, z: 4.15 });
+      }
+    }
   }
   return {
     animate,
@@ -562,6 +724,8 @@ export function dressHouse(b, m, surfaces, furnishings) {
       frameFallen: frameImpact,
       cupFallen: cupImpact,
       inverted: negative.visible,
+      evidence: evidence.map((g) => g.visible),
+      booksFallen: bookImpact,
     }),
     fallingFrame,
     looseCup,
@@ -669,4 +833,166 @@ function negativeMaterial(source, rx = 1, ry = 1) {
     roughness: 0.85,
     color: 0xa3acb2,
   });
+}
+
+// Original alpha artwork drawn from anatomy and material traces. Deterministic
+// damage in the impression prevents the stamp-like look of a solid hand icon.
+function handprintTexture() {
+  const [c, g] = canvas(384, 640);
+  let seed = 811;
+  const rand = () =>
+    (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  g.scale(384, 640);
+  g.fillStyle = "rgba(77,11,14,.73)";
+  g.strokeStyle = "rgba(89,16,18,.78)";
+  g.lineCap = "round";
+  g.lineJoin = "round";
+  g.beginPath();
+  g.ellipse(0.51, 0.6, 0.19, 0.145, -0.12, 0, Math.PI * 2);
+  g.fill();
+  for (const [x, y, tx, ty, width] of [
+    [0.37, 0.62, 0.22, 0.48, 0.076],
+    [0.4, 0.55, 0.35, 0.21, 0.061],
+    [0.49, 0.52, 0.48, 0.13, 0.065],
+    [0.58, 0.54, 0.62, 0.22, 0.059],
+    [0.66, 0.59, 0.74, 0.36, 0.05],
+  ]) {
+    g.lineWidth = width;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.bezierCurveTo(x - 0.016, y - 0.09, tx + 0.01, ty + 0.13, tx, ty);
+    g.stroke();
+  }
+  for (let i = 0; i < 9; i++) {
+    const x = 0.35 + rand() * 0.31,
+      y = 0.68 + rand() * 0.05;
+    g.strokeStyle = `rgba(69,8,11,${0.13 + rand() * 0.22})`;
+    g.lineWidth = 0.004 + rand() * 0.011;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.bezierCurveTo(
+      x - 0.012,
+      y + 0.08,
+      x + 0.015,
+      0.86,
+      x + (rand() - 0.5) * 0.04,
+      0.8 + rand() * 0.19,
+    );
+    g.stroke();
+  }
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 340; i++) {
+    g.fillStyle = `rgba(0,0,0,${0.1 + rand() * 0.55})`;
+    g.beginPath();
+    g.ellipse(
+      0.18 + rand() * 0.61,
+      0.13 + rand() * 0.62,
+      0.002 + rand() * 0.006,
+      0.001 + rand() * 0.004,
+      rand() * Math.PI,
+      0,
+      Math.PI * 2,
+    );
+    g.fill();
+  }
+  g.lineWidth = 0.003;
+  g.strokeStyle = "rgba(0,0,0,.38)";
+  for (let i = 0; i < 5; i++) {
+    g.beginPath();
+    g.ellipse(
+      0.5,
+      0.59,
+      0.08 + i * 0.011,
+      0.045 + i * 0.008,
+      -0.14,
+      0,
+      Math.PI * 1.5,
+    );
+    g.stroke();
+  }
+  return map(c);
+}
+function dragTexture() {
+  const [c, g] = canvas(256, 512);
+  let seed = 302;
+  const rand = () =>
+    (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  for (let i = 0; i < 34; i++) {
+    const x = 64 + rand() * 126,
+      y = rand() * 110;
+    g.strokeStyle = `rgba(72,12,15,${0.1 + rand() * 0.27})`;
+    g.lineWidth = 1 + rand() * 7;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(x, y);
+    g.bezierCurveTo(
+      x + (rand() - 0.5) * 35,
+      175,
+      x + (rand() - 0.5) * 55,
+      340,
+      x + (rand() - 0.5) * 47,
+      350 + rand() * 130,
+    );
+    g.stroke();
+  }
+  for (let i = 0; i < 30; i++) {
+    g.fillStyle = `rgba(83,12,16,${0.13 + rand() * 0.34})`;
+    g.beginPath();
+    g.ellipse(
+      30 + rand() * 190,
+      20 + rand() * 470,
+      1 + rand() * 6,
+      2 + rand() * 12,
+      rand() * 2,
+      0,
+      Math.PI * 2,
+    );
+    g.fill();
+  }
+  return map(c);
+}
+function veinTexture() {
+  const [c, g] = canvas(384, 768);
+  let seed = 420;
+  const rand = () =>
+    (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+  g.lineCap = "round";
+  function branch(x, y, angle, length, width, depth) {
+    const tx = x + Math.sin(angle) * length,
+      ty = y + Math.cos(angle) * length;
+    g.strokeStyle = `rgba(48,14,19,${0.3 + rand() * 0.3})`;
+    g.lineWidth = width;
+    g.beginPath();
+    g.moveTo(x, y);
+    g.bezierCurveTo(
+      x + Math.sin(angle + 0.4) * length * 0.3,
+      y + length * 0.3,
+      tx - Math.sin(angle - 0.3) * length * 0.23,
+      ty - length * 0.25,
+      tx,
+      ty,
+    );
+    g.stroke();
+    if (depth > 0) {
+      branch(
+        tx,
+        ty,
+        angle + (rand() - 0.5) * 0.8,
+        length * 0.73,
+        width * 0.71,
+        depth - 1,
+      );
+      branch(
+        x + (tx - x) * 0.57,
+        y + (ty - y) * 0.57,
+        angle + (rand() > 0.5 ? 1 : -1) * (0.5 + rand() * 0.55),
+        length * 0.51,
+        width * 0.6,
+        depth - 1,
+      );
+    }
+  }
+  branch(179, 37, 0.06, 160, 5.3, 5);
+  branch(221, 98, -0.32, 135, 3.9, 4);
+  return map(c);
 }

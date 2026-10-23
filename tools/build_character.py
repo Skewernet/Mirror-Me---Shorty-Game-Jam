@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import struct
 from pathlib import Path
 import sys
@@ -33,6 +34,8 @@ args = arguments()
 args.output = args.output.resolve()
 args.assets = args.assets.resolve()
 args.output.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(args.mpfb.resolve() / "mpfb/data/textures/mpfb_inside-mouth.jpg",
+                args.output.parent / "inside-mouth-mask.jpg")
 sys.path.insert(0, str(args.mpfb.resolve()))
 # MPFB is also usable as a legacy addon. In a headless build there is no installed
 # extension repository, so provide its user-data location explicitly in our cache.
@@ -121,6 +124,17 @@ if human.data.shape_keys:
     human.shape_key_clear()
     for vertex, co in zip(human.data.vertices, coords):
         vertex.co = co
+# A real anatomical expression, preserved through helper removal/subdivision.
+# This target comes from MPFB's CC0 facial data and opens the existing lips and
+# oral topology rather than painting a round black mark over a closed face.
+human.shape_key_add(name="Basis", from_mix=False)
+jaw_path = args.mpfb.resolve() / "mpfb/data/targets/expression/units/caucasian/mouth-open.target.gz"
+jaw = TargetService.load_target(human, str(jaw_path), name="Mara_Jaw_Open", weight=0)
+basis = human.data.shape_keys.key_blocks["Basis"]
+for original, point in zip(basis.data, jaw.data):
+    point.co = original.co + (point.co - original.co) * 1.6
+jaw.slider_max = 1.0
+
 sub = human.modifiers.new("Anatomical_Surface", "SUBSURF")
 sub.levels = sub.render_levels = 1
 ExportService.bake_modifiers_remove_helpers(human, bake_masks=True, bake_subdiv=True,
@@ -145,7 +159,7 @@ rig.location.z = -low * factor
 bpy.context.view_layer.update()
 
 # An ordinary, lowered-arm resting pose. Preserve the game rig and its finger,
-# neck, eye, ankle and jaw bones for runtime animation. Current pose is exported
+# neck, ankle and toe bones for runtime animation. Current pose is exported
 # as glTF rest, and Three applies small local offsets relative to that pose.
 for suffix, sign in [("l", 1), ("r", -1)]:
     upper = rig.pose.bones[f"upperarm_{suffix}"]
@@ -178,7 +192,7 @@ bpy.context.view_layer.objects.active = rig
 args.output.parent.mkdir(parents=True, exist_ok=True)
 bpy.ops.export_scene.gltf(filepath=str(args.output), export_format="GLB", use_selection=True,
                           export_animations=False, export_rest_position_armature=False,
-                          export_skins=True, export_morph=False, export_extras=True,
+                          export_skins=True, export_morph=True, export_extras=True,
                           export_image_format="JPEG", export_image_quality=90,
                           export_jpeg_quality=90, export_yup=True,
                           export_materials="EXPORT", export_cameras=False, export_lights=False)
@@ -214,6 +228,7 @@ metadata = {"identity": "Mara Vale", "heightMeters": 1.74,
             "triangles": sum(len(p.vertices) - 2 for o in objects for p in o.data.polygons),
             "meshVertices": sum(len(o.data.vertices) for o in objects),
             "bones": len(rig.data.bones), "macro": macro,
+            "morphTargets": ["Mara_Jaw_Open"],
             "sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
             "rigBones": [b.name for b in rig.data.bones]}
 args.output.with_suffix(".json").write_text(json.dumps(metadata, indent=2) + "\n")

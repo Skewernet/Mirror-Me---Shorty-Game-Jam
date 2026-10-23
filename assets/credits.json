@@ -14,7 +14,7 @@
         "index.html",
         "style.css"
       ],
-      "changes": "Original game direction, writing, L-shaped house, authored props, botanical/calendar/writing/radio artwork, interface, interaction and procedural animation. Ambience, footsteps, knocks, mechanical sounds and music-box tones are synthesized with Web Audio; no external sound library."
+      "changes": "Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, authored props, blood/handprint/vein artwork, interface and procedural animation. Ambience, footsteps, crawling, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound library."
     },
     {
       "id": "threejs",
@@ -49,7 +49,7 @@
         "assets/voice/MODEL_CARD.txt",
         "assets/voice/LICENSE_APACHE_2.0.txt"
       ],
-      "changes": "Seventeen original lines synthesized offline. Mara and the glass: bf_emma; Mum: bf_isabella; weather bulletin: bm_george. Pacing, telephone/radio filtering, restrained glass echo and loudness/headroom mastering by the project. Supplied synthetic presets; no human actor performance or real-person voice clone is claimed."
+      "changes": "Twenty-three original takes synthesized offline: twenty-two story performances and one ambient radio bulletin. Mara and the glass: bf_emma; Mum: bf_isabella; weather bulletin: bm_george. The first Mum call uses telephone bandwidth; the final Mum line uses clear full-range speech. Pacing, telephone/radio filtering, restrained glass echo and loudness/headroom mastering by the project. Supplied synthetic presets; no human actor performance or real-person voice clone is claimed."
     },
     {
       "id": "makehuman-mara-base",
@@ -60,13 +60,14 @@
       "licenseUrl": "https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md",
       "files": [
         "assets/character/mara.glb",
+        "assets/character/inside-mouth-mask.jpg",
         "assets/character/mara.json",
         "assets/character/sources.json",
         "assets/character/README.md",
         "assets/character/LICENSE-CC0.md",
         "assets/character/MPFB-LICENSE.md"
       ],
-      "changes": "Adult female morphological blend at 1.74 m; helper removal, anatomical subdivision, resting pose, glTF export and procedural animation."
+      "changes": "Adult female morphological blend at 1.74 m; helper removal, anatomical subdivision, resting pose and glTF export. MPFB mouth-opening expression added as a jaw morph; the CC0 inside-mouth texture is copied unmodified as inside-mouth-mask.jpg. The project adds distance-driven foot planting, measured-bind-axis limb solving, crawling/ceiling poses and anatomical horror deformation."
     },
     {
       "id": "makehuman-system-character",
@@ -79,7 +80,7 @@
         "assets/character/mara.glb",
         "assets/character/mara.json"
       ],
-      "changes": "System skin, detailed eyes, bob hairstyle, brows, lashes, casual clothing and shoes03 black shoes fitted to the female character; chestnut hair tint, PBR tuning and authored horror variants."
+      "changes": "System skin, detailed eyes, bob hairstyle, brows, lashes, casual clothing and shoes03 black shoes fitted to the female character; chestnut hair tint, PBR tuning and authored horror variants. The clothed mesh and skeleton are reused for the crawling and distorted figures; those poses are project-authored, not a separately downloaded monster asset."
     },
     {
       "id": "margaret-toigo-mara-costume",

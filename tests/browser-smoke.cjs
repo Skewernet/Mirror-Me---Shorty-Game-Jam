@@ -1,7 +1,7 @@
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 require("node:fs").mkdirSync(
-  process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-threshold-checks",
+  process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-crescendo-checks",
   { recursive: true },
 );
 (async () => {
@@ -54,6 +54,7 @@ require("node:fs").mkdirSync(
     await p.locator("#brightness").fill("1.3");
     await p.locator("#grain").uncheck();
     await p.locator("#sudden-scares").uncheck();
+    await p.locator("#flashing-lights").uncheck();
     await p.locator("#settings summary").click();
     console.log("Normal mode: starting");
     await p.click("#start");
@@ -65,7 +66,7 @@ require("node:fs").mkdirSync(
     await p.waitForTimeout(1000);
     await p.screenshot({
       path:
-        (process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-threshold-checks") +
+        (process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-crescendo-checks") +
         "/normal-flashlight.png",
       timeout: 60000,
     });
@@ -88,6 +89,7 @@ require("node:fs").mkdirSync(
     await p.locator("#contact-shadows").uncheck();
     await p.locator("#contact-shadows").check();
     await p.locator("#sudden-scares").check();
+    await p.locator("#flashing-lights").check();
     await p.setViewportSize({ width: 1280, height: 900 });
     await p.waitForTimeout(500);
     assert.equal(await p.locator("canvas").evaluate((e) => e.height), 900);
@@ -111,7 +113,7 @@ require("node:fs").mkdirSync(
           "pointer lock and walking",
           "flashlight render",
           "720/1080/1440 quality and resize",
-          "brightness/grain/contact-shadow/scare controls",
+          "brightness/grain/contact-shadow/scare/flicker controls",
           "asset credits and return to menu",
           "journal pause/resume",
           "Escape and hint",

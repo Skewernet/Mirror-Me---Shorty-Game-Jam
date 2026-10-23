@@ -85,5 +85,17 @@
       "path": "clothes/shoes03/shoes03_diffuse.png",
       "sha256": "fe8216fbd0c34ecd3ac0e1a01970a4ccf844417be5fd1d72c527c9209256db93"
     }
+  ],
+  "additionalMpfbFiles": [
+    {
+      "path": "src/mpfb/data/targets/expression/units/caucasian/mouth-open.target.gz",
+      "sha256": "dc1260a8728d93a9c52d6b35b5f55ad39ab8096090acd5ccad7f973c26e28818",
+      "use": "Anatomical jaw-opening morph in mara.glb"
+    },
+    {
+      "path": "src/mpfb/data/textures/mpfb_inside-mouth.jpg",
+      "sha256": "dc3e5b39e677351e3bb4c60653dc4d3516f585690076ec4c749e04402db3bf05",
+      "use": "assets/character/inside-mouth-mask.jpg"
+    }
   ]
 }

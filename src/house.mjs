@@ -3,6 +3,9 @@ import { builders } from "./builders.mjs";
 import { createSurfaces, photoTextures, writingTexture } from "./surfaces.mjs";
 import { furnish } from "./props.mjs";
 import { dressHouse } from "./dressing.mjs";
+import { ThresholdPortal } from "./portal.mjs";
+import { buildWake } from "./wake.mjs";
+import { WRITINGS } from "./story.mjs";
 import {
   ROOMS,
   roomAt,
@@ -19,6 +22,11 @@ import {
 export async function buildHouse(scene) {
   const b = builders(scene),
     { box, cylinder, sphere, group, target, contact } = b;
+  const worldMaterials = new Set();
+  const worldMaterial = (material) => {
+    worldMaterials.add(material);
+    return material;
+  };
   const [surfaces, photos] = await Promise.all([
     createSurfaces(),
     photoTextures(),
@@ -32,7 +40,7 @@ export async function buildHouse(scene) {
       envMapIntensity: 0.06,
     });
   const m = {
-    wood: surfaces.material("wood", 1, 1, 0xa9987d),
+    wood: worldMaterial(surfaces.material("wood", 1, 1, 0xa9987d)),
     black: basic(0x171914),
     brass: basic(0x8c7852, 0.43, 0.72),
     steel: basic(0xa0aaa8, 0.26, 0.84),
@@ -74,8 +82,8 @@ export async function buildHouse(scene) {
   m.shade.emissive.set(0x674526);
   m.shade.emissiveIntensity = 0.2;
   m.lampGlaze = basic(0x65584b, 0.35);
-  const paint = surfaces.material("plaster", 1, 1, 0xd4d0b9);
-  const darkPaint = surfaces.material("panel", 1, 1, 0x899080);
+  const paint = worldMaterial(surfaces.material("plaster", 1, 1, 0xd4d0b9));
+  const darkPaint = worldMaterial(surfaces.material("panel", 1, 1, 0x899080));
   const H = CEILING_HEIGHT,
     wallThickness = 0.12;
 
@@ -87,7 +95,9 @@ export async function buildHouse(scene) {
       x,
       bottom + height / 2,
       z,
-      surfaces.material(kind, Math.max(w, d) / 1.8, height / 1.8),
+      worldMaterial(
+        surfaces.material(kind, Math.max(w, d) / 1.8, height / 1.8),
+      ),
       bottom < 0.1,
     );
     if (bottom < 0.1) {
@@ -106,10 +116,22 @@ export async function buildHouse(scene) {
           x,
           0.36,
           z,
-          surfaces.material("panel", Math.max(w, d) / 1.1, 0.8, 0x9b9e87),
+          worldMaterial(
+            surfaces.material("panel", Math.max(w, d) / 1.1, 0.8, 0x9b9e87),
+          ),
         );
     }
     return mesh;
+  }
+  function captureArchitecture(build) {
+    const firstObject = scene.children.length,
+      firstCollider = b.colliders.length;
+    build();
+    const objects = scene.children.slice(firstObject),
+      wallGroup = new T.Group();
+    scene.add(wallGroup);
+    objects.forEach((object) => wallGroup.add(object));
+    return { group: wallGroup, colliders: b.colliders.slice(firstCollider) };
   }
   function wallRange(axis, fixed, from, to, kind = "wallpaper", holes = []) {
     let cursor = from;
@@ -163,11 +185,13 @@ export async function buildHouse(scene) {
       x,
       -0.071,
       z,
-      surfaces.material(
-        kind,
-        w / 1.8,
-        d / 1.8,
-        kind === "floor" ? 0x8f7355 : 0xffffff,
+      worldMaterial(
+        surfaces.material(
+          kind,
+          w / 1.8,
+          d / 1.8,
+          kind === "floor" ? 0x8f7355 : 0xffffff,
+        ),
       ),
     );
     const ceiling = box(
@@ -177,7 +201,7 @@ export async function buildHouse(scene) {
       x,
       H + 0.055,
       z,
-      surfaces.material("plaster", w / 2, d / 2, 0xc6c6b5),
+      worldMaterial(surfaces.material("plaster", w / 2, d / 2, 0xc6c6b5)),
     );
     ceiling.castShadow = false;
   }
@@ -206,10 +230,20 @@ export async function buildHouse(scene) {
     { center: 2.4, width: 1.0 },
     { center: 7.4, width: 0.98 },
   ]);
-  wallRange("z", 0.7, 0.7, 9.26, "wallpaper", [
-    { center: EXIT.x, width: 1.04 },
-  ]);
-  wallRange("x", 9.26, -0.7, 0.7, "plaster");
+  const southWall = captureArchitecture(() =>
+    wallRange("z", 0.7, 0.7, 9.26, "wallpaper", [
+      { center: EXIT.x, width: 1.04 },
+    ]),
+  );
+  const lostDoorWall = captureArchitecture(() =>
+    wallRange("z", 0.7, 0.7, 9.26, "wallpaper"),
+  );
+  lostDoorWall.group.visible = false;
+  lostDoorWall.colliders.forEach((collider) => (collider.disabled = true));
+  const mirrorWall = captureArchitecture(() =>
+    wallRange("x", 9.26, -0.7, 0.7, "plaster"),
+  );
+  const mirrorBarrier = mirrorWall.colliders[0];
   wallRange("z", 7.56, -0.7, 0.7, "plaster", [
     { center: FRONT_DOOR.x, width: 1.02 },
   ]);
@@ -434,11 +468,24 @@ export async function buildHouse(scene) {
     color: "#b5a780",
     font: 92,
   });
-  box(0.16, 0.11, 0.008, 0, 1.7, 7.465, frontNumber);
-  box(0.21, 0.035, 0.035, 0.24, 1.36, 7.452, m.brass, false, scene, 0.006);
+  box(0.16, 0.11, 0.008, 0.46, 1.7, 0.035, frontNumber, false, front.pivot);
+  box(
+    0.21,
+    0.035,
+    0.035,
+    0.22,
+    1.36,
+    0.048,
+    m.brass,
+    false,
+    front.pivot,
+    0.006,
+  );
 
   const furnishings = furnish(b, m),
     dressing = dressHouse(b, m, surfaces, furnishings);
+  const wake = buildWake(b, m, surfaces, photos);
+  const portal = new ThresholdPortal(scene, back);
   // Shallow hall console. Its drawer travels toward the hall but never occupies
   // the centre line, which remains navigable in this 1.28m-wide corridor.
   const console = group(4.7, 0, 0.47),
@@ -492,15 +539,9 @@ export async function buildHouse(scene) {
     TARGETS.note.y,
     TARGETS.note.z,
     new T.MeshStandardMaterial({
-      map: writingTexture(
-        [
-          "IF THE HALL RETURNS,",
-          "WATCH THE GLASS.",
-          "WHEN IT LEADS,",
-          "YOU LEAVE.",
-        ],
-        { font: 27 },
-      ),
+      map: writingTexture(WRITINGS.note.split("\n").filter(Boolean), {
+        font: 18,
+      }),
       roughness: 1,
     }),
   );
@@ -575,6 +616,7 @@ export async function buildHouse(scene) {
   ) {
     const l = new T.SpotLight(color, intensity, distance, angle, 0.78, 2);
     l.position.set(x, y, z);
+    l.userData.base = intensity;
     l.target.position.set(tx, ty, tz);
     scene.add(l, l.target);
     lights.push(l);
@@ -624,8 +666,8 @@ export async function buildHouse(scene) {
     1.4,
     true,
   );
-  point(0xe9cda8, 1.2, 4, 0, H - 0.36, 5.9);
-  point(0xe7cda7, 4.8, 4.5, 0, H - 0.28, 1.0);
+  const entryFill = point(0xe9cda8, 1.2, 4, 0, H - 0.36, 5.9);
+  const cornerFill = point(0xe7cda7, 4.8, 4.5, 0, H - 0.28, 1.0);
   const mirrorHero = spot(
     0xf0d6b7,
     5.5,
@@ -653,29 +695,46 @@ export async function buildHouse(scene) {
   point(0xffd2a4, 5.3, 3.1, -1.22, 1.165, 6.78);
   point(0xffd5af, 3.5, 3.0, -4.04, 1.62, 7.02);
   const bedsideLight = point(0xffd2ab, 4.1, 2.6, 8.64, 1.05, -3.65);
-  spot(0x8ea8b8, 7, 4.3, 0.85, -4.35, 1.6, 4.1, -2.1, 1.0, 4.3);
-  spot(0x92adbc, 6, 4.4, 0.9, 2.65, 1.55, -4.4, 2.6, 0.8, -1.3);
-  spot(0x9bb2bd, 4, 3.2, 0.85, 3.6, 1.55, 2.9, 1.6, 0.8, 2.9);
-  spot(0x91abb9, 5, 4.4, 0.9, 7.4, 1.6, -4.4, 7.4, 0.8, -1.2);
+  const loungeWindow = spot(
+    0x8ea8b8,
+    7,
+    4.3,
+    0.85,
+    -4.35,
+    1.6,
+    4.1,
+    -2.1,
+    1.0,
+    4.3,
+  );
+  const kitchenWindow = spot(
+    0x92adbc,
+    6,
+    4.4,
+    0.9,
+    2.65,
+    1.55,
+    -4.4,
+    2.6,
+    0.8,
+    -1.3,
+  );
+  const bathWindow = spot(
+    0x9bb2bd,
+    4,
+    3.2,
+    0.85,
+    3.6,
+    1.55,
+    2.9,
+    1.6,
+    0.8,
+    2.9,
+  );
+  const bedWindow = spot(0x91abb9, 5, 4.4, 0.9, 7.4, 1.6, -4.4, 7.4, 0.8, -1.2);
   const ambient = new T.HemisphereLight(0xa7bac0, 0x30271e, 0.19);
   scene.add(ambient);
   const exitLight = point(0xb9d1db, 0, 3.8, 7.4, 2.04, 2.4);
-  const endingGlass = b.plane(
-    0.98,
-    2.08,
-    EXIT.x,
-    1.05,
-    1.27,
-    new T.MeshPhysicalMaterial({
-      color: 0x9db2a9,
-      metalness: 0.15,
-      roughness: 0.08,
-      transparent: true,
-      opacity: 0.19,
-      side: T.DoubleSide,
-    }),
-  );
-  endingGlass.visible = false;
   // Small material accents created by the furnishing helpers should share the
   // restrained image-based fill used by the architectural PBR surfaces.
   scene.traverse((object) => {
@@ -685,9 +744,62 @@ export async function buildHouse(scene) {
         : [object.material])
         if (material.envMapIntensity === 1) material.envMapIntensity = 0.06;
   });
+  const worldUniforms = [];
+  for (const material of worldMaterials) {
+    const uniform = { value: 0 },
+      previousCompile = material.onBeforeCompile,
+      previousKey = material.customProgramCacheKey();
+    material.onBeforeCompile = function (shader, renderer) {
+      previousCompile.call(this, shader, renderer);
+      shader.uniforms.mirrorWorld = uniform;
+      shader.fragmentShader =
+        "uniform float mirrorWorld;\n" + shader.fragmentShader;
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <map_fragment>",
+        `#include <map_fragment>
+        float drainedLuma=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));
+        vec3 drainedColor=vec3(.84,.91,.96)*(.20+.80*drainedLuma);
+        diffuseColor.rgb=mix(diffuseColor.rgb,drainedColor,mirrorWorld);`,
+      );
+    };
+    material.customProgramCacheKey = () => previousKey + "|mirror-world-v1";
+    worldUniforms.push(uniform);
+  }
+  const lightGroups = {
+    entry: [hallHero, entryFill, cornerFill],
+    bathroom: [bathLight, bathWindow],
+    "far-hall": [mirrorHero, mirrorLight, kitchenDoorLight],
+    bedroom: [bedsideLight, bedWindow],
+  };
+  for (const [zone, members] of Object.entries(lightGroups))
+    for (const light of members) light.userData.zone = zone;
+  for (const light of lights) {
+    light.userData.originalColor = light.color.clone();
+    light.userData.currentColor = light.color.clone();
+    light.userData.currentBase = light.intensity;
+  }
+  let wakeSealed = false;
+  let previousArchitecture = "";
+  function applyHorrorLighting(envelope = {}) {
+    for (const light of lights) {
+      light.intensity = light.userData.currentBase;
+      light.color.copy(light.userData.currentColor);
+    }
+    const multiplier = T.MathUtils.clamp(
+      envelope.lightMultiplier ?? 1,
+      0.08,
+      1.3,
+    );
+    const affected =
+      envelope.lightSource === "all"
+        ? lights
+        : lightGroups[envelope.lightSource] || [];
+    for (const light of affected)
+      light.intensity = light.userData.currentBase * multiplier;
+  }
   function setStage(stage) {
-    mirrorLight.color.set(stage >= 3 ? 0xabc4d0 : 0xd7e4de);
-    hallHero.color.set(stage >= 3 ? 0xc3d5d5 : 0xffd4a7);
+    mirrorLight.color.set(stage >= 6 ? 0xdceef6 : 0xd7e4de);
+    hallHero.color.set(stage >= 6 ? 0xc7dce9 : 0xffd4a7);
   }
   function updateDoor(d, opened, dt, rate = 5) {
     const desired = opened ? Math.PI * 0.5 : 0;
@@ -712,7 +824,31 @@ export async function buildHouse(scene) {
       dt,
     );
     key.visible = state.keyAvailable && !state.hasKey;
-    updateDoor(back, !!state.doorOpen, dt, 4.5);
+    const backdoorGone = !!state.backdoorGone || state.stage >= 5;
+    back.group.visible = !backdoorGone;
+    southWall.group.visible = !backdoorGone;
+    lostDoorWall.group.visible = backdoorGone;
+    southWall.colliders.forEach(
+      (collider) => (collider.disabled = backdoorGone),
+    );
+    lostDoorWall.colliders.forEach(
+      (collider) => (collider.disabled = !backdoorGone),
+    );
+    updateDoor(back, !backdoorGone && !!state.doorOpen, dt, 4.5);
+    if (backdoorGone) back.collider.disabled = true;
+    const mirrorPassable = !!state.mirrorReady;
+    mirrorWall.group.visible = !mirrorPassable;
+    mirrorWall.colliders.forEach(
+      (collider) => (collider.disabled = mirrorPassable),
+    );
+    const architectureState = `${backdoorGone}:${mirrorPassable}:${!!state.inverted}`;
+    if (architectureState !== previousArchitecture) {
+      hallHero.shadow.needsUpdate = mirrorHero.shadow.needsUpdate = true;
+      previousArchitecture = architectureState;
+    }
+    if (state.wakeEntered && player?.z > 8.8) wakeSealed = true;
+    updateDoor(front, !!state.frontOpen && !wakeSealed, dt, 3.3);
+    portal.sync(state);
     for (const [id, door] of Object.entries(roomDoors))
       updateDoor(door, !!state.doors?.[id], dt);
     secondHand.rotation.z = (state.stage >= 1 ? 1 : -1) * time * 0.9;
@@ -721,22 +857,55 @@ export async function buildHouse(scene) {
       -(state.clockHour / 12 + state.clockMinute / 720) * Math.PI * 2;
     pendulum.rotation.z =
       Math.sin(time * 2.3) * (state.clockSolved ? 0.018 : 0.075);
-    const inverted = state.stage >= 3;
-    kitchenLight.intensity = state.power ? (inverted ? 4.6 : 7.5) : 0.1;
-    utilityLight.intensity = state.power ? 4.5 : 1.3;
-    kitchenDoorLight.color.set(inverted ? 0xb9d4dc : 0xe7d3b1);
-    bathLight.intensity = state.stage === 2 ? 4.2 : 6.2;
-    bedsideLight.intensity = inverted ? 1.7 : 4.1;
-    ambient.color.set(inverted ? 0x929c9a : 0xa7bac0);
-    ambient.intensity = inverted ? 0.16 : 0.19;
+    const inverted = !!state.inverted || state.stage >= 6;
+    for (const uniform of worldUniforms) uniform.value = inverted ? 1 : 0;
+    const previousExitIntensity = exitLight.intensity;
+    for (const light of lights) {
+      light.intensity = light.userData.base;
+      light.color.copy(light.userData.originalColor);
+    }
+    hallHero.color.set(inverted ? 0xc7dce9 : 0xffd4a7);
+    hallHero.intensity = inverted ? 18 : 15;
+    entryFill.color.set(inverted ? 0xd5e5ee : 0xe9cda8);
+    entryFill.intensity = inverted ? 2.2 : 1.2;
+    cornerFill.color.set(inverted ? 0xd2e6f1 : 0xe7cda7);
+    cornerFill.intensity = inverted ? 7.0 : 4.8;
+    mirrorHero.color.set(inverted ? 0xd2e5ee : 0xf0d6b7);
+    mirrorHero.intensity = inverted ? 7 : 5.5;
+    mirrorLight.color.set(inverted ? 0xdceef6 : 0xd7e4de);
+    mirrorLight.intensity = inverted ? 1.2 : 1.0;
+    kitchenLight.intensity = state.power ? (inverted ? 12 : 7.5) : 0.1;
+    kitchenLight.color.set(inverted ? 0xe1f1fb : 0xe4e4cb);
+    utilityLight.intensity = state.power ? (inverted ? 6.5 : 4.5) : 1.3;
+    utilityLight.color.set(inverted ? 0xc8deeb : 0xe1e4d8);
+    kitchenDoorLight.color.set(inverted ? 0xe1f3ff : 0xe7d3b1);
+    kitchenDoorLight.intensity = inverted ? 4.8 : 3.2;
+    bathLight.color.set(inverted ? 0xd1e8f4 : 0xd7ded0);
+    bathLight.intensity = inverted ? 9 : state.stage === 2 ? 4.2 : 6.2;
+    bedsideLight.color.set(inverted ? 0xd7e7ef : 0xffd2ab);
+    bedsideLight.intensity = state.lampOff ? 0 : inverted ? 2.6 : 4.1;
+    for (const light of [loungeWindow, kitchenWindow, bathWindow, bedWindow])
+      if (inverted) {
+        light.color.set(0xe4f1fb);
+        light.intensity = light.userData.base * 1.7;
+      }
+    ambient.color.set(inverted ? 0xd8e8ef : 0xa7bac0);
+    ambient.groundColor.set(inverted ? 0x6b7376 : 0x30271e);
+    ambient.intensity = inverted ? 0.45 : 0.19;
     exitLight.intensity = T.MathUtils.damp(
-      exitLight.intensity,
-      state.doorOpen ? 5 : 0,
+      previousExitIntensity,
+      state.doorOpen && !backdoorGone ? 5 : 0,
       5,
       dt,
     );
     furnishings.animate?.(time, state, player);
     dressing.animate?.(time, state, player);
+    if (wake.update) wake.update(time, dt, state, player);
+    else wake.animate?.(time, state);
+    for (const light of lights) {
+      light.userData.currentBase = light.intensity;
+      light.userData.currentColor.copy(light.color);
+    }
   }
   function reset(state) {
     furnishings.reset?.();
@@ -749,10 +918,13 @@ export async function buildHouse(scene) {
     back.collider.disabled = false;
     front.pivot.rotation.y = 0;
     front.collider.disabled = false;
+    wakeSealed = false;
+    previousArchitecture = "";
+    wake.reset();
+    portal.reset();
     drawerSlide.position.z = -0.11;
     key.visible = false;
     note.visible = true;
-    endingGlass.visible = false;
     setStage(0);
     animate(0, 0, state);
     hallHero.shadow.needsUpdate = mirrorHero.shadow.needsUpdate = true;
@@ -769,6 +941,11 @@ export async function buildHouse(scene) {
     door: back.leaf,
     backDoor: back,
     frontDoor: front,
+    mirrorBarrier,
+    mirrorWall,
+    lostDoorWall,
+    portal,
+    wake,
     drawer: consoleBody,
     drawerFace,
     drawerSlide,
@@ -778,7 +955,6 @@ export async function buildHouse(scene) {
     lights,
     mirrorLight,
     exitLight,
-    endingGlass,
     props: furnishings,
     furnishings,
     dressing,
@@ -787,6 +963,8 @@ export async function buildHouse(scene) {
     setStage,
     animate,
     reset,
+    applyHorrorLighting,
+    lightingGroups: lightGroups,
     architecture: {
       ceilingHeight: H,
       hallWidth: 1.28,

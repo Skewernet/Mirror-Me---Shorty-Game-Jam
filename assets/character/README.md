@@ -1,8 +1,8 @@
 # Mara Vale character asset
 
 Mara is an original fictional adult woman assembled from MakeHuman's **CC0**
-anatomical mesh, morphology, rig and system assets. The reflection, passage
-apparition and replacement use the same model. She is 1.74 metres tall, with a
+anatomical mesh, morphology, rig and system assets. The reflection, crawling
+apparitions and wake mourners use the same model. She is 1.74 metres tall, with a
 chestnut bob, a long-sleeved burgundy blouse, dark jeans and ordinary black shoes.
 The base anatomy is a continuous subdivided, UV-mapped mesh, rather than a
 collection of primitives. This is a game-ready human asset; it is not a scan or
@@ -11,7 +11,9 @@ a claim of a film-quality digital double.
 `mara.glb` contains the seven skinned meshes, their PBR materials and embedded
 textures, plus the 53-bone game rig. Skin, costume and hair use 2048px source
 atlases. Exported JPEG textures preserve face detail while keeping the complete
-bundle around 8 MB; eyes and hair retain alpha cutouts. `mara.json` records the
+bundle around 9 MB; eyes and hair retain alpha cutouts. The skin also contains
+the anatomical `Mara_Jaw_Open` expression, with a separate CC0 oral-cavity mask.
+`mara.json` records the
 actual mesh counts, body parameters, bone names and generated GLB SHA-256.
 
 ## Creators and licenses
@@ -26,6 +28,7 @@ actual mesh counts, body parameters, bone names and generated GLB SHA-256.
 | Blouse and jeans mesh | MakeHuman Team | CC0 1.0 | `clothes/male_casualsuit01/` |
 | Red Shirt with Black Jeans material | Margaret Toigo | CC0 1.0 | `toigo_male_casual_suit_01_red_shirt_with_black_jeans/` |
 | Black shoes | MakeHuman Team | CC0 1.0 | `clothes/shoes03/` |
+| Mouth-opening expression and oral mask | MakeHuman Team | CC0 1.0 | MPFB `data/targets/expression/units/caucasian/mouth-open.target.gz`, `data/textures/mpfb_inside-mouth.jpg` |
 
 MakeHuman's asset headers identify Data Collection AB, Joel Palmius and Jonas
 Hauquier as copyright holders when the system assets were explicitly released
@@ -80,10 +83,38 @@ height, lowers the arms into a resting pose, and exports the rig and portable
 PBR materials. `--preview /tmp/mara.png` optionally creates a studio render and
 editable diagnostic `.blend` outside the game bundle.
 
-At runtime, `preloadCharacterAssets()` loads the single local GLB once.
+At runtime, `preloadCharacterAssets()` loads the local GLB and oral mask once.
 `createFigure()` clones the skeleton and materials synchronously, retaining
-shared geometry and base textures. Head and limb controls apply offsets to
-saved rest rotations. The horror variants add tired eye sockets, pallor, a
-dried tear and a split lip to her own UV skin; they keep Mara recognizably the
-same woman. Variants use independent texture Sources so the normal skin is not
-mutated when another instance changes.
+shared geometry and base textures. Head and limb controls apply offsets above
+the solved movement and anatomical horror pose. The early variants add tired
+eye sockets and pallor. Later distortion opens the actual mouth, recesses the
+eyes, changes the facial surface and stretches the neck, forearms and phalanges.
+The skin shader makes the existing oral interior a lightless throat. Floor and
+ceiling crawls reuse the same clothed anatomy with solved limbs and a low,
+narrow silhouette. No primitive monster body is substituted. All changes reset
+to the healthy Mara. Variants use independent texture Sources so the normal
+skin is not mutated when another instance changes.
+
+## Locomotion and pose API
+
+`animate(time, speed, frozen, options)` accepts the cumulative `distance`,
+`delta`, `x`, `z`, `yaw`, `vx` and `vz` of the pose being shown. Mirror history
+interpolates those values together, so a delayed reflection also has delayed
+feet and arm motion. Strides advance with distance, rather than elapsed time.
+The full same-foot stride is 1.24m; alternating footfalls occur every .62m.
+
+`figure-motion.mjs` measures the imported bind axes, limb lengths and shoe
+heel/toe positions. Two-bone IK holds stance ankles in world coordinates;
+heel strike, toe-off, swing clearance and pelvis height follow those measured
+lengths. Backward steps reverse the roll, and a side step turns the hips toward
+travel while the torso and neck counterturn. Start/stop blends into idle.
+`resetMotion()` clears anchors after a portal; a frozen pose preserves its
+distance, weight and anchors. Head/limb Euler proxies remain additive above
+the solved motion.
+
+`setHorror(level, time, options)` ranges from 0 to 1. `setCreaturePose(time,
+progress, {mode, intensity, distance})` supports `crawl`, `ceiling`, `twisted`
+and `retreat`. These functions alter the inner model and rig; the encounter
+director owns the outer `body` transform. `resetPose()` restores the healthy
+standing character. The ceiling pose assumes a body origin .08m below the roof
+and applies .075m internal clearance, placing the fingers against the surface.

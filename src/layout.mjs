@@ -15,7 +15,7 @@ export const HALLS = [
 export const PORTAL = {
   minX: 6.88,
   maxX: 7.92,
-  thresholdZ: 1.65,
+  thresholdZ: 0.95,
   yawDelta: Math.PI,
   returnX: 0,
   returnZ: 6.7,
@@ -84,6 +84,14 @@ export const ROOMS = [
 ];
 // All story targets and spatial sound positions share these measured locations.
 export const TARGETS = {
+  "keepsake-watch": { x: 3.58, y: 0.795, z: -2.95 },
+  "keepsake-ring": { x: -2.85, y: 0.91, z: 2.62 },
+  "keepsake-ribbon": { x: -2.65, y: 0.515, z: 5.12 },
+  "radio-altar": { x: 1.45, y: 1.0, z: -2.7 },
+  "bath-dish": { x: 2.25, y: 1.02, z: 1.3 },
+  "musicbox-base": { x: 5.51, y: 0.8, z: -3.83 },
+  "bed-farewell": { x: 7.4, y: 0.76, z: -2.55 },
+  "bedside-lamp": { x: 8.64, y: 1.05, z: -3.65 },
   telephone: { x: -1.45, y: 0.89, z: 6.75 },
   letter: { x: -2.55, y: 0.48, z: 5.5 },
   radio: { x: 1.22, y: 1.1, z: -2.15 },
@@ -116,4 +124,13 @@ export function inHall(x, z) {
 }
 export function atBackThreshold(x, z) {
   return x > PORTAL.minX && x < PORTAL.maxX && z > PORTAL.thresholdZ;
+}
+
+// Crossing planes are tested after actual collision movement, never interaction
+// clicks. These bounds keep room exploration from triggering a spatial return.
+export function atMirrorThreshold(x, z) {
+  return x >= MIRROR.x && Math.abs(z - MIRROR.z) < 0.5;
+}
+export function atFrontThreshold(x, z) {
+  return Math.abs(x - FRONT_DOOR.x) < 0.48 && z > 8.14;
 }

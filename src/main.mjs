@@ -3,17 +3,20 @@ import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
-import { Story, VOICES } from "./story.mjs";
+import { Story, VOICES, WRITINGS } from "./story.mjs";
 import { Sound } from "./sound.mjs";
+import { HorrorDirector } from "./horror.mjs";
+import { backDoorPose, mirrorPose } from "./transitions.mjs";
 import {
   MIRROR,
   ROOMS,
   roomAt,
   EXIT,
   SPAWN,
-  PORTAL,
   inHall,
   atBackThreshold,
+  atMirrorThreshold,
+  atFrontThreshold,
 } from "./layout.mjs";
 import { preloadCharacterAssets } from "./figure.mjs";
 const $ = (id) => document.getElementById(id),
@@ -46,6 +49,7 @@ document.body.prepend(renderer.domElement);
 let house;
 try {
   [house] = await Promise.all([buildHouse(scene), preloadCharacterAssets()]);
+  await house.wake?.prepare?.();
 } catch (error) {
   $("error").textContent =
     "A house or character asset could not load. Reload the page; if it persists, inspect the asset request.";
@@ -56,7 +60,8 @@ const player = new Player(camera),
   mirror = new Mirror(scene, house),
   story = new Story(),
   ray = new T.Raycaster(),
-  sound = new Sound((text) => ($("subtitle").textContent = text));
+  sound = new Sound((text) => ($("subtitle").textContent = text)),
+  horror = new HorrorDirector(scene, house);
 let mode = "title",
   active = false,
   target = null,
@@ -67,17 +72,17 @@ let mode = "title",
   endingAt = 0,
   endingStart = 0,
   endingSpoken = false,
+  wakeTurned = false,
   lateSpoken = false,
-  commandSpoken = false,
   flashlightOn = false,
   hintUntil = 0,
-  portal = null,
+  lastPortal = null,
+  portalCount = 0,
+  offeringTarget = null,
+  chapterUntil = 0,
+  flashingLights = true,
   scaresEnabled = true,
   mirrorSnap = false,
-  hallAppearance = false,
-  apparitionUntil = 0,
-  echoSteps = 0,
-  echoStepNext = 0,
   quality = 1080,
   renderRequested = true;
 const testMode = new URLSearchParams(location.search).get("test") === "1";
@@ -104,109 +109,135 @@ function resize() {
   renderer.setSize(w, h, false);
   picture.resize(w, h, quality);
   mirror.setQuality(quality);
+  house.portal?.setQuality(quality);
 }
 resize();
 window.addEventListener("resize", resize);
 function setText(element, text) {
   $(element).textContent = text;
 }
+const CHAPTER_NAMES = [
+  "I · THE LIGHT LEFT ON",
+  "II · THE DIFFICULT PART",
+  "III · THREE SEVENTEEN",
+  "IV · WHAT HER HANDS REMEMBER",
+  "V · END THE EVENING",
+  "VI · NO WAY BACK",
+  "VII · A PLACE KEPT FOR YOU",
+];
+const safeText = (text) =>
+  String(text).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
 function updateInventory() {
-  const count =
-    Number(story.hasNote) +
-    Number(story.hasFuse) +
-    Number(story.hasKey) +
-    Number(story.hasDiary) +
-    Number(story.hasLetter) +
-    Number(story.hasTimeClue);
-  $("inventory").textContent = count ? "TAB · " + count + " MEMORIES" : "";
   const cards = [];
   const item = (title, text, symbol = "⌑") =>
     cards.push(
-      `<article class="item"><div class="item-symbol">${symbol}</div><h3>${title}</h3><p>${text}</p></article>`,
+      `<article class="item"><div class="item-symbol">${symbol}</div><h3>${safeText(title)}</h3><p>${safeText(text).replace(/\n/g, "<br>")}</p></article>`,
     );
-  if (story.hasNote)
-    item(
-      "The folded note",
-      "IF THE HALL RETURNS, WATCH THE GLASS.<br><br>WHEN IT LEADS, YOU LEAVE.<br><br>I know this handwriting.",
-    );
+  if (story.hasNote) item("The folded note", WRITINGS.note);
   if (story.hasFuse)
     item(
       "Ceramic fuse",
-      "A spare from the kitchen. The utility room has a fuse box.",
+      "A spare from the kitchen. The fuse box is in the utility room.",
       "▥",
     );
   if (story.power)
     item(
       "The lights are on",
-      "The fuse is installed. The house is awake.",
+      "The fuse is installed. The back door only releases when this part of the evening is complete.",
       "◉",
     );
   if (story.hasKey)
-    item(
-      "Bedroom key",
-      "A small brass key from the hall drawer. Its tag reads BEDROOM.",
-      "⚿",
-    );
-  if (story.hasDiary)
-    item(
-      "Mara’s bedside diary",
-      "“Kitchen radio for company. Run Mum’s bath. Wind the bedroom music box so she can sleep.<br><br>The nurse called at the hour I wrote on the bathroom glass. I kept doing the evening after that. I thought stopping would mean leaving her.<br><br>End it in reverse. Don’t let something else finish it for me.”",
-    );
-  if (story.hasLetter)
-    item(
-      "The hospital letter",
-      "PERSONAL EFFECTS — E. VALE<br>Collected by: Mara Vale.<br><br>They gave me her watch in a plastic bag. I left it beside her keys. I never opened the bag.",
-    );
-  if (story.heardCall)
-    item(
-      "Two calls",
-      "The first caller sounded like Mum.<br>The second sounded like me.<br><br>The sitting-room telephone is only a telephone. The three sounds belong to Mum’s evening: kitchen radio, bathroom tap, bedroom music box.",
-    );
+    item("Bedroom key", "The little brass tag reads BEDROOM.", "⚿");
+  if (story.hasDiary) item("Mara’s bedside diary", WRITINGS.diary);
+  if (story.hasLetter) item("The hospital letter", WRITINGS.letter);
   if (story.hasTimeClue)
     item(
       "Writing in the steam",
-      "71:30<br><br>A reflection of a time. Read it from the other end.",
+      "71:30\n\nThe writing faces the other side of the glass.",
       "◷",
     );
+  if (story.radioTuned)
+    item(
+      "The station",
+      "93.7 FM. An empty carrier, keeping the line open.",
+      "◌",
+    );
+  const names = {
+    watch: "Mum’s watch",
+    ring: "Wedding ring",
+    ribbon: "Blue ribbon",
+  };
+  for (const [id, name] of Object.entries(names)) {
+    if (story.keepsakes?.[id])
+      item(name, "Carried. The diary remembers where she left it.", "◈");
+    if (story.placedKeepsakes?.includes(id))
+      item(name, "Returned to its place.", "◦");
+  }
   if (story.stage === 3)
     item(
-      "The sounds",
-      "Kitchen radio → bathroom tap → bedroom music box.<br><br>Silence them in reverse. The sitting-room telephone is not part of this sequence.<br>Quiet: " +
-        story.echoIndex +
+      "Her hands remembered",
+      "The watch beside the kitchen radio. The ring before her bath. The ribbon around the music box.\n\nReturn them in that order.\nReturned: " +
+        story.ritualIndex +
         " / 3.",
       "◌",
     );
   if (story.stage === 4)
     item(
-      "The last instruction",
-      "It wants me to come closer.<br><br>The folded note says: when it leads, you leave.",
+      "End the evening",
+      "Silence the last sound first: bedroom music box, bathroom tap, kitchen radio.\n\nThe sitting-room telephone is not part of her routine.\nQuiet: " +
+        story.echoIndex +
+        " / 3.",
+      "◌",
+    );
+  if (story.stage >= 5)
+    item(
+      "The missing door",
+      "The back door is gone. There is no one in the mirror.\n\nThe glass has depth now.",
       "↶",
     );
+  if (story.inverted)
+    item(
+      "The other side",
+      story.farewellSaid
+        ? "The letter is on her bed. Leave the light when you are ready."
+        : "Her room is still waiting for you. There is one thing to leave there.",
+      "◐",
+    );
+  $("inventory").textContent = cards.length
+    ? "TAB · " + cards.length + " MEMORIES"
+    : "";
   $("items").innerHTML =
     cards.join("") ||
-    '<article class="item"><h3>Nothing yet.</h3><p>The sitting-room telephone is ringing. Start there.</p></article>';
+    '<article class="item"><h3>Nothing yet.</h3><p>The sitting-room telephone is ringing.</p></article>';
 }
+function announceChapter() {
+  $("chapter-mark").textContent = CHAPTER_NAMES[story.stage];
+  chapterUntil = elapsed + 6;
+}
+
 function reset() {
   story.reset();
   player.reset();
   mirror.reset();
   sound.reset();
+  horror.reset();
   elapsed = messageUntil = endingAt = endingStart = 0;
   pending = [];
   target = null;
-  arrival =
-    lateSpoken =
-    commandSpoken =
-    endingSpoken =
-    mirrorSnap =
-    hallAppearance =
-      false;
-  portal = null;
-  apparitionUntil = 0;
+  arrival = lateSpoken = endingSpoken = wakeTurned = mirrorSnap = false;
+  lastPortal = null;
+  portalCount = 0;
+  offeringTarget = null;
+  chapterUntil = 0;
   $("transition").style.opacity = "0";
+  $("chapter-mark").textContent = "";
   $("ending-credits").hidden = true;
-  echoSteps = 0;
-  echoStepNext = 0;
   hintUntil = 0;
   flashlightOn = false;
   flashlight.intensity = 0;
@@ -227,15 +258,22 @@ function showMenu() {
   active = false;
   player.clear();
   sound.pause();
-  $("pocket").hidden = $("inspect").hidden = $("credits").hidden = true;
+  for (const id of [
+    "pocket",
+    "inspect",
+    "credits",
+    "radio-inspect",
+    "offering",
+  ])
+    $(id).hidden = true;
   $("transition").style.opacity = "0";
   $("menu").hidden = false;
   $("hud").hidden = true;
   if (mode === "ending") {
-    $("chapter").textContent = "YOU KNOW WHICH SIDE YOU ARE ON NOW";
-    $("title").innerHTML = "THE OTHER<span>SIDE</span>";
+    $("chapter").textContent = "THEY KEPT YOUR PLACE";
+    $("title").innerHTML = "WELCOME<span>HOME</span>";
     $("description").textContent =
-      "Your mother’s light is still on. Someone has gone to sit with her. You cannot follow.";
+      "You left the light off. They knew you would come back.";
     $("start").textContent = "PLAY AGAIN";
     $("restart").hidden = true;
     $("ending-credits").hidden = false;
@@ -295,10 +333,71 @@ $("clock-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const event = story.setClock($("clock-hour").value, $("clock-minute").value);
   $("inspect").hidden = true;
-  enter().then(() => respond(event));
+  enter().then(() => {
+    respond(event);
+    drainStoryEvents();
+    updateInventory();
+  });
 });
 $("clock-back").onclick = () => {
   $("inspect").hidden = true;
+  enter();
+};
+function inspectPanel(id, nextMode) {
+  mode = nextMode;
+  active = false;
+  player.clear();
+  sound.pause();
+  $(id).hidden = false;
+  $("hud").hidden = true;
+  document.exitPointerLock();
+}
+function tuneRadio() {
+  inspectPanel("radio-inspect", "radio");
+  $("radio-frequency").value = Number(story.radioFrequency || 88.1).toFixed(1);
+  $("radio-frequency").focus();
+}
+$("radio-form").onsubmit = (e) => {
+  e.preventDefault();
+  const event = story.tuneRadio($("radio-frequency").value);
+  $("radio-inspect").hidden = true;
+  enter().then(() => {
+    respond(event);
+    drainStoryEvents();
+    updateInventory();
+  });
+};
+$("radio-back").onclick = () => {
+  $("radio-inspect").hidden = true;
+  enter();
+};
+function offerKeepsake(id) {
+  offeringTarget = id;
+  inspectPanel("offering", "offering");
+  const labels = {
+    "radio-altar": "Beside the radio",
+    "bath-dish": "The little dish by the bath",
+    "musicbox-base": "Beside the music box",
+  };
+  $("offering-title").textContent = labels[id] || "What belongs here?";
+  for (const button of $("offering-choices").querySelectorAll("button"))
+    button.disabled = !story.keepsakes?.[button.dataset.item];
+  $("offering-back").focus();
+}
+for (const button of $("offering-choices").querySelectorAll("button"))
+  button.onclick = () => {
+    const event = story.placeKeepsake(offeringTarget, button.dataset.item);
+    $("offering").hidden = true;
+    offeringTarget = null;
+    enter().then(() => {
+      respond(event);
+      drainStoryEvents();
+      updateInventory();
+    });
+  };
+$("offering-back").onclick = () => {
+  $("offering").hidden = true;
+  offeringTarget = null;
   enter();
 };
 let creditsReturnMode = "title";
@@ -388,6 +487,7 @@ $("bob").onchange = (e) => (player.bob = e.target.checked);
 $("volume").oninput = (e) => sound.setVolume(Number(e.target.value));
 $("voice").onchange = (e) => sound.setVoice(e.target.checked);
 $("sudden-scares").onchange = (e) => (scaresEnabled = e.target.checked);
+$("flashing-lights").onchange = (e) => (flashingLights = e.target.checked);
 $("quality").onchange = (e) => {
   quality = Number(e.target.value);
   renderer.shadowMap.enabled = quality >= 720;
@@ -413,14 +513,19 @@ document.addEventListener("pointerlockchange", () => {
       $("inspect").hidden =
       $("credits").hidden =
         true;
+    $("radio-inspect").hidden = $("offering").hidden = true;
     $("hud").hidden = false;
     player.clear();
     if (!arrival) {
       arrival = true;
+      announceChapter();
       queueVoice("arrival", 0.8);
       say("The sitting-room telephone is ringing.", 4);
     }
-  } else if (!["pocket", "clock", "credits"].includes(mode)) showMenu();
+  } else if (
+    !["pocket", "clock", "credits", "radio", "offering"].includes(mode)
+  )
+    showMenu();
 });
 document.addEventListener("pointerlockerror", () => {
   showMenu();
@@ -437,15 +542,18 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 document.addEventListener("mousemove", (e) => {
-  if (active && !endingAt && !portal) player.look(e.movementX, e.movementY);
+  if (active) player.look(e.movementX, e.movementY);
 });
 document.addEventListener("keydown", (e) => {
   if (e.code === "Tab" && (active || mode === "pocket")) {
     e.preventDefault();
-    if (!e.repeat && !endingAt && !portal) pocket();
+    if (!e.repeat && !endingAt) pocket();
     return;
   }
-  if (["pocket", "clock", "credits"].includes(mode) && e.code === "Escape") {
+  if (
+    ["pocket", "clock", "credits", "radio", "offering"].includes(mode) &&
+    e.code === "Escape"
+  ) {
     if (mode === "credits") mode = creditsReturnMode;
     showMenu();
     return;
@@ -455,7 +563,6 @@ document.addEventListener("keydown", (e) => {
     document.exitPointerLock();
     return;
   }
-  if (endingAt || portal) return;
   if (
     ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
       e.code,
@@ -463,6 +570,7 @@ document.addEventListener("keydown", (e) => {
   )
     e.preventDefault();
   player.keys.add(e.code);
+  if (endingAt && e.code !== "KeyF") return;
   if (e.code === "KeyF" && !e.repeat) {
     flashlightOn = !flashlightOn;
     flashlight.castShadow = flashlightOn && quality >= 720;
@@ -529,27 +637,24 @@ function interact(id) {
       return;
     }
   }
-  if (
-    id === "door" &&
-    story.doorOpen &&
-    house.backDoor.containsThreshold(player.x, player.z)
-  ) {
-    say("Take a step away from the doorway first.", 2);
-    return;
-  }
   const event = story.interact(id);
   if (event) respond(event);
+  drainStoryEvents();
   updateInventory();
 }
+function drainStoryEvents() {
+  for (const event of story.drainEvents()) respond(event);
+}
 function respond(event) {
+  if (!event) return;
   sound.effect(event);
   const lines = {
-    note: "“If the hall returns, watch the glass. When it leads, you leave.”",
+    note: WRITINGS.note,
     "arrival-recording":
       "Mum asks you to stay until she is asleep. There is a spare fuse by the kitchen sink.",
     "telephone-repeat": "Only a dead line now. You remember what she asked.",
     "telephone-dead":
-      "The telephone is dead. The kitchen radio is still playing; that is the sound in the diary.",
+      "Only a dead line. The telephone was never one of her evening sounds.",
     "radio-no-power":
       "The switch clicks, but the tuning scale stays dark. The kitchen has no power.",
     "radio-on": "The kitchen radio catches the valley weather service.",
@@ -572,16 +677,16 @@ function respond(event) {
     key: "A small brass key. The tag reads BEDROOM.",
     "bedroom-locked": "Locked. The key is small; it must be nearby.",
     diary:
-      "“Kitchen radio for company. Mum’s bath. The bedroom music box. I kept doing the evening after the nurse called. End it in reverse.”",
+      "Her station: 93.7 FM. Her watch, her ring, the blue ribbon. The diary remembers where she left them, and in what order.",
     "diary-repeat":
-      "The diary remembers: kitchen radio, bathroom tap, bedroom music box. End it in reverse.",
+      "Her station is 93.7 FM. Watch beside the radio, ring by the bath, ribbon beside the music box. The evening ends in reverse.",
     "bath-clouded":
       "The glass is cold and dry. There is nothing to wipe away yet.",
     "time-clue": "71:30. A time, written backward in the steam.",
     "clock-set": "You leave the hands where you put them. The house waits.",
     "clock-solved":
-      "A latch clicks inside the clock. A telephone starts ringing.",
-    call: "The voice sounds like yours. End Mum’s evening in reverse: bedroom music box, bathroom tap, kitchen radio.",
+      "The hands agree. A faint carrier comes from the kitchen radio.",
+    call: "The caller sounds like you. The keepsakes are still here. The diary remembers their places.",
     musicbox: "A few notes turn in the little wooden box.",
     tap: "Water runs into an empty basin.",
     photo:
@@ -593,18 +698,67 @@ function respond(event) {
     "already-quiet": "It is already quiet.",
     locked: "The front door will not move.",
     "front-locked":
-      "The front door will not move. The back door is down the far hall.",
+      "The front door will not move. Something is still unfinished.",
     "backdoor-open": "A little cold air. The way out.",
     "backdoor-close": "The latch catches.",
     "door-wait":
       "The glass is giving you an instruction. Remember the folded note.",
     unlocked: "The latch gives way. Someone has opened it from the other side.",
-    released: "You turn away. Behind you, a latch releases.",
+    released: "A latch releases.",
+    "backdoor-locked":
+      "The handle refuses. This part of the evening is not finished.",
+    "backdoor-unlocked": "A heavy latch releases at the back of the house.",
+    "backdoor-gone": "Wallpaper. It has always been wallpaper.",
+    "radio-await-clock": "A voice keeps circling the same unfinished hour.",
+    "radio-static": "Only static. The bedside diary kept the station number.",
+    "radio-tuned":
+      "93.7. The static stops. Somewhere else, a telephone begins to ring.",
+    "keepsake-watch": "Her watch. Stopped at the hour the house remembers.",
+    "keepsake-ring": "It is warm. The little dish by the bath is empty.",
+    "keepsake-ribbon": "The blue ribbon she wound around the music box.",
+    "keepsake-missing": "You haven't found what belongs here yet.",
+    "keepsake-wrong": "That was not where she left it.",
+    "ritual-order": "The kitchen first. Then the water. The bedroom last.",
+    "keepsake-placed": "It settles into an old mark in the dust.",
+    "ritual-complete":
+      "Everything where her hands remembered it. Something in the walls exhales.",
+    "mirror-empty":
+      "There is no one on the other side. The glass is deeper than the frame.",
+    "mirror-crossed":
+      "The air on this side is warm. Nothing has been touched for years.",
+    farewell:
+      "You leave the letter on her bed. There is nothing left to collect.",
+    "farewell-repeat": "The letter is where it belongs.",
+    "bed-waiting": "The bed is waiting. You cannot name what is in it.",
+    "lamp-stay": "She asked you to leave the light on.",
+    "lamp-already-off": "Her light is off.",
+    "ritual-wrong": "Not there. Not yet. The diary remembers her evening.",
+    "keepsake-not-held": "You have not found that keepsake yet.",
+    "keepsake-already-placed": "It is already in its place.",
+    "ritual-inactive": "The little mark has been here a long time.",
+    "mirror-enter":
+      "Nothing returns your gaze. You can walk through the glass.",
+    "mirror-inverted": "The glass is a wall on this side.",
+    "front-open": "The front door is open.",
+    "invalid-time": "Leave an hour from 1 to 12, and minutes from 0 to 59.",
+    "lamp-not-yet": "You have not said goodbye.",
+    "lamp-off": "The room is dark. For once, nothing asks you to fix it.",
+    "front-unlocked":
+      "At the front of the house, a door opens against the daylight.",
+    "ending-open": "Cold daylight. A place outside.",
   };
   if (event === "note") house.note.visible = false;
   if (event === "arrival-recording" || event === "call")
     story.phoneLiftUntil = elapsed + 13;
   if (event === "radio-on" || event === "radio-off") sound.effect("switch");
+  if (event === "radio-tune") {
+    tuneRadio();
+    return;
+  }
+  if (event === "ritual-choice") {
+    offerKeepsake(target.id);
+    return;
+  }
   if (event === "clock") {
     clock();
     return;
@@ -625,6 +779,15 @@ function respond(event) {
     "mirror-command": "command",
     unlocked: "unlocked",
     released: "released",
+    "keepsake-watch": "watch",
+    "keepsake-ring": "ring",
+    "keepsake-ribbon": "ribbon",
+    "ritual-complete": "ritual",
+    "mirror-crossed": "inverted",
+    farewell: "farewell",
+    "front-unlocked": "unlocked",
+    "house-quiet": "released",
+    "mirror-enter": "command",
   };
   if (voiced[event]) queueVoice(voiced[event], 0.35);
   if (event === "room-open" || event === "room-close")
@@ -646,14 +809,14 @@ function finish() {
 }
 function beginEnding() {
   endingStart = elapsed;
-  endingAt = elapsed + 9;
+  endingAt = elapsed + 20;
+  wakeTurned = false;
   pending = [];
-  player.clear();
-  house.endingGlass.visible = true;
-  story.doors.bedroom = true;
-  mirror.replacement.body.visible = false;
-  say("Someone leaves. You don’t.", 6);
-  sound.effect("glass");
+  sound.stopVoice();
+  mirror.body.visible = false;
+  house.wake?.begin?.(elapsed, player);
+  sound.effect("wake-entered", { x: 0, y: 1.4, z: 11 });
+  say("They kept a place for you.", 5);
 }
 function updateFlashlight(dt) {
   const direction = new T.Vector3();
@@ -671,167 +834,79 @@ function updateFlashlight(dt) {
     dt,
   );
 }
-// Each sudden encounter is authored once per run; none advances a puzzle.
-function updateApparition() {
-  if (apparitionUntil) {
-    if (elapsed >= apparitionUntil) {
-      apparitionUntil = 0;
-      mirror.replacement.body.visible = false;
-      echoSteps = 2;
-      echoStepNext = elapsed + 0.7;
-    }
-    return;
-  }
-  const inEntry = Math.abs(player.x) < 0.46 && player.z > 2.0 && player.z < 6.3;
-  const inFarHall = Math.abs(player.z) < 0.42;
-  let appearance = null;
-  if (inEntry && Math.cos(player.yaw) > 0.82)
-    appearance = { x: 0, z: player.z - 1.55 };
-  else if (
-    inFarHall &&
-    player.x > 1.2 &&
-    player.x < 7.25 &&
-    -Math.sin(player.yaw) > 0.82
-  )
-    appearance = { x: player.x + 1.55, z: 0 };
-  else if (
-    inFarHall &&
-    player.x > 2 &&
-    player.x < 8.4 &&
-    Math.sin(player.yaw) > 0.82
-  )
-    appearance = { x: player.x - 1.55, z: 0 };
-  // Keep the beat available if Mara leaves during the call, then present it at
-  // the next clear sightline. The completed silence puzzle stays quiet.
-  const scarePass =
-    story.stage === 2 || (story.stage === 3 && story.echoIndex < 3);
-  const visibleEncounter =
-    appearance &&
-    camera
-      .getWorldDirection(new T.Vector3())
-      .dot(
-        new T.Vector3(appearance.x, 1.62, appearance.z)
-          .sub(camera.position)
-          .normalize(),
-      ) > 0.94;
-  if (
-    scaresEnabled &&
-    !hallAppearance &&
-    scarePass &&
-    story.heardCall &&
-    !sound.busy &&
-    !pending.length &&
-    visibleEncounter
-  ) {
-    hallAppearance = true;
-    apparitionUntil = elapsed + 0.48;
-    const figure = mirror.replacement;
-    figure.body.position.set(appearance.x, 0, appearance.z);
-    figure.body.rotation.y = Math.atan2(
-      -(player.x - appearance.x),
-      -(player.z - appearance.z),
-    );
-    figure.setUnease(2);
-    figure.animate(elapsed, 0, true);
-    figure.body.visible = true;
-    sound.effect("hall-appearance", {
-      x: appearance.x,
-      y: 1.4,
-      z: appearance.z,
-    });
-  }
+function renderView() {
+  house.portal?.render(renderer, camera, story);
+  picture.render(scene, camera);
 }
-function beginPortal() {
-  portal = { started: elapsed, returned: false };
-  player.clear();
-  target = null;
-  $("prompt").textContent = "";
+function crossRear() {
+  const from = player.pose();
+  const event = story.crossBackDoor();
+  if (!event) return;
+  Object.assign(player, backDoorPose(from));
+  player.syncCamera();
+  mirror.clearHistory();
+  mirror.figure.resetMotion?.({ ...player.pose(), time: elapsed });
+  house.doorPivot.rotation.y = 0;
+  house.doorCollider.disabled = false;
+  house.setStage(story.stage);
+  lastPortal = { kind: "rear", time: elapsed, from, to: player.pose() };
+  portalCount++;
+  sound.effect("loop-latch", { x: SPAWN.x, y: 1, z: SPAWN.z });
+  announceChapter();
+  hintUntil = elapsed + 5;
+  if (event === "pass-1") queueVoice("repeat", 1.0);
+  if (event === "pass-5") queueVoice("empty", 1.0);
+  updateInventory();
 }
-function updatePortal() {
-  const t = elapsed - portal.started;
-  $("transition").style.opacity = String(
-    t < 0.24 ? Math.min(1, t / 0.2) : Math.max(0, 1 - (t - 0.24) / 0.32),
-  );
-  if (t >= 0.24 && !portal.returned) {
-    portal.returned = true;
-    const event = story.crossBackDoor();
-    sound.effect("loop-latch", { x: EXIT.x, y: 1, z: EXIT.z });
-    if (event === "ending") {
-      beginEnding();
-    } else {
-      player.x = SPAWN.x;
-      player.z = SPAWN.z;
-      player.yaw = Math.atan2(
-        Math.sin(player.yaw + PORTAL.yawDelta),
-        Math.cos(player.yaw + PORTAL.yawDelta),
-      );
-      player.bobOffset = 0;
-      player.clear();
-      player.syncCamera();
-      mirror.clearHistory();
-      house.doorPivot.rotation.y = 0;
-      house.doorCollider.disabled = false;
-      house.setStage(story.stage);
-      hintUntil = elapsed + 6;
-      if (event === "incomplete-pass")
-        say("The front entrance. Again. " + story.hint(), 6);
-      if (event === "pass-1") {
-        say(
-          "The back door opened onto the front hall. The photograph is crooked again.",
-          6,
-        );
-        queueVoice("repeat", 1.2);
-        sound.effect("knock");
-      }
-      if (event === "pass-2")
-        say(
-          "The same entrance. There is writing on the bathroom glass now.",
-          5,
-        );
-      if (event === "pass-3") {
-        queueVoice("inverted", 1.2);
-        say("The other side of the same house.", 4);
-      }
-      if (event === "pass-4")
-        say("There is only one instruction left to disobey.", 5);
-      updateInventory();
-    }
-  }
-  if (t >= 0.58) {
-    portal = null;
-    $("transition").style.opacity = "0";
-  }
+function crossGlass() {
+  const from = player.pose();
+  const event = story.crossMirror();
+  if (!event) return;
+  Object.assign(player, mirrorPose(from));
+  player.syncCamera();
+  mirror.clearHistory();
+  mirror.figure.resetMotion?.({ ...player.pose(), time: elapsed });
+  house.setStage(story.stage);
+  lastPortal = { kind: "mirror", time: elapsed, from, to: player.pose() };
+  portalCount++;
+  sound.effect("mirror-crossed", { x: MIRROR.x, y: 1.5, z: 0 });
+  respond(event);
+  drainStoryEvents();
+  updateInventory();
+  announceChapter();
 }
 
 function update(dt) {
   if (!active) return;
   elapsed += dt;
-  if (portal) {
-    updatePortal();
-    house.animate(elapsed, dt, story, player);
-    sound.update(story, player);
-    updateFlashlight(dt);
-    return;
-  }
   if (endingAt) {
     const t = elapsed - endingStart;
-    const angle = Math.atan2(Math.sin(-player.yaw), Math.cos(-player.yaw));
-    player.yaw += angle * (1 - Math.exp(-dt * 2.2));
-    player.pitch = T.MathUtils.damp(player.pitch, 0, 3, dt);
-    player.syncCamera();
-    mirror.finale(t);
+    player.update(dt, house.colliders);
     house.animate(elapsed, dt, story, player);
     sound.update(story, player);
-    if (t > 2.6 && !endingSpoken) {
+    if (t > 7 && !wakeTurned) {
+      wakeTurned = true;
+      sound.effect("wake-turn", { x: 1.62, y: 1.2, z: 9.65 });
+    }
+    if (t > 15 && !endingSpoken) {
       endingSpoken = true;
       sound.voice("ending");
     }
-    if (t > 4) $("veil").classList.add("closing");
+    if (t > 17) $("veil").classList.add("closing");
     updateFlashlight(dt);
     if (elapsed >= endingAt) finish();
     return;
   }
   player.update(dt, house.colliders);
+  if (story.doorOpen && atBackThreshold(player.x, player.z)) crossRear();
+  if (story.mirrorReady && atMirrorThreshold(player.x, player.z)) crossGlass();
+  if (story.frontOpen && atFrontThreshold(player.x, player.z)) {
+    const event = story.enterWake();
+    if (event) {
+      beginEnding();
+      return;
+    }
+  }
   const room = roomAt(player.x, player.z),
     visit = story.visit(room);
   if (visit && story.stage === 0 && room === "bathroom") sound.effect("drip");
@@ -858,27 +933,24 @@ function update(dt) {
       say("You left. It stayed.", 4);
       queueVoice("returned", 2.8);
     }
-    if (event === "released") respond(event);
+    if (!["held", "returned"].includes(event)) respond(event);
   }
   if (story.stage === 1 && story.secondSeen > 0.8 && !lateSpoken) {
     lateSpoken = true;
     queueVoice("late", 0.3);
   }
-  if (story.stage === 4 && looking && !commandSpoken) {
-    commandSpoken = true;
-    queueVoice("command", 0.7);
-  }
   mirror.update(elapsed, player, story, looking);
   house.animate(elapsed, dt, story, player);
   for (const event of house.dressing?.drainEvents() || [])
     sound.effect(event.id, event);
-  updateApparition();
+  const light = horror.update(elapsed, dt, story, player, camera, {
+    enabled: scaresEnabled,
+    flashes: flashingLights,
+    dialogueBusy: sound.busy || pending.length > 0,
+  });
+  house.applyHorrorLighting?.(light);
+  for (const event of horror.drainEvents()) sound.effect(event.id, event);
   updateFlashlight(dt);
-  if (story.stage === 2 && echoSteps > 0 && elapsed >= echoStepNext) {
-    sound.effect("behind");
-    echoSteps--;
-    echoStepNext = elapsed + 0.65;
-  }
   sound.step(
     player.distance,
     player.speed,
@@ -909,27 +981,32 @@ function update(dt) {
         : "INSPECT FUSE BOX";
   if (target?.id === "radio")
     label =
-      story.stage >= 3
+      story.stage >= 4
         ? story.echoIndex >= 3
           ? "THE KITCHEN RADIO IS OFF"
           : "SWITCH OFF KITCHEN RADIO"
         : "TURN KITCHEN RADIO " + (story.radioOn ? "OFF" : "ON");
   if (target?.id === "telephone")
     label =
-      story.stage === 3 ? "CHECK DEAD TELEPHONE" : "LIFT TELEPHONE RECEIVER";
-  if (target?.id === "tap" && story.stage >= 3)
+      story.stage >= 3 ? "CHECK DEAD TELEPHONE" : "LIFT TELEPHONE RECEIVER";
+  if (target?.id === "tap" && story.stage >= 4)
     label = story.echoIndex >= 2 ? "THE TAP IS OFF" : "TURN OFF TAP";
-  if (target?.id === "musicbox" && story.stage >= 3)
+  if (target?.id === "musicbox" && story.stage >= 4)
     label =
       story.echoIndex >= 1 ? "THE MUSIC BOX IS CLOSED" : "CLOSE MUSIC BOX";
+  if (target?.id === "radio" && story.stage === 2)
+    label = story.clockSolved ? "TUNE KITCHEN RADIO" : "CHECK KITCHEN RADIO";
   if (target?.id === "door")
-    label = story.doorOpen ? "CLOSE BACK DOOR" : "OPEN BACK DOOR";
+    label = story.doorOpen ? "THE BACK DOOR IS OPEN" : "CHECK BACK DOOR";
+  if (target?.id === "front-door")
+    label = story.frontReleased ? "OPEN FRONT DOOR" : "TRY FRONT DOOR";
+  if (target?.id === "mirror" && story.mirrorReady) label = "THE GLASS IS OPEN";
   $("prompt").textContent = label ? "[ E ] " + label : "";
   $("prompt").classList.toggle("mirror-prompt", target?.id === "mirror");
   $("cross").classList.toggle("active", !!target);
   $("location").textContent =
     ROOMS.find((r) => r.id === room)?.name ||
-    (story.stage >= 3 ? "THE OTHER HALL" : "THE HALL");
+    (story.inverted ? "THE OTHER HALL" : "THE HALL");
   $("hint").textContent =
     elapsed < hintUntil
       ? story.hint()
@@ -937,7 +1014,7 @@ function update(dt) {
         ? "F · LIGHT     TAB · REMEMBER     H · A THOUGHT"
         : "";
   if (elapsed > messageUntil) $("message").textContent = "";
-  if (story.doorOpen && atBackThreshold(player.x, player.z)) beginPortal();
+  if (elapsed > chapterUntil) $("chapter-mark").textContent = "";
 }
 let previous = performance.now(),
   firstFrame = true;
@@ -948,11 +1025,11 @@ function tick(now) {
   if (!testMode) {
     update(dt);
     if (active || firstFrame || renderRequested) {
-      picture.render(scene, camera);
+      renderView();
       firstFrame = renderRequested = false;
     }
   } else if (firstFrame) {
-    picture.render(scene, camera);
+    renderView();
     firstFrame = false;
   }
 }
@@ -985,12 +1062,15 @@ if (testMode) {
     },
     doorAngle: house.doorPivot.rotation.y,
     flashlight: flashlightOn,
-    portal: portal ? { ...portal } : null,
+    portal: null,
+    lastPortal,
+    portalCount,
+    input: { keys: [...player.keys], vx: player.vx, vz: player.vz },
     scares: {
       mirrorSnap,
-      hallAppearance,
-      visible: !!apparitionUntil,
+      ...horror.snapshot(),
       enabled: scaresEnabled,
+      flashes: flashingLights,
     },
     quality,
     dressing: house.dressing?.snapshot(),
@@ -1001,7 +1081,7 @@ if (testMode) {
   window.__mirror = {
     snapshot,
     render() {
-      picture.render(scene, camera);
+      renderView();
     },
     advance(seconds) {
       for (let t = 0; t < seconds; t += 1 / 60)

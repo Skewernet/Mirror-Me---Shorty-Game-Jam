@@ -1,6 +1,6 @@
 import * as T from "three";
 import { Reflector } from "../vendor/Reflector.js";
-import { MIRROR, SPAWN, EXIT, CEILING_HEIGHT } from "./layout.mjs";
+import { MIRROR, SPAWN, CEILING_HEIGHT } from "./layout.mjs";
 import { createFigure } from "./figure.mjs";
 
 // The optical image and Mara use the same room coordinates. The body is visible
@@ -15,6 +15,30 @@ export class Mirror {
       clipBias: 0.002,
       multisample: 0,
     });
+    this.uniforms = {
+      dread: { value: 0 },
+      glassTime: { value: 0 },
+      emptyGlass: { value: 0 },
+      otherSide: { value: 0 },
+    };
+    Object.assign(this.surface.material.uniforms, this.uniforms);
+    this.surface.material.fragmentShader = this.surface.material.fragmentShader
+      .replace(
+        "uniform vec3 color;",
+        "uniform vec3 color; uniform float dread, glassTime, emptyGlass, otherSide;",
+      )
+      .replace(
+        "vec4 base = texture2DProj( tDiffuse, vUv );",
+        `
+        vec4 warped = vUv;
+        vec2 screen = warped.xy / warped.w;
+        float pulse = sin(screen.y * 31. + glassTime * .75) * .0013 * dread;
+        warped.x += (pulse + emptyGlass * sin(screen.y * 19. - glassTime * .55) * .003) * warped.w;
+        vec4 base = texture2DProj(tDiffuse, warped);
+        base.rgb *= mix(vec3(1.),vec3(.91,.94,.92),dread);
+        base.rgb = mix(base.rgb, vec3(.012,.017,.014), otherSide * .96);
+      `,
+      );
     const centerY = CEILING_HEIGHT / 2 - 0.03;
     this.surface.position.set(MIRROR.x, centerY, MIRROR.z);
     this.surface.rotation.y = MIRROR.rotation;
@@ -121,9 +145,6 @@ export class Mirror {
     this.body = this.figure.body;
     this.head = this.figure.head;
     scene.add(this.body);
-    this.replacement = createFigure(house, 0);
-    this.replacement.body.visible = false;
-    scene.add(this.replacement.body);
     this.occlusionRay = new T.Raycaster();
     this.gazeDirection = new T.Vector3();
     this.gazePoint = new T.Vector3();
@@ -154,12 +175,18 @@ export class Mirror {
     this.body.visible = true;
     this.body.position.set(SPAWN.x, 0, SPAWN.z);
     this.figure.setUnease(0);
-    this.replacement.setUnease(0);
+    this.figure.setHorror?.(0, 0);
+    this.figure.resetMotion?.({
+      distance: 0,
+      x: SPAWN.x,
+      z: SPAWN.z,
+      yaw: SPAWN.yaw,
+      time: 0,
+    });
     this.body.rotation.set(0, 0, 0);
     this.head.rotation.set(0, 0, 0);
-    this.replacement.body.visible = false;
-    this.replacement.head.rotation.set(0, 0, 0);
     this.surface.visible = true;
+    for (const uniform of Object.values(this.uniforms)) uniform.value = 0;
   }
   looking(player, camera) {
     const dx = player.x - MIRROR.x,
@@ -207,6 +234,9 @@ export class Mirror {
         x: MIRROR.x + this.normal.x * 0.42,
         z: MIRROR.z + this.normal.z * 0.42,
         yaw: MIRROR.rotation,
+        speed: 0,
+        vx: 0,
+        vz: 0,
       };
     let shown = pose;
     if (story.frozen) shown = this.heldPose;
@@ -236,22 +266,48 @@ export class Mirror {
         z: T.MathUtils.lerp(before.z, after.z, t),
         yaw: before.yaw + yawDelta * t,
         pitch: T.MathUtils.lerp(before.pitch, after.pitch, t),
+        distance: T.MathUtils.lerp(
+          before.distance ?? 0,
+          after.distance ?? 0,
+          t,
+        ),
+        speed: T.MathUtils.lerp(before.speed ?? 0, after.speed ?? 0, t),
+        vx: T.MathUtils.lerp(before.vx ?? 0, after.vx ?? 0, t),
+        vz: T.MathUtils.lerp(before.vz ?? 0, after.vz ?? 0, t),
       };
     }
-    if (story.stage === 4)
-      shown = {
-        x: MIRROR.x + this.normal.x * 0.42,
-        z: MIRROR.z + this.normal.z * 0.42,
-        yaw: MIRROR.rotation,
-        pitch: 0,
-      };
-    const held = story.frozen || story.stage === 4;
-    this.body.visible = story.stage !== 3;
+    const held = story.frozen;
+    this.body.visible = story.stage < 5;
     this.body.position.set(shown.x, 0, shown.z);
-    this.body.rotation.y = shown.yaw;
-    this.figure.setUnease(story.stage >= 2 ? 2 : story.frozen ? 1 : 0);
-    this.replacement.setUnease(story.stage >= 2 ? 2 : 0);
-    this.figure.animate(time, player.speed, held);
+    // The last reflection turns its body away while its twisted neck keeps looking back.
+    this.body.rotation.y = shown.yaw + (story.stage === 4 ? Math.PI : 0);
+    const dread =
+      story.stage === 0
+        ? 0
+        : story.stage === 1
+          ? held
+            ? 0.16
+            : 0.04
+          : story.stage === 2
+            ? 0.42
+            : story.stage === 3
+              ? 0.74
+              : 0.98;
+    this.figure.setUnease(story.stage >= 2 ? 2 : held ? 1 : 0);
+    this.figure.animate(time, shown.speed ?? player.speed, held, {
+      ...shown,
+      time,
+    });
+    this.figure.setHorror?.(dread, time, { held, stage: story.stage });
+    if (story.stage === 4)
+      this.figure.setCreaturePose?.(time, 0.5, {
+        mode: "twisted",
+        intensity: 0.9,
+      });
+    this.uniforms.dread.value = story.stage < 5 ? dread : 0;
+    this.uniforms.glassTime.value = time;
+    this.uniforms.emptyGlass.value = story.mirrorReady ? 1 : 0;
+    this.uniforms.otherSide.value = story.inverted ? 1 : 0;
     this.head.rotation.set(shown.pitch, 0, 0);
     if (held) {
       const viewer = new T.Vector3(player.x, 0, player.z),
@@ -283,28 +339,13 @@ export class Mirror {
       this.head.rotation.x -= amount * 0.22;
       this.head.rotation.z -= amount * 0.31;
     }
-    if (story.stage === 4 && this.figure.arms[0])
-      this.figure.arms[0].rotation.x -= 0.65;
+    if (story.stage === 3 && this.figure.arms[0])
+      this.figure.arms[0].rotation.x -= 0.6;
     const planeDistance =
       (player.x - MIRROR.x) * this.normal.x +
       (player.z - MIRROR.z) * this.normal.z;
     this.surface.visible =
       planeDistance > 0.025 &&
       Math.hypot(player.x - MIRROR.x, player.z - MIRROR.z) < 24;
-  }
-  finale(time) {
-    this.body.visible = false;
-    this.replacement.body.visible = true;
-    const walkingTime = Math.max(0, time - 1.4),
-      travel = Math.min(1.8, walkingTime * 0.52);
-    this.replacement.body.position.set(EXIT.x, 0, 0.1 - travel);
-    this.replacement.body.rotation.y = 0;
-    this.replacement.setUnease(0);
-    this.replacement.animate(
-      time,
-      walkingTime > 0 && travel < 1.8 ? 1.1 : 0,
-      false,
-    );
-    this.replacement.head.rotation.set(0, walkingTime > 0 ? 0 : -0.48, 0);
   }
 }

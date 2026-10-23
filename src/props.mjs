@@ -1,6 +1,8 @@
 import * as T from "three";
 import { writingTexture, rainTexture, radioGrille } from "./surfaces.mjs";
 import { TARGETS } from "./layout.mjs";
+import { addPuzzleProps } from "./puzzle-props.mjs";
+import { WRITINGS } from "./story.mjs";
 
 // Furnishings use measured human dimensions and the same coordinates as story
 // targeting/audio. The tight floor plan is furnished deliberately, not scaled
@@ -258,7 +260,7 @@ export function furnish(b, m) {
     TARGETS.letter.x,
     TARGETS.letter.y,
     TARGETS.letter.z,
-    paper(["ST. ANNE'S", "PERSONAL EFFECTS", "E. VALE", "MARA VALE"], 28),
+    paper(writingExcerpt(WRITINGS.letter.split("\n\n")[0], 28, 7), 27),
     false,
     lounge,
   );
@@ -508,7 +510,7 @@ export function furnish(b, m) {
   });
   slab(0.31, 0.225, 0.014, -0.105, 0, 0.128, grille, radio, 0.012);
   const tuningMaterial = new T.MeshStandardMaterial({
-    map: writingTexture(["AM · FM", "550  800  1200", "VALLEY SERVICE"], {
+    map: writingTexture(["FM · VALLEY SERVICE", "88    94    108", "88.0"], {
       background: "#30382e",
       color: "#c9b990",
       font: 34,
@@ -795,7 +797,7 @@ export function furnish(b, m) {
   window(3.69, 1.55, 2.96, -Math.PI / 2, bathroom, 0.9, 0.82);
 
   // BEDROOM: single bed and fitted wardrobe, with room for Mara to approach
-  // either bedside target and for the replacement to stop at the bed's foot.
+  // either bedside target and the final farewell at the foot of the bed.
   const bedroom = roomGroups.bedroom;
   const bed = group(7.4, 0, -3.28, 0, bedroom);
   slab(1.5, 0.24, 2.08, 0, 0.22, 0, m.wood, bed, 0.035);
@@ -828,7 +830,7 @@ export function furnish(b, m) {
   collision(1.57, 0.8, 2.12, 0, 0.4, 0, bed);
   contact(1.9, 2.4, 7.4, -3.28, 0.65, bedroom);
   const nightstand = table(8.58, -3.45, 0.5, 0.5, 0.69, bedroom);
-  lamp(8.64, 0.72, -3.65, bedroom, 0.73);
+  const bedsideLamp = lamp(8.64, 0.72, -3.65, bedroom, 0.73);
   const diary = box(
     0.28,
     0.024,
@@ -836,7 +838,7 @@ export function furnish(b, m) {
     TARGETS.diary.x,
     TARGETS.diary.y,
     TARGETS.diary.z,
-    paper(["MARA", "AFTER THE WARD", "EVENINGS"], 31),
+    paper(writingExcerpt(WRITINGS.diary, 30, 7), 26),
     false,
     bedroom,
     0.008,
@@ -986,9 +988,12 @@ export function furnish(b, m) {
   }
   collision(1.18, 1.96, 0.36, 0, 0.98, 0, shelf);
 
-  let lastStage = 0,
+  const puzzle = addPuzzleProps(b, m, roomGroups, { diary, bedsideLamp });
+  let shownFrequency = 88,
+    lastStage = 0,
     lastTime = 0;
   function reset() {
+    puzzle.reset();
     receiver.position.set(0, 0, 0);
     receiver.rotation.set(0, 0, 0);
     radioKnob.rotation.z = 0;
@@ -1025,11 +1030,11 @@ export function furnish(b, m) {
     }
     for (const a of animated)
       a.mesh.rotation.y = a.base + Math.sin(time * 0.23 + a.side) * 0.008;
-    const inverted = state.stage >= 3;
+    const inverted = state.inverted || state.stage >= 6;
     invertedChair.position.y = inverted ? 2.08 : 0;
     invertedChair.rotation.z = inverted ? Math.PI : 0;
     invertedChair.userData.collider.disabled = inverted;
-    stream.visible = !(state.stage >= 3 && state.echoIndex >= 2);
+    stream.visible = !(state.stage >= 4 && state.echoIndex >= 2);
     if (state.stage >= 2) {
       for (let i = 0; i < qa.count; i++) {
         const x = qa.getX(i),
@@ -1037,7 +1042,9 @@ export function furnish(b, m) {
           shape = Math.exp(-((x / 0.23) ** 2 + ((y + 0.1) / 0.68) ** 2));
         qa.setZ(
           i,
-          quiltBase[i * 3 + 2] + shape * (0.09 + Math.sin(time * 1.3) * 0.005),
+          quiltBase[i * 3 + 2] +
+            shape *
+              (state.farewellSaid ? 0 : 0.09 + Math.sin(time * 1.3) * 0.005),
         );
       }
       qa.needsUpdate = true;
@@ -1046,10 +1053,20 @@ export function furnish(b, m) {
     const on =
       state.power &&
       state.radioOn &&
-      !(state.stage >= 3 && state.echoIndex >= 3);
+      !(state.stage >= 4 && state.echoIndex >= 3);
     tuningMaterial.emissiveIntensity = on ? 0.6 : 0;
+    const frequency = state.radioFrequency ?? 88;
+    if (shownFrequency !== frequency) {
+      const previous = tuningMaterial.map;
+      tuningMaterial.map = writingTexture(
+        ["FM · VALLEY SERVICE", "88    94    108", frequency.toFixed(1)],
+        { background: "#30382e", color: "#c9b990", font: 34 },
+      );
+      previous.dispose();
+      shownFrequency = frequency;
+    }
     kitchenDiffuserMaterial.color.set(state.power ? 0xe6e2c8 : 0x393e32);
-    radioKnob.rotation.z = on ? -0.35 : 0.35;
+    radioKnob.rotation.z = on ? ((frequency - 88) / 20 - 0.5) * 1.7 : 0.35;
     const offHook = time < state.phoneLiftUntil;
     receiver.position.set(
       offHook ? -0.05 : 0,
@@ -1058,15 +1075,17 @@ export function furnish(b, m) {
     );
     receiver.rotation.z = offHook ? -0.18 : 0;
     family.face.material.map = m.photos[state.stage >= 2 ? 1 : 0];
-    tvScreen.material.map = state.stage >= 3 ? m.photos[1] : screenMap;
+    tvScreen.material.map = state.stage >= 4 ? m.photos[1] : screenMap;
     clue.visible = state.stage >= 2;
     fuseGroup.visible = !state.hasFuse && !state.power;
     fuseGlow.material = state.power ? m.greenBulb : m.redBulb;
-    const musicClosed = state.stage >= 3 && state.echoIndex >= 1;
+    const musicClosed = state.stage >= 4 && state.echoIndex >= 1;
     musicFigurine.visible = !musicClosed;
     musicLid.rotation.z = musicClosed ? 0 : 0.58 + Math.sin(time * 0.7) * 0.008;
     water.material.opacity = 0.5 + Math.sin(time * 0.4) * 0.018;
     bathCurtain.rotation.y = Math.PI / 2 + Math.sin(time * 0.35) * 0.009;
+    wardrobeDoor.rotation.y = state.stage >= 3 ? 0.38 : 0.27;
+    puzzle.animate(time, state, player);
   }
   return {
     roomGroups,
@@ -1093,5 +1112,23 @@ export function furnish(b, m) {
     bathCurtain,
     wardrobeDoor,
     bed,
+    puzzle,
+    bedsideLamp,
   };
+}
+
+function writingExcerpt(text, width = 30, limit = 7) {
+  const words = text.split(/\s+/),
+    lines = [];
+  let line = "";
+  for (const word of words) {
+    if (line.length + word.length + 1 > width) {
+      lines.push(line);
+      line = "";
+    }
+    line += (line ? " " : "") + word;
+    if (lines.length >= limit) return lines;
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, limit);
 }

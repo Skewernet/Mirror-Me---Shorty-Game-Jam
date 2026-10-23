@@ -1,4 +1,4 @@
-import { TARGETS, HALL_CLOCK } from "./layout.mjs";
+import { TARGETS, HALL_CLOCK, EXIT, FRONT_DOOR, MIRROR } from "./layout.mjs";
 import { VOICES } from "./story.mjs";
 export class Sound {
   constructor(onSubtitle) {
@@ -20,6 +20,7 @@ export class Sound {
     this.ringNext = 0;
     this.tickNext = 0;
     this.creakNext = 0;
+    this.creakIndex = 0;
   }
   async start() {
     if (!this.context) {
@@ -32,6 +33,27 @@ export class Sound {
       compressor.ratio.value = 4;
       this.master.connect(compressor);
       compressor.connect(c.destination);
+      this.effects = c.createGain();
+      this.effects.gain.value = 1;
+      this.effects.connect(this.master);
+      this.tension = c.createGain();
+      this.tension.gain.value = 0;
+      this.tension.connect(this.master);
+      // Original beating room modes, mixed below the ordinary household sound.
+      // Their absence after the reversed routine is more noticeable than music.
+      for (const [frequency, level] of [
+        [38.1, 0.18],
+        [39.25, 0.13],
+        [76.2, 0.035],
+      ]) {
+        const oscillator = c.createOscillator(),
+          gain = c.createGain();
+        oscillator.frequency.value = frequency;
+        gain.gain.value = level;
+        oscillator.connect(gain);
+        gain.connect(this.tension);
+        oscillator.start();
+      }
       this.ambience = c.createGain();
       this.ambience.gain.value = 0.13;
       this.ambience.connect(this.master);
@@ -152,6 +174,7 @@ export class Sound {
     p.connect(this.master);
     source.start();
     g.panner = p;
+    g.filter = filter;
     return g;
   }
   setVolume(value) {
@@ -198,10 +221,14 @@ export class Sound {
     this.stopVoice();
     this.resumeId = null;
     this.lastStep = 0;
+    this.footfallIndex = undefined;
     this.musicNext = this.dripNext = this.noteIndex = 0;
     this.ringNext = 0;
     this.tickNext = 0;
     this.creakNext = (this.context?.currentTime || 0) + 16;
+    this.creakIndex = 0;
+    if (this.tension) this.tension.gain.value = 0;
+    if (this.effects) this.effects.gain.value = 1;
     if (this.ambience) this.ambience.gain.value = 0.13;
   }
   impulse(frequency, gain, duration, pan = 0, destination = null) {
@@ -218,7 +245,7 @@ export class Sound {
     p.pan.value = pan;
     o.connect(g);
     g.connect(p);
-    p.connect(destination || this.master);
+    p.connect(destination || this.effects || this.master);
     o.start();
     o.stop(t + duration);
     o.onended = () => {
@@ -251,7 +278,7 @@ export class Sound {
     source.connect(f);
     f.connect(envelope);
     envelope.connect(stereo);
-    stereo.connect(destination || this.master);
+    stereo.connect(destination || this.effects || this.master);
     source.start(t, Math.random() * 0.15);
     source.stop(t + duration);
     source.onended = () => {
@@ -262,23 +289,141 @@ export class Sound {
     };
   }
   step(distance, speed, carpet = true) {
-    if (distance < this.lastStep) this.lastStep = distance;
-    if (speed > 0.15 && distance - this.lastStep > 0.8) {
+    // Same gait phase as Mara's distance-driven heel plant. Unlike a wall-clock
+    // beat this cannot keep walking while she is blocked or standing still.
+    const stepLength = 0.62,
+      offset = 0.3348;
+    const index = Math.floor((distance + offset) / stepLength);
+    if (this.footfallIndex === undefined || distance < this.lastStep)
+      this.footfallIndex = index;
+    if (speed > 0.15 && index > this.footfallIndex) {
+      this.footfallIndex = index;
       this.lastStep = distance;
-      this.impulse(
-        92 + Math.random() * 17,
-        0.12,
-        0.12,
-        Math.floor(distance / 0.8) % 2 ? 0.08 : -0.08,
-      );
+      const pan = index % 2 ? 0.055 : -0.055;
+      const variation = Math.sin(index * 2.39996) * 8;
+      this.impulse(78 + variation, carpet ? 0.06 : 0.073, 0.075, pan);
       this.noiseBurst(
-        carpet ? 0.18 : 0.13,
-        carpet ? 0.023 : 0.043,
-        carpet ? 580 : 1100,
+        carpet ? 0.14 : 0.1,
+        carpet ? 0.029 : 0.043,
+        carpet ? 460 : 1380,
+        pan,
       );
+      // A short sole drag gives the contact texture without a pitched thump.
+      this.noiseBurst(0.19, carpet ? 0.012 : 0.016, carpet ? 760 : 620, pan);
     }
   }
+  // All new creature/transition sounds are authored synthesis, not downloaded
+  // recordings. Spatial sources remain quiet enough for a whispered line.
+  horrorCue(id, position = null) {
+    if (!this.context || this.paused) return;
+    const source =
+      position ||
+      (id === "backdoor-unlocked"
+        ? { ...EXIT, y: 1.1 }
+        : id === "front-unlocked"
+          ? { ...FRONT_DOOR, y: 1.1 }
+          : id === "mirror-crossed" || id === "mirror-enter"
+            ? MIRROR
+            : id === "radio-tuned" || id === "radio-static"
+              ? TARGETS.radio
+              : null);
+    const p = source ? this.panner(source.x, source.y ?? 0.5, source.z) : null;
+    if (p) {
+      if (id.endsWith("unlocked")) {
+        p.refDistance = 3;
+        p.rolloffFactor = 1.2;
+      }
+      p.connect(this.effects || this.master);
+    }
+    const destination = p || this.effects || this.master;
+    const impulse = (frequency, gain, duration) =>
+      this.impulse(frequency, gain, duration, 0, destination);
+    const noise = (duration, gain, frequency) =>
+      this.noiseBurst(duration, gain, frequency, 0, destination);
+    if (id === "crawl-step") {
+      noise(0.23, 0.075, 390);
+      noise(0.11, 0.026, 1850);
+      impulse(71, 0.055, 0.14);
+    } else if (id === "crawl-arrival") {
+      noise(1.1, 0.12, 270);
+      noise(0.27, 0.045, 1450);
+      impulse(47, 0.14, 0.65);
+    } else if (id === "joint-fold") {
+      noise(0.22, 0.065, 770);
+      impulse(113, 0.075, 0.23);
+      noise(0.65, 0.043, 390);
+    } else if (id === "ceiling-breath") {
+      noise(1.25, 0.075, 540);
+      noise(0.6, 0.025, 1820);
+      impulse(62, 0.055, 0.7);
+    } else if (id === "witness-breath") {
+      noise(1.45, 0.045, 790);
+      impulse(93, 0.018, 0.9);
+    } else if (id === "light-relay") {
+      noise(0.045, 0.034, 2300);
+      impulse(104, 0.025, 0.09);
+    } else if (id === "mirror-crossed" || id === "mirror-enter") {
+      for (const frequency of [417, 629, 947]) impulse(frequency, 0.025, 1.65);
+      noise(1.15, 0.055, 1600);
+      impulse(34, 0.1, 1.35);
+    } else if (id === "backdoor-unlocked" || id === "front-unlocked") {
+      noise(0.12, 0.075, 1260);
+      impulse(83, 0.065, 0.28);
+    } else if (id === "keepsake-placed" || id === "offering-placed") {
+      noise(0.09, 0.027, 1300);
+      impulse(770, 0.012, 0.25);
+    } else if (id === "ritual-complete") {
+      noise(0.8, 0.045, 240);
+      impulse(37, 0.065, 1.2);
+    } else if (id === "ritual-wrong-order" || id === "ritual-wrong") {
+      noise(0.22, 0.06, 480);
+      impulse(49, 0.065, 0.65);
+    } else if (id === "radio-tuned") {
+      noise(0.06, 0.025, 2200);
+      impulse(930, 0.009, 0.11);
+    } else if (id === "radio-static") {
+      noise(0.55, 0.08, 1400);
+    } else if (id === "lamp-off") {
+      noise(0.055, 0.026, 1800);
+    } else if (id === "wake-entered") {
+      // A small pressure change and the sound of several chair legs, not a
+      // triumphant exit cue. The reception voice arrives into earned silence.
+      impulse(31, 0.075, 2.8);
+      noise(1.25, 0.032, 210);
+    } else if (id === "wake-turn") {
+      noise(0.85, 0.045, 330);
+      impulse(106, 0.025, 0.42);
+    }
+    if (p) setTimeout(() => p.disconnect(), 4200);
+  }
   effect(id, position = null) {
+    if (
+      [
+        "crawl-step",
+        "crawl-arrival",
+        "joint-fold",
+        "ceiling-breath",
+        "witness-breath",
+        "light-relay",
+        "mirror-crossed",
+        "mirror-enter",
+        "backdoor-unlocked",
+        "front-unlocked",
+        "keepsake-placed",
+        "offering-placed",
+        "ritual-complete",
+        "ritual-wrong-order",
+        "ritual-wrong",
+        "radio-tuned",
+        "radio-static",
+        "lamp-off",
+        "wake-entered",
+        "wake-turn",
+      ].includes(id)
+    ) {
+      this.horrorCue(id, position);
+      return;
+    }
     if (
       position &&
       [
@@ -294,7 +439,7 @@ export class Sound {
       !this.paused
     ) {
       const source = this.panner(position.x, position.y || 0.3, position.z);
-      source.connect(this.master);
+      source.connect(this.effects || this.master);
       if (id === "mirror-snap" || id === "hall-appearance") {
         // A short, spatial impact with headroom, followed by a thin glass resonance.
         this.impulse(id === "mirror-snap" ? 56 : 43, 0.24, 0.4, 0, source);
@@ -337,15 +482,26 @@ export class Sound {
       this.noiseBurst(0.52, 0.075, 420, 0.35);
       this.impulse(58, 0.08, 0.16, 0.35);
     }
-    if (id === "key" || id === "fuse") {
+    if (
+      id === "key" ||
+      id === "fuse" ||
+      id === "keepsake-watch" ||
+      id === "keepsake-ring"
+    ) {
       this.noiseBurst(0.04, 0.03, 2400, 0.2);
       for (const f of [1700, 2410, 3180]) this.impulse(f, 0.014, 0.3, 0.2);
     }
+    if (id === "keepsake-ribbon") this.noiseBurst(0.2, 0.028, 650);
     if (id === "unlocked") {
       this.impulse(103, 0.12, 0.19);
       this.noiseBurst(0.12, 0.085, 1500);
     }
-    if (id === "locked" || id === "front-locked" || id === "bedroom-locked")
+    if (
+      id === "locked" ||
+      id === "front-locked" ||
+      id === "bedroom-locked" ||
+      id === "backdoor-locked"
+    )
       this.noiseBurst(0.12, 0.08, 850);
     if (id === "knock" || id === "behind") {
       this.impulse(72, 0.15, 0.17, id === "behind" ? -0.8 : 0.7);
@@ -379,24 +535,55 @@ export class Sound {
       l.upY.value = 1;
       l.upZ.value = 0;
     }
-    const frozen = state.frozen || state.stage >= 3;
-    this.ambience.gain.setTargetAtTime(frozen ? 0.006 : 0.13, t, 0.8);
-    const inverted = state.stage >= 3,
-      echo = state.echoIndex || 0;
+    const quiet =
+      state.silenceComplete || state.echoIndex >= 3 || state.stage >= 5;
+    const reversing = state.stage === 4;
+    const echo = state.echoIndex || 0;
+    const speaking = this.busy ? 0.48 : 1;
+    const stageAir = [0.11, 0.075, 0.105, 0.135, 0.055, 0, 0][state.stage] ?? 0;
+    this.ambience.gain.setTargetAtTime(
+      quiet ? 0 : stageAir * speaking,
+      t,
+      0.65,
+    );
+    this.effects.gain.setTargetAtTime(this.busy ? 0.38 : 1, t, 0.12);
+    const tension = [0, 0.014, 0.022, 0.035, 0.019, 0, 0][state.stage] ?? 0;
+    this.tension.gain.setTargetAtTime(quiet ? 0 : tension * speaking, t, 0.9);
     this.radio.gain.setTargetAtTime(
-      inverted && echo >= 3 ? 0 : state.power && state.radioOn ? 0.12 : 0,
+      quiet || (reversing && echo >= 3)
+        ? 0
+        : state.power && state.radioOn
+          ? 0.12
+          : 0,
       t,
       0.15,
     );
-    this.water.gain.setTargetAtTime(inverted && echo >= 2 ? 0 : 0.11, t, 0.15);
-    this.rain.gain.setTargetAtTime(state.stage >= 4 ? 0 : 0.045, t, 0.8);
-    // Sparse structural sound, kept separate from the three puzzle sources.
-    if (state.stage < 3 && t > this.creakNext) {
-      this.creakNext = t + 24 + Math.random() * 12;
-      const source = this.panner(4.3, 2.25, 0);
-      source.connect(this.master);
-      this.noiseBurst(0.8, 0.05, 210, 0, source);
-      this.impulse(96, 0.025, 0.6, 0, source);
+    this.water.gain.setTargetAtTime(
+      quiet || (reversing && echo >= 2) || state.tapOn === false ? 0 : 0.11,
+      t,
+      0.15,
+    );
+    this.rain.gain.setTargetAtTime(quiet ? 0 : 0.045, t, 0.8);
+    // During tuning, static is a separate source from the two telephone calls.
+    const tuning = state.stage === 2 && !state.radioTuned;
+    this.radioSpeech.gain.setTargetAtTime(
+      this.voiceEnabled && !tuning ? 1.8 : 0,
+      t,
+      0.15,
+    );
+    this.radio.filter.frequency.setTargetAtTime(tuning ? 1350 : 850, t, 0.2);
+    if (state.stage < 5 && !quiet && t > this.creakNext) {
+      const intervals = [27, 23, 19, 14, 18];
+      this.creakNext =
+        t + (intervals[state.stage] || 24) + (this.creakIndex++ % 3) * 2;
+      const source = this.panner(
+        this.creakIndex % 2 ? 4.3 : 0.25,
+        2.25,
+        this.creakIndex % 2 ? 0 : 4.3,
+      );
+      source.connect(this.effects || this.master);
+      this.noiseBurst(0.8, 0.045, 210, 0, source);
+      this.impulse(96, 0.023, 0.6, 0, source);
       setTimeout(() => source.disconnect(), 2500);
     }
     if (
@@ -409,14 +596,23 @@ export class Sound {
     }
     if (
       ((!state.heardArrival && state.stage === 0) ||
-        (state.stage === 2 && state.clockSolved && !state.heardCall)) &&
+        (state.stage === 2 &&
+          state.clockSolved &&
+          state.radioTuned &&
+          !state.heardCall)) &&
       t > this.ringNext
     ) {
       this.ringNext = t + 1.6;
       this.impulse(930, 0.12, 0.22, 0, this.phonePanner);
       this.impulse(1130, 0.07, 0.24, 0, this.phonePanner);
     }
-    if (t > this.musicNext && !(inverted && echo >= 1) && state.stage >= 1) {
+    if (
+      t > this.musicNext &&
+      !quiet &&
+      !(reversing && echo >= 1) &&
+      state.musicboxOn !== false &&
+      state.stage >= 1
+    ) {
       this.musicNext = t + 1.4;
       const notes = [659.25, 783.99, 587.33, 523.25, 659.25, 440];
       this.impulse(

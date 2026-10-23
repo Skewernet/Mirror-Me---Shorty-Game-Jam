@@ -74,6 +74,10 @@
             scares</label
           >
           <label
+            ><input id="flashing-lights" type="checkbox" checked /> Irregular
+            light flicker</label
+          >
+          <label
             >Picture
             <select id="quality">
               <option value="1080" selected>Balanced · up to 1080p</option>
@@ -107,7 +111,7 @@
           PAUSE</span
         ><span
           >HEADPHONES RECOMMENDED<br />DESKTOP BROWSER · DEVELOPMENT BUILD ·
-          REALISM / THRESHOLD LOOP · 0.5</span
+          CRESCENDO / THROUGH THE GLASS · 0.6</span
         >
       </footer>
     </main>
@@ -115,6 +119,7 @@
       <div class="topline">
         <span id="location">THE HOUSE</span><span id="inventory"></span>
       </div>
+      <div id="chapter-mark" aria-live="polite"></div>
       <div id="cross" aria-hidden="true"></div>
       <div id="prompt"></div>
       <div id="message" role="status" aria-live="polite"></div>
@@ -155,6 +160,43 @@
           LEAVE IT
         </button>
       </form>
+    </section>
+    <section id="radio-inspect" hidden aria-label="Kitchen radio tuning">
+      <p class="eyebrow">A VOICE BETWEEN STATIONS</p>
+      <h2>The kitchen radio</h2>
+      <p>
+        The bedside diary kept the station number. The hands of the clock have
+        to agree first.
+      </p>
+      <form id="radio-form">
+        <label class="frequency-input"
+          >FM
+          <input
+            id="radio-frequency"
+            type="number"
+            min="87.5"
+            max="108"
+            step="0.1"
+            required
+          />
+          MHz</label
+        >
+        <button type="submit">SET THE DIAL</button>
+        <button id="radio-back" type="button" class="secondary">
+          LEAVE IT
+        </button>
+      </form>
+    </section>
+    <section id="offering" hidden aria-label="Return a keepsake">
+      <p class="eyebrow">WHAT HER HANDS REMEMBERED</p>
+      <h2 id="offering-title">What belongs here?</h2>
+      <p>The diary remembered their places, and the order of her evening.</p>
+      <div id="offering-choices">
+        <button data-item="watch">MUM’S WATCH</button>
+        <button data-item="ring">WEDDING RING</button>
+        <button data-item="ribbon">BLUE RIBBON</button>
+      </div>
+      <button id="offering-back" class="secondary">KEEP THEM WITH YOU</button>
     </section>
     <section id="credits" hidden aria-label="Credits and asset licenses">
       <p class="eyebrow">THE PEOPLE AND TOOLS BEHIND THE HOUSE</p>
