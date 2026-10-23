@@ -2,7 +2,15 @@
 
 A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
 
-## Inverted confession — 0.7
+## Local review — demonic presence, 0.8
+
+The local `develop/demonic-presence-0.8` branch rebuilds the authored intruder's appearance, timing and nonverbal sound. The demon owns its facial sculpt and surfaces; Mara's normal reflection, the truthful final reflection, the covered mother and the mourners keep their existing human model. The house, puzzle order and seamless returns remain the 0.7 baseline. This work has not been pushed or published.
+
+The familiar female face has a collapsed cheek and an original generated torn-tissue decal, dark matted hair and wet human eyes. It holds still, makes one bounded head/jaw response and withdraws with planted contacts. Three sightings begin silently and three have one local breath beforehand. New finite throat, breath and palm/fabric textures preserve dialogue priority, pause and restart; disabling sudden scares cancels a paused creature cue. [Art and implementation details](docs/DEMON_ART.md).
+
+[Fear research and original creature direction](docs/FEAR_RESEARCH.md) separates literature, film interpretation and testable design ideas. Research-host access was blocked during this session; the bibliography is explicitly unverified here. No film assets or new external creature/sound libraries are used.
+
+## Published inverted confession — 0.7
 
 **The owner-approved 0.7 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev), synchronized with GitHub `main`.** Gameplay revision `477779e` deployed automatically, and all 113 public runtime/credit files match the tested package. `/build-id.json` identifies the exact deployed revision, including release-record-only commits. The integrated route, source-browser, creature-clearance and immutable-package checks pass. See [current status](PROJECT_STATUS.md).
 
@@ -53,11 +61,14 @@ node --test tests/*.test.mjs
 node tests/browser.cjs
 node tests/browser-smoke.cjs
 node tests/creature-bounds.cjs
+node tests/demon.cjs
+node tests/demon-director.cjs
+node tests/demon-sound.cjs
 ```
 
 Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
 
-All 29 unit tests, the full seven-chapter collision-respecting browser route and the final ordinary-mode smoke pass. The route verifies the repaired door, instant returns, required truth acknowledgment, bloodied reflection, crime scene, all 25 script-matching decoded voices and the complete spatial funeral report, including pause/resume and no early ending. A separate actual-skinned-geometry check verifies narrow crawlers clear the 0.88 m bedroom doorway with planted contacts and fit below the 2.32 m ceiling; standing locomotion is unchanged. Passing browser checks report no page/console errors or failed requests. The register covers 11 credit entries, 58 media/model assets and seven vendor modules. The immutable package also passes normal startup/play/pause, with all 113 runtime hashes matching source and all 25 voice files accessible. See [current status](PROJECT_STATUS.md) for the evidence and its limits; cloud software rendering is not a target-GPU performance benchmark.
+The 0.8 source passes all 29 unit tests, 40 creature geometry/gaze/contact cases and eight director lifecycle checks. These include normal-human isolation, all authored anatomical strengths, ceiling/floor limits, real occlusion, silence/anticipation, dialogue priority, reduced flashing, reset and the still-to-backward handoff. Real Web Audio checks cover finite tails, headroom, pause/resume, cancellation and cleanup. The complete collision route also passes with the new controller and sound; exact staged-build checks are recorded in [current status](PROJECT_STATUS.md). Credits cover 11 entries, 59 media/model assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 
 ## Development, credits and release
 
@@ -65,6 +76,7 @@ All 29 unit tests, the full seven-chapter collision-respecting browser route and
 - [Direction, complete script and walkthrough — spoilers](GAME_DIRECTION.md)
 - [Original audit and first-slice plan](DEVELOPMENT_PLAN.md)
 - [Development log](DEVLOG.md)
+- [Fear research and creature direction](docs/FEAR_RESEARCH.md)
 - [Full asset provenance](ATTRIBUTIONS.md) and [machine-readable register](assets/credits.json)
 - [Copy-ready game description and public asset credits](GAME_DESCRIPTION.md)
 - [Cloudflare operating instructions](CLOUDFLARE_SETUP.md)

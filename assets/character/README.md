@@ -135,3 +135,23 @@ skin weights; original procedural smears and roughness changes use a per-figure
 uniform. It does not open the jaw, hollow the face or alter the skeleton, so
 the truthful reflection can remain recognizably human. `resetPose()` clears
 this layer. No additional texture or external asset is used.
+
+## Separate intruder, local 0.8
+
+`src/demon.mjs` wraps this existing adult female rig with a private facial sculpt
+and independent skin, hair and clothing materials. The original dark bob retains
+Mara's recognizable proportions; one merged project-authored wet-strand overlay
+adds 6,720 triangles. Its mouth opens once during an authored gaze response.
+Ordinary Mara, the truthful bloodied reflection, covered mother and mourners do
+not receive this treatment. The shared `mara.glb` remains unchanged.
+
+The torn-cheek detail in `unkept-wound.png` is original AI-generated project
+artwork, not a MakeHuman image or downloaded film asset. `unkept-wound.json`
+records its generation brief, unchanged-output SHA-256 and runtime use. The
+register and menu/end/public credits distinguish these sources. Rest-coordinate
+projection keeps the patch on the skin during jaw and head deformation.
+
+The creature's stationary contacts accept the director's planned travel direction
+before a backward withdrawal. This initializes real planted anchors without a
+reset or snap; actual velocity takes precedence once movement starts. The normal
+human gait remains separate. See `docs/DEMON_ART.md` for ownership and reset details.

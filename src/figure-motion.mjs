@@ -626,10 +626,24 @@ export class CreatureGait {
       0,
       options.vz ?? moved.z / Math.max(dt, 0.001),
     );
-    if (direction.lengthSq() < 0.0001)
-      direction =
-        this.direction?.clone() || FORWARD.clone().applyQuaternion(bodyQ);
-    else direction.normalize();
+    if (direction.lengthSq() < 0.0001) {
+      // A held apparition already knows which doorway it will withdraw into.
+      // Seed its planted contacts for that real travel direction before the
+      // root moves. Assuming body-forward here would strand a far-reaching
+      // palm when a player-facing body subsequently withdraws backwards.
+      // This is intent, not velocity: the distance-driven gait stays still.
+      const intent = options.travelIntent;
+      if (
+        Array.isArray(intent) &&
+        Number.isFinite(intent[0]) &&
+        Number.isFinite(intent[1]) &&
+        Math.hypot(intent[0], intent[1]) > 0.0001
+      )
+        direction.set(intent[0], 0, intent[1]).normalize();
+      else
+        direction =
+          this.direction?.clone() || FORWARD.clone().applyQuaternion(bodyQ);
+    } else direction.normalize();
     this.direction = direction;
     const cycle = distance / this.stride;
     const reports = [];

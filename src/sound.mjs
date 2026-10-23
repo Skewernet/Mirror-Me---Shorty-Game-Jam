@@ -354,14 +354,17 @@ export class Sound {
     this.voiceNodes = [];
     if (clear) this.onSubtitle("");
   }
-  reset() {
-    this.stopVoice();
+  stopCreatureCues() {
     for (const source of this.creatureNodes) {
       try {
         source.stop();
       } catch {}
     }
     this.creatureNodes.clear();
+  }
+  reset() {
+    this.stopVoice();
+    this.stopCreatureCues();
     this.creatureStep = 0;
     this.resumeVoice = null;
     this.lastStep = 0;

@@ -18,7 +18,7 @@ with ZipFile(output, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
         if path.is_symlink():
             raise ValueError(f'Refusing a symlink in runtime files: {path}')
         archive.write(path, path.relative_to(root))
-    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — THE STORY IN REVERSE 0.7 LOCAL REVIEW BUILD
+    archive.writestr('READ_ME_FIRST.txt', '''MIRROR ME — DEMONIC PRESENCE 0.8 LOCAL REVIEW BUILD
 Original concept and direction: Skewernet. AI-assisted development: ChatGPT/Codex.
 
 Extract the entire archive. From the extracted folder, run:

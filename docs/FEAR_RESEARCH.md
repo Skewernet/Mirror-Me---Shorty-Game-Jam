@@ -9,7 +9,7 @@ There is no defensible universal ranking of the “scariest monster.” Culture,
 This brief distinguishes three things:
 
 - **Published literature:** the work listed below addresses anticipation, threat, uncanny action, alarm sounds and recreational horror. Its scope is narrower than this game.
-- **Film interpretation:** the discussion of *The Exorcist* and *Incantation* is our reading of their dramatic techniques. It is not an audience experiment or a quotation from either filmmaker.
+- **Film interpretation:** the film comparisons below are our reading of dramatic techniques. They are not audience experiments or quotations from the filmmakers.
 - **Design hypotheses:** the recommendations are ideas to implement and test in MIRROR ME. Research does not guarantee that a particular jaw shape, exposure duration or sound will frighten a player.
 
 **Retrieval limitation:** attempts in this environment to reach PubMed/PMC, Europe PMC, Crossref, OpenAlex, Semantic Scholar, DOI/publisher sites and film-reference sites were rejected by the network proxy with HTTP 403 on 23 October. Consequently the bibliography is a literature-informed starting list of known publications, not a newly completed full-text review. Links, bibliographic details and interpretations should be checked against the publications when access is available. No quotations, exact effect sizes, participant counts or numerical “fear rankings” are claimed here.
@@ -27,7 +27,7 @@ This brief distinguishes three things:
 
 The strongest practical conclusion is to design an encounter as a sequence of expectations, rather than keep increasing deformation, blood or volume.
 
-## What the two film references suggest
+## What the film references suggest
 
 ### The Exorcist: an ordinary room becomes an intolerable place
 
@@ -42,6 +42,22 @@ Our reading is that its participatory framing and the reinterpretation of protec
 For MIRROR ME, the strongest parallel is already in the script: Mara's care routine and “good daughter” account change meaning when the same house is seen truthfully. The mirror should keep looking at the hands and person she omits. Do not copy the film's face, symbol, chant or viewer-directed curse. Do not secretly change puzzle rules or frame the player's ordinary controls as consent to supernatural harm.
 
 The game's specific emotional threat is: **the familiar person looking back knows what these hands did.** Its monster should reinforce that sentence.
+
+### Comparing monster and threat concepts
+
+This is a small comparative reading, **not a ranking of the scariest films or a claim about what frightens most viewers**. The concepts below are useful for different reasons; combining every one would dilute the game. Each transfer is an original design hypothesis to test.
+
+| Reference / concept | Critical interpretation | Useful original transfer | Reject for MIRROR ME |
+| --- | --- | --- | --- |
+| *The Exorcist* (1973) / the familiar person violated | Human identity, bodily agency and ordinary care cease to agree inside a credible bedroom. | Keep recognizable human proportions and one disturbing contradiction between face, voice or action. | Regan's likeness or signature set pieces; possession as an explanation that excuses Mara. |
+| *Incantation* (2022) / reassurance becomes implication | Protective-seeming information is reinterpreted; attention and participation become part of the dramatic threat. | Let the same care routine and mirror acquire a harsher meaning after the evidence is known. | Its chant, symbol, final face or curse mythology; secretly dishonest puzzle rules. |
+| *The Thing* (1982) / body and identity become unreliable | A recognizable body may conceal something incompatible with its appearance; transformation makes mistrust physical. | Establish an ordinary anatomical expectation before one specific tendon, mouth or weight-bearing violation. | Copying its transformations, a mutation showcase or a hidden alien culprit. Mara's hands must remain her own. |
+| *The Blair Witch Project* (1999) / unseen intention | Partial signs and uncertain location leave the threat's intention unresolved; absence does dramatic work. | A finite, localizable room sound and a trace of movement can prepare a later sighting without showing the whole body. | Endless wandering, illegible objectives or arbitrary ambient noises with no spatial relationship to the house. |
+| *Hereditary* (2018) / domestic negative space and ceiling presence | A familiar room can contain an alarming figure before attention locates it; the vertical space alters the reading of home. | Compose a real ceiling silhouette against readable architecture, then allow one deliberate orientation toward the player. | Recreating an iconic pose or sequence; hiding every encounter in near-blackness or turning the family tragedy into an interchangeable cult plot. |
+| *Ju-on: The Grudge* (2002) / familiar human form with wrong locomotion | Crawling, obstructed facial recognition and abnormal vocal texture disturb the expected relation between a person and a movement. | Give the creature a distinctive weight transfer, sustained gaze and restrained throat/breath identity that belong to this body. | The stock long-haired white-gown ghost, borrowed vocal signature or a crawl with no convincing contacts. |
+| *Alien* (1979) / an intelligible predator in constrained space | Partial exposure and a consistent silhouette support a threat that appears to occupy the same physical environment as its victim. | Respect door width, light, occlusion and a coherent body silhouette; let the architecture support discovery. | Turning the encounter into a patrol, health-bar enemy or combat/chase grammar. That changes the question from what Mara has done to whether the player can defeat a creature. |
+
+The best fit is the combination of **recognizable human identity, uncertain intention and domestic space that no longer offers reassurance**. Body violation is punctuation within that direction. It should not replace the story with a catalogue of spectacular monsters.
 
 ## Proposed original creature: the witness in the wrong posture
 
@@ -128,5 +144,10 @@ Film reference points, discussed as original interpretation rather than sourced 
 
 - *The Exorcist* (1973), directed by William Friedkin, screenplay by William Peter Blatty.
 - *Incantation* (2022), directed by Kevin Ko.
+- *The Thing* (1982), directed by John Carpenter.
+- *The Blair Witch Project* (1999), directed by Daniel Myrick and Eduardo Sánchez.
+- *Hereditary* (2018), directed by Ari Aster.
+- *Ju-on: The Grudge* (2002), directed by Takashi Shimizu.
+- *Alien* (1979), directed by Ridley Scott.
 
 No film frame, likeness, soundtrack, symbol, chant, existing creature asset or new external media is supplied by this research brief. Implementation assets and their licenses remain a separate crediting responsibility.

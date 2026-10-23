@@ -10,7 +10,7 @@ The game combines original project work with the third-party assets listed below
 
 **Creator:** Skewernet; AI-assisted development with OpenAI ChatGPT/Codex. **License:** Original project work; no separate asset-license grant. [Source](https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam).
 
-Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, funeral-radio geometry, authored props, interface and procedural animation. Layered blood, pools, bedding/shroud forms, knife and care-room evidence in src/revelation.mjs are original project geometry and canvas artwork. Ambience, footsteps, crawling, breaths, sob-like textures, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound or prop library.
+Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, funeral-radio geometry, authored props, interface and procedural animation. Layered blood, pools, bedding/shroud forms, knife and care-room evidence in src/revelation.mjs are original project geometry and canvas artwork. Ambience, footsteps, crawling, breaths, sob-like textures, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound or prop library. The separate intruder in src/demon.mjs adds an original asymmetric facial sculpt, marbled tissue and ruined-cloth shaders, and layered wet strand hair while reusing the credited MakeHuman base. Its finite nonverbal breath, throat and contact textures are synthesized by project code; no film monster, likeness, chant, sound recording or new external asset is included.
 
 Files: `src/**`, `index.html`, `style.css`.
 
@@ -86,13 +86,13 @@ Original wallpaper, plaster, panelling, tile, linen, concrete and rust generated
 
 Files: `assets/materials/original/*.webp`, `assets/materials/original-sources.json`, `tools/materials_prep.py`.
 
-### Original fictional family images and house material atlases
+### Original generated family images, material atlases and wound decal
 
 **Creator:** Created for MIRROR ME with OpenAI image generation. **License:** Original project artwork; no third-party asset-license grant. [Source](https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/tree/main/assets).
 
-Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture.
+Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture. The intruder's original RGBA torn-tissue decal was generated for this project and projected onto its facial sculpt. Its generation brief and exact output hash are recorded in assets/character/unkept-wound.json; no existing film face, likeness or wound asset is used.
 
-Files: `assets/art/family-photographs.png`, `assets/art/house-materials.png`, `assets/materials/original/tactile-house-albedos.png`.
+Files: `assets/art/family-photographs.png`, `assets/art/house-materials.png`, `assets/materials/original/tactile-house-albedos.png`, `assets/character/unkept-wound.png`, `assets/character/unkept-wound.json`.
 
 ## Detailed source records
 

@@ -1,0 +1,18 @@
+{
+  "title": "The Unkept \u2014 original torn-tissue face decal",
+  "creator": "Created for MIRROR ME with OpenAI image generation",
+  "generated_at_utc": "2026-10-23T21:47:37.856786+00:00",
+  "source": "Original project generation; no external asset or film image input",
+  "file": "unkept-wound.png",
+  "sha256": "3d0db659b41815249298fccec88ccb72afef9630917548b15b09ef5bc019b948",
+  "bytes": 2030633,
+  "size": [
+    1024,
+    1536
+  ],
+  "format": "RGBA PNG, sRGB color with alpha",
+  "modifications": "Copied byte-for-byte from original generator output; shader projection, alpha gating and physical lighting are runtime project work.",
+  "generation_brief": "Original game-production material decal, flat orthographic front view. One elongated, asymmetric torn-tissue patch for an adult fictional supernatural creature's left mouth corner. Ragged dark crimson tissue, deep black-red recess, sallow grey-taupe skin, bruising, pores and small wet details. Upper-left to lower-right diagonal, transparent margins, diffuse albedo. No portrait, facial features, eyes, teeth, hair, text, symbols, religious imagery or existing movie character.",
+  "use": "Projected onto demon-owned facial skin in src/demon.mjs; ordinary Mara, mother and mourners do not use it.",
+  "license": "Original project artwork; no third-party asset-license grant"
+}

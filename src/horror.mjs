@@ -1,5 +1,5 @@
 import * as T from "three";
-import { createFigure } from "./figure.mjs";
+import { createDemon } from "./demon.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
 import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
 
@@ -16,6 +16,11 @@ const SIGHTINGS = [
     lightSource: "bedroom",
     cue: "joint-fold",
     duration: 3.3,
+    hold: 0.68,
+    orient: 0.42,
+    gazeDot: 0.8,
+    premonition: "demon-inhale",
+    intensity: 0.8,
     headHeight: 1.12,
     minDistance: 1.05,
     path: [
@@ -38,6 +43,11 @@ const SIGHTINGS = [
     lightSource: "bathroom",
     cue: "ceiling-breath",
     duration: 4.4,
+    hold: 1.05,
+    orient: 0.35,
+    gazeDot: 0.84,
+    premonition: null,
+    intensity: 0.84,
     headHeight: -0.38,
     minDistance: 0.8,
     path: [
@@ -64,6 +74,11 @@ const SIGHTINGS = [
     lightSource: "far-hall",
     cue: "crawl-arrival",
     duration: 4.6,
+    hold: 0.72,
+    orient: 0.4,
+    gazeDot: 0.74,
+    premonition: "demon-inhale",
+    intensity: 0.9,
     headHeight: 0.44,
     minDistance: 2.0,
     path: [
@@ -87,6 +102,11 @@ const SIGHTINGS = [
     lightSource: "entry",
     cue: "crawl-arrival",
     duration: 3.4,
+    hold: 0.32,
+    orient: 0.22,
+    gazeDot: 0.7,
+    premonition: null,
+    intensity: 0.95,
     headHeight: 0.44,
     minDistance: 2.0,
     path: [
@@ -114,6 +134,11 @@ const SIGHTINGS = [
     lightSource: "far-hall",
     cue: "ceiling-breath",
     duration: 3.5,
+    hold: 0.55,
+    orient: 0.3,
+    gazeDot: 0.76,
+    premonition: "demon-inhale",
+    intensity: 1,
     headHeight: -0.38,
     minDistance: 1.65,
     path: [
@@ -132,6 +157,11 @@ const SIGHTINGS = [
     lightSource: null,
     cue: "witness-breath",
     duration: 4.8,
+    hold: 1.05,
+    orient: 0.5,
+    gazeDot: 0.82,
+    premonition: null,
+    intensity: 1,
     headHeight: 1.12,
     minDistance: 1.05,
     path: [
@@ -227,11 +257,11 @@ function facingFor(definition, position, player) {
 }
 
 export class HorrorDirector {
-  constructor(scene, house, { figureFactory = createFigure } = {}) {
+  constructor(scene, house, { figureFactory = createDemon } = {}) {
     this.scene = scene;
     this.house = house;
     this.figure = figureFactory(house, 0);
-    this.figure.body.name = "The unfinished daughter";
+    this.figure.body.name = "The Unkept";
     this.figure.body.visible = false;
     scene.add(this.figure.body);
     this.ray = new T.Raycaster();
@@ -261,6 +291,8 @@ export class HorrorDirector {
     this.events = [];
     this.completed = Object.fromEntries(SIGHTINGS.map((s) => [s.id, false]));
     this.attention = Object.fromEntries(SIGHTINGS.map((s) => [s.id, 0]));
+    this.anticipated = Object.fromEntries(SIGHTINGS.map((s) => [s.id, false]));
+    this.anticipationStarted = {};
     this.active = null;
     this.lastTime = -1;
     this.lastStage = 0;
@@ -274,26 +306,31 @@ export class HorrorDirector {
     this.updateShadows();
   }
 
-  canSee(point, camera, minDistance = 1.1, maxDistance = 8.5) {
+  hasLineOfSight(point, camera, minDistance = 1.1, maxDistance = 8.5) {
     this.direction.copy(point).sub(camera.position);
     const distance = this.direction.length();
     if (distance < minDistance || distance > maxDistance) return false;
     this.direction.divideScalar(distance);
-    camera.getWorldDirection(this.viewDirection);
-    // Check both the actual camera frustum and gaze. A floor/ceiling glance
-    // cannot consume an unseen body just because its horizontal bearing matches.
-    if (this.viewDirection.dot(this.direction) < 0.84) return false;
-    this.projection.multiplyMatrices(
-      camera.projectionMatrix,
-      camera.matrixWorldInverse,
-    );
-    this.frustum.setFromProjectionMatrix(this.projection);
-    if (!this.frustum.containsPoint(point)) return false;
     this.scene.updateMatrixWorld(true);
     this.ray.set(camera.position, this.direction);
     this.ray.far = Math.max(0, distance - 0.06);
     const occluders = (this.house.occluders || []).filter(visibleInTree);
     return this.ray.intersectObjects(occluders, false).length === 0;
+  }
+
+  canSee(point, camera, minDistance = 1.1, maxDistance = 8.5, gazeDot = 0.84) {
+    if (!this.hasLineOfSight(point, camera, minDistance, maxDistance))
+      return false;
+    camera.getWorldDirection(this.viewDirection);
+    // Check both the actual camera frustum and gaze. A floor/ceiling glance
+    // cannot consume an unseen body just because its horizontal bearing matches.
+    if (this.viewDirection.dot(this.direction) < gazeDot) return false;
+    this.projection.multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse,
+    );
+    this.frustum.setFromProjectionMatrix(this.projection);
+    return this.frustum.containsPoint(point);
   }
 
   start(definition, time, player) {
@@ -311,6 +348,12 @@ export class HorrorDirector {
       retreatOrigin: null,
       seen: 0,
       away: 0,
+      phase: "still",
+      oriented: false,
+      withdrew: false,
+      lastCueAt: definition.premonition
+        ? (this.anticipationStarted[definition.id] ?? -Infinity)
+        : -Infinity,
     };
     this.completed[definition.id] = true;
     this.figure.resetPose?.();
@@ -319,13 +362,6 @@ export class HorrorDirector {
     this.previousPosition.copy(origin);
     this.figure.body.visible = true;
     this.figure.body.rotation.y = facingFor(definition, origin, player);
-    this.events.push({
-      id: definition.cue,
-      x: origin.x,
-      y: definition.mode === "ceiling" ? 1.95 : 0.5,
-      z: origin.z,
-      encounter: definition.id,
-    });
   }
 
   finish(time) {
@@ -356,6 +392,13 @@ export class HorrorDirector {
     this.light = { lightMultiplier: 1, lightSource: null };
     if (!enabled || story.endingStarted || story.wakeEntered || story.ended) {
       if (this.active) this.finish(time);
+      // Turning scares off cannot leave an already queued sound to play later.
+      this.events.length = 0;
+      this.attention = Object.fromEntries(SIGHTINGS.map((s) => [s.id, 0]));
+      this.anticipated = Object.fromEntries(
+        SIGHTINGS.map((s) => [s.id, false]),
+      );
+      this.anticipationStarted = {};
       return this.light;
     }
     if (this.active && !this.active.definition.stages.includes(story.stage))
@@ -383,15 +426,47 @@ export class HorrorDirector {
           this.target.fromArray(origin);
           this.target.y += definition.headHeight;
         }
-        const visible = this.canSee(
+        // An audible presence can precede seeing its owner, but never leaks
+        // through a closed door/wall and never consumes the optional sighting.
+        // It happens once, not as an endlessly repeating "look here" prompt.
+        const clear = this.hasLineOfSight(
           this.target,
           camera,
           definition.minDistance,
         );
+        if (clear && this.anticipationStarted[definition.id] === undefined)
+          this.anticipationStarted[definition.id] = time;
+        if (
+          clear &&
+          definition.premonition &&
+          !this.anticipated[definition.id]
+        ) {
+          this.anticipated[definition.id] = true;
+          this.events.push({
+            id: definition.premonition,
+            x: this.target.x,
+            y: this.target.y,
+            z: this.target.z,
+            encounter: definition.id,
+          });
+        }
+        const visible =
+          clear &&
+          this.canSee(
+            this.target,
+            camera,
+            definition.minDistance,
+            8.5,
+            definition.gazeDot,
+          );
         this.attention[definition.id] = visible
           ? this.attention[definition.id] + dt
           : 0;
-        if (this.attention[definition.id] >= 0.12) {
+        if (
+          this.attention[definition.id] >= 0.08 &&
+          time - (this.anticipationStarted[definition.id] ?? time) >=
+            (definition.premonition ? 0.45 : 0)
+        ) {
           this.start(definition, time, player);
           break;
         }
@@ -403,6 +478,20 @@ export class HorrorDirector {
       definition = active.definition;
     const age = Math.max(0, time - active.started);
     let progress = Math.min(1, age / definition.duration);
+    const withdrawalAt = definition.hold + definition.orient;
+    let pathProgress = T.MathUtils.smoothstep(
+      age,
+      withdrawalAt,
+      definition.duration,
+    );
+    let travelPath = definition.path,
+      travelProgress = pathProgress;
+    active.phase =
+      age < definition.hold
+        ? "still"
+        : age < withdrawalAt
+          ? "orient"
+          : "withdraw";
     const body = this.figure.body;
     // The first view lasts long enough to read a distorted anatomy. Closing on
     // it makes it retreat; the player can never walk through a stationary model.
@@ -426,7 +515,7 @@ export class HorrorDirector {
       active.retreatPath = tailOfPath(
         definition.path,
         body.position,
-        T.MathUtils.smoothstep(progress, 0, 1),
+        pathProgress,
       );
       let remainingLength = 0;
       for (let i = 1; i < active.retreatPath.length; i++)
@@ -451,12 +540,29 @@ export class HorrorDirector {
       // Continue through the remaining doorway path rather than cutting a
       // diagonal through a wall when the player walks toward the apparition.
       pathPoint(active.retreatPath, retreatProgress, body.position);
+      travelPath = active.retreatPath;
+      travelProgress = retreatProgress;
       progress = Math.max(progress, 0.65 + retreatProgress * 0.35);
+      pathProgress = Math.max(pathProgress, retreatProgress);
+      active.phase = "withdraw";
       if (distance < 0.5 || retreatProgress >= 1) progress = 1;
     } else {
-      const eased = T.MathUtils.smoothstep(progress, 0, 1);
-      pathPoint(definition.path, eased, body.position);
+      pathPoint(definition.path, pathProgress, body.position);
     }
+    // Seed stationary contacts toward the upcoming real path, not toward the
+    // body's gaze. A backward withdrawal must not plant a forward stride first.
+    // This is intent only: vx/vz below remain measured world-space velocity.
+    const remainingPath = tailOfPath(travelPath, body.position, travelProgress);
+    const nextPoint = remainingPath
+      .slice(1)
+      .find(
+        (point) =>
+          Math.hypot(point[0] - body.position.x, point[2] - body.position.z) >
+          0.00001,
+      );
+    const travelIntent = nextPoint
+      ? [nextPoint[0] - body.position.x, nextPoint[2] - body.position.z]
+      : [0, 0];
     this.updateShadows();
     const velocity = body.position
       .clone()
@@ -471,18 +577,23 @@ export class HorrorDirector {
     );
     body.rotation.y += turn * (1 - Math.exp(-dt * 9));
     const mode =
-      definition.mode === "twisted" && progress > 0.38
+      definition.mode === "twisted" && pathProgress > 0.035
         ? "crawl"
         : definition.mode;
     active.mode = mode;
     if (this.figure.setCreaturePose) {
       this.figure.setCreaturePose(time, progress, {
         mode,
-        intensity: 1,
+        intensity: definition.intensity,
         distance: active.travelled,
         delta: dt,
         vx: velocity.x,
         vz: velocity.z,
+        travelIntent,
+        phase: active.phase,
+        still: active.phase === "still",
+        gazeTarget: [player.x, camera.position.y, player.z],
+        gazeWeight: active.phase === "still" ? 0 : 1,
       });
     } else {
       // During asset development this legacy path keeps the app runnable. The
@@ -500,6 +611,38 @@ export class HorrorDirector {
     active.seen += visible ? dt : 0;
     active.away = visible ? 0 : active.away + dt;
     active.progress = progress;
+    const emit = (id) => {
+      if (!dialogueBusy && time - active.lastCueAt >= 0.7) {
+        active.lastCueAt = time;
+        this.events.push({
+          id,
+          x: this.target.x,
+          y: this.target.y,
+          z: this.target.z,
+          encounter: definition.id,
+        });
+      }
+    };
+    if (active.phase !== "still" && !active.oriented) {
+      active.oriented = true;
+      // Ceiling breathing and the final witness stay restrained. The first
+      // facial/body response is deliberately separate from the preceding cue.
+      if (definition.id === "far-hall-crawler") emit("demon-reveal");
+      else if (
+        definition.mode === "ceiling" ||
+        definition.id === "inverted-witness"
+      )
+        emit(definition.cue);
+    }
+    if (active.phase === "withdraw" && !active.withdrew) {
+      active.withdrew = true;
+      // A close safety withdrawal can skip orientation. Do not stack its
+      // transient with an orientation sound in that same frame.
+      if (age >= withdrawalAt && definition.id === "bedroom-fold")
+        emit("joint-fold");
+      else if (age >= withdrawalAt && definition.id === "sitting-room-return")
+        emit("demon-withdraw");
+    }
     if (active.travelled >= active.nextStepDistance && mode !== "twisted") {
       // The contact gait and scrape cadence use the same travelled stride.
       active.nextStepDistance = active.travelled + CREATURE_STEP_METERS;
@@ -516,7 +659,9 @@ export class HorrorDirector {
       let multiplier = 1;
       for (let index = 0; index < definition.pulses.length; index++) {
         const [from, to, amount] = definition.pulses[index];
-        if (age >= from && age < to) {
+        // Place authored electrical dips around the movement, after the player
+        // has had a readable face/body silhouette. Comfort mode leaves it lit.
+        if (age >= withdrawalAt + from && age < withdrawalAt + to) {
           // Local electrical dips, never an all-screen white flash or strobe.
           multiplier = Math.min(multiplier, amount);
           if (!active.relays.has(index)) {
@@ -551,6 +696,9 @@ export class HorrorDirector {
   snapshot() {
     return {
       active: this.active?.definition.id || null,
+      phase: this.active?.phase || null,
+      intensity: this.active?.definition.intensity ?? 0,
+      anticipated: { ...this.anticipated },
       visible: this.figure.body.visible,
       mode: this.active?.mode || null,
       progress: this.active?.progress || 0,

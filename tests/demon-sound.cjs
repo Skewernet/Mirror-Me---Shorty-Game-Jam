@@ -181,8 +181,18 @@ fs.mkdirSync(out, { recursive: true });
         nodes: paused.creatureNodes.size,
         disconnects: liveDisconnects,
       };
+      paused.paused = false;
+      paused.effect("demon-inhale", { x: 0, y: 0, z: -0.5 });
+      await live.suspend();
+      paused.stopCreatureCues();
+      await live.resume();
+      await new Promise((r) => setTimeout(r, 80));
+      const cancelled = {
+        nodes: paused.creatureNodes.size,
+        disconnects: liveDisconnects,
+      };
       await live.close();
-      return { clips, mixPeak, suspended, resumed, reset, disabled };
+      return { clips, mixPeak, suspended, resumed, reset, disabled, cancelled };
     });
     assert.deepEqual(errors, []);
     for (const clip of result.clips) {
@@ -228,6 +238,16 @@ fs.mkdirSync(out, { recursive: true });
       result.disabled,
       result.reset,
       "paused effects cannot start a source",
+    );
+    assert.equal(
+      result.cancelled.nodes,
+      0,
+      "a paused creature cue can be cancelled when scares are disabled",
+    );
+    assert.equal(
+      result.cancelled.disconnects,
+      3,
+      "cancelled spatial source disconnects after resume",
     );
     result.status = "PASS";
     result.errors = errors;

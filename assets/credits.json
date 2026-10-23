@@ -14,7 +14,7 @@
         "index.html",
         "style.css"
       ],
-      "changes": "Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, funeral-radio geometry, authored props, interface and procedural animation. Layered blood, pools, bedding/shroud forms, knife and care-room evidence in src/revelation.mjs are original project geometry and canvas artwork. Ambience, footsteps, crawling, breaths, sob-like textures, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound or prop library."
+      "changes": "Original game direction, writing, L-shaped house, seamless threshold portal, seven-chapter progression, keepsake puzzles, wake room, funeral-radio geometry, authored props, interface and procedural animation. Layered blood, pools, bedding/shroud forms, knife and care-room evidence in src/revelation.mjs are original project geometry and canvas artwork. Ambience, footsteps, crawling, breaths, sob-like textures, knocks, mechanical sounds and music-box tones are authored Web Audio synthesis; no external sound or prop library. The separate intruder in src/demon.mjs adds an original asymmetric facial sculpt, marbled tissue and ruined-cloth shaders, and layered wet strand hair while reusing the credited MakeHuman base. Its finite nonverbal breath, throat and contact textures are synthesized by project code; no film monster, likeness, chant, sound recording or new external asset is included."
     },
     {
       "id": "threejs",
@@ -154,7 +154,7 @@
     },
     {
       "id": "original-ai-art",
-      "title": "Original fictional family images and house material atlases",
+      "title": "Original generated family images, material atlases and wound decal",
       "creator": "Created for MIRROR ME with OpenAI image generation",
       "license": "Original project artwork; no third-party asset-license grant",
       "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/tree/main/assets",
@@ -162,9 +162,11 @@
       "files": [
         "assets/art/family-photographs.png",
         "assets/art/house-materials.png",
-        "assets/materials/original/tactile-house-albedos.png"
+        "assets/materials/original/tactile-house-albedos.png",
+        "assets/character/unkept-wound.png",
+        "assets/character/unkept-wound.json"
       ],
-      "changes": "Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture."
+      "changes": "Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture. The intruder's original RGBA torn-tissue decal was generated for this project and projected onto its facial sculpt. Its generation brief and exact output hash are recorded in assets/character/unkept-wound.json; no existing film face, likeness or wound asset is used."
     }
   ]
 }

@@ -19,6 +19,7 @@ import {
   atFrontThreshold,
 } from "./layout.mjs";
 import { preloadCharacterAssets } from "./figure.mjs";
+import { preloadDemonAssets } from "./demon.mjs";
 import { FUNERAL_RADIO } from "./wake.mjs";
 import { CHAPTERS } from "./chapters.mjs";
 const $ = (id) => document.getElementById(id),
@@ -50,7 +51,11 @@ renderer.domElement.setAttribute(
 document.body.prepend(renderer.domElement);
 let house;
 try {
-  [house] = await Promise.all([buildHouse(scene), preloadCharacterAssets()]);
+  [house] = await Promise.all([
+    buildHouse(scene),
+    preloadCharacterAssets(),
+    preloadDemonAssets(),
+  ]);
   await house.wake?.prepare?.();
   await house.revelation?.prepare?.();
 } catch (error) {
@@ -128,6 +133,16 @@ function resize() {
   house.portal?.setQuality(quality);
 }
 resize();
+// Compile the hidden intruder against the real house lights and beauty target
+// before play, so its first reveal does not also compile its unique surfaces.
+// compileAsync traverses the object without making it visible or drawing it.
+const warmupTarget = renderer.getRenderTarget();
+try {
+  renderer.setRenderTarget(picture.target);
+  await renderer.compileAsync(horror.figure.body, camera, scene);
+} finally {
+  renderer.setRenderTarget(warmupTarget);
+}
 window.addEventListener("resize", resize);
 function setText(element, text) {
   $(element).textContent = text;
@@ -499,7 +514,10 @@ $("sensitivity").oninput = (e) => (player.sensitivity = Number(e.target.value));
 $("bob").onchange = (e) => (player.bob = e.target.checked);
 $("volume").oninput = (e) => sound.setVolume(Number(e.target.value));
 $("voice").onchange = (e) => sound.setVoice(e.target.checked);
-$("sudden-scares").onchange = (e) => (scaresEnabled = e.target.checked);
+$("sudden-scares").onchange = (e) => {
+  scaresEnabled = e.target.checked;
+  if (!scaresEnabled) sound.stopCreatureCues();
+};
 $("flashing-lights").onchange = (e) => (flashingLights = e.target.checked);
 $("quality").onchange = (e) => {
   quality = Number(e.target.value);
