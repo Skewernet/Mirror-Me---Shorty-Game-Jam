@@ -78,3 +78,9 @@
 - Read-only checks confirmed GitHub main and the live Pages manifest still identify e90d894. No push, production upload or Cloudflare setting change was made.
 - Final complete browser rerun passed all five stages with the watcher sightline/disappearance regression and persistent final-pass silence checks, fifteen decoded voices, ending and reset. No console/page errors or failed asset requests. Known-solution traversal: 232.3 seconds.
 - Staged the clean committed expansion outside the checkout. All 39 runtime files matched both source bytes and their SHA256 manifest; Git metadata, development tools and tests are excluded. This is a local release candidate, not a published build.
+
+## 2026-10-22 — Owner-approved house expansion release
+- Owner approved pushing and publishing the completed expansion. Fetched remote main, verified a fast-forward from e90d894 to d5b3575, and pushed the three reviewed development commits to main.
+- Rechecked the correct mirror-me Pages/GitHub connection and enabled deployment settings before pushing. No Cloudflare resource or build-setting changes were needed.
+- The explicit Git-source build 4deb402c-9a6b-426e-b9d7-5ab915515ca4 succeeded for d5b3575; the public build-id and all 39 runtime hashes matched. All fifteen unit tests passed as release prerequisites.
+- Updated the README/status release record. These documentation changes do not alter the tested game runtime; the release helper verifies the final source revision and public asset hashes after synchronization.

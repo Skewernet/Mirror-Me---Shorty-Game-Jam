@@ -1,7 +1,7 @@
 # MIRROR ME — Current status
 
 **Version:** House expansion 0.3, October 22, 2026 (America/Denver).
-**Development:** Local branch `develop/house-expansion`. Not pushed or deployed. GitHub main and approved production remain at `e90d894`; `/build-id.json` identifies the live version.
+**Release:** Owner-approved house expansion published through GitHub `main` to https://mirror-me.pages.dev. Initial gameplay release `d5b3575` completed a successful Cloudflare Git-source build; all 39 runtime asset hashes matched. The public `/build-id.json` identifies the exact current release, including subsequent release-record commits.
 
 ## Implemented
 
@@ -21,7 +21,7 @@
 - A full deterministic Chromium playthrough traverses all five rooms with actual collision-respecting movement, uses the clock UI, checks watcher occlusion/disappearance and persistent final-pass silence, completes all five passes, and verifies inventory, pause/audio, flashlight, ending/reset and fifteen non-silent decoded voice clips. No page errors or failed requests in the passing run.
 - The known-solution route takes approximately 230 seconds of simulation. This does not measure first-time play length or establish that the experience is frightening.
 - Room, mirror and ending screenshots reviewed. A separate normal-mode Chromium check passed live rendering, walking/pointer lock, flashlight, journal pause/resume, Escape, picture settings, brightness/grain controls, hints and resize without errors. The test harness is absent in this mode.
-- Static release staging includes a source revision and SHA256 manifest. Production publication remains withheld pending specific owner approval.
+- Static release staging includes a source revision and SHA256 manifest. The owner approved production publication; the Git-source build and public runtime hashes were verified. Future releases still require approval of their specific changes.
 
 ## Remaining before the October 25 deadline
 

@@ -8,7 +8,7 @@ Five furnished, enterable rooms connect to a continuous hallway circuit: sitting
 
 Five authored passes form a complete short arc: restore power, confront the delayed reflection, recover a bedroom diary, interpret a backward-time clue, reverse a nightly sound sequence, then refuse the glass's final instruction. The ending visibly reverses who can leave. The reflection follows, delays, holds its ground, disappears and acts independently. Changes include a missing family, a breathing quilt, displaced furniture and a watcher in the return passage.
 
-The expansion is **local on `develop/house-expansion`, not published**. Production still serves the approved 0.2 slice. A known-solution collision-respecting test route takes about 3 minutes 50 seconds; first-time duration and scare effectiveness require human playtesting. The design target is 8–12 minutes of discovery, not artificial waits.
+The owner-approved expansion is published at **[mirror-me.pages.dev](https://mirror-me.pages.dev)** from GitHub `main`. The first verified expansion release used gameplay revision `d5b3575`; `/build-id.json` identifies the exact current release. A known-solution collision-respecting test route takes about 3 minutes 50 seconds; first-time duration and scare effectiveness require human playtesting. The design target is 8–12 minutes of discovery, not artificial waits.
 
 ## Run locally
 
@@ -56,6 +56,6 @@ Fifteen unit tests cover movement and progression. The full browser route uses a
 - [Asset provenance](ATTRIBUTIONS.md)
 - [Cloudflare connection and operating instructions](CLOUDFLARE_SETUP.md)
 
-The existing production project is [mirror-me.pages.dev](https://mirror-me.pages.dev), connected to this GitHub repository with `main` as production branch. Production automation and branch previews are enabled; **a push can publish**. Earlier pushes did not create deployment records, so a successful push alone is not proof of release. The last verified live revision before this expansion is `e90d894`.
+The existing production project is [mirror-me.pages.dev](https://mirror-me.pages.dev), connected to this GitHub repository with `main` as production branch. Production automation and branch previews are enabled; **a push can publish**. Earlier pushes did not create deployment records, so a successful push alone is not proof of release. The approved expansion was built from GitHub and all 39 runtime files were verified against its source/hash manifest.
 
-Further production changes require the owner's approval of the specific build. No push or deployment is part of local development. For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit plus every public runtime hash; `--verify-only` is read-only. Build settings are `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment runs at environment startup. Do not modify Morlins Quest or Skewer Signals.
+Further production changes require the owner's approval of the specific build. Pushes and deployments are explicit release actions; the owner approved publication of this expansion. For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit plus every public runtime hash; `--verify-only` is read-only. Build settings are `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment runs at environment startup. Do not modify Morlins Quest or Skewer Signals.
