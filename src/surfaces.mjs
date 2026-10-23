@@ -1,4 +1,5 @@
 import * as T from "three";
+import { RGBELoader } from "../vendor/RGBELoader.js";
 let seed = 1709;
 const random = () => {
   seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -55,111 +56,135 @@ function crop(image, x, y, w, h) {
   return c;
 }
 export async function createSurfaces() {
-  const image = await imageAt("../assets/art/house-materials.png"),
-    w = image.width / 2,
-    h = image.height / 2;
-  const maps = {
-    wallpaper: texture(crop(image, 0, 0, w, h)),
-    floor: texture(crop(image, w, 0, w, h)),
-    tile: texture(crop(image, 0, h, w, h)),
-    fabric: texture(crop(image, w, h, w, h)),
+  // Keep colour in sRGB and all physical data in linear space. Each source has
+  // independent relief/roughness; there is no albedo-as-bump fallback.
+  const loader = new T.TextureLoader();
+  const load = async (file, color = false) => {
+    const map = await loader.loadAsync(
+      new URL(`../assets/materials/${file}`, import.meta.url).href,
+    );
+    map.colorSpace = color ? T.SRGBColorSpace : T.NoColorSpace;
+    map.wrapS = map.wrapT = T.RepeatWrapping;
+    map.anisotropy = 8;
+    map.magFilter = T.LinearFilter;
+    map.minFilter = T.LinearMipmapLinearFilter;
+    return map;
   };
-  {
-    const [c, g] = canvas();
-    g.fillStyle = "#7d7c70";
-    g.fillRect(0, 0, 512, 512);
-    cloud(g, 512, "rgba(62,54,38,.17)", 34);
-    cloud(g, 512, "rgba(184,182,161,.14)", 24);
-    patina(g, 512, 16000);
-    maps.plaster = texture(c);
+  const sets = {};
+  await Promise.all([
+    ...[
+      "wallpaper",
+      "plaster",
+      "panel",
+      "tile",
+      "linen",
+      "concrete",
+      "rust",
+    ].map(async (name) => {
+      const [map, normalMap, roughnessMap] = await Promise.all([
+        load(`original/${name}-color.webp`, true),
+        load(`original/${name}-normal.webp`),
+        load(`original/${name}-roughness.webp`),
+      ]);
+      sets[name] = { map, normalMap, roughnessMap };
+    }),
+    (async () => {
+      const [map, normalMap, roughnessMap] = await Promise.all([
+        load("photographic/wood-color.jpg", true),
+        load("photographic/wood-normal.jpg"),
+        load("photographic/wood-roughness.jpg"),
+      ]);
+      sets.floor = sets.wood = { map, normalMap, roughnessMap };
+    })(),
+    (async () => {
+      const [map, normalMap, arm] = await Promise.all([
+        load("photographic/fabric-color.jpg", true),
+        load("photographic/fabric-normal.jpg"),
+        load("photographic/fabric-arm.jpg"),
+      ]);
+      sets.fabric = { map, normalMap, roughnessMap: arm, aoMap: arm };
+    })(),
+  ]);
+  // Original photographic-style albedos supply natural paper/paint variation.
+  // Their surface data stays independent: ink and discoloration are not relief.
+  const albedoSheet = await imageAt(
+    "../assets/materials/original/tactile-house-albedos.png",
+  );
+  const half = albedoSheet.width / 2;
+  for (const [name, x, y] of [
+    ["wallpaper", 0, 0],
+    ["plaster", half, 0],
+    ["panel", 0, half],
+  ]) {
+    sets[name].map.dispose();
+    const [c, g] = canvas(1024);
+    // Power-of-two upload also permits repeat+mipmaps on WebGL1. Source pixels
+    // are 627 square; the upload size does not add photographic detail.
+    g.drawImage(albedoSheet, x, y, half, half, 0, 0, 1024, 1024);
+    sets[name].map = texture(c);
+    sets[name].map.anisotropy = 8;
+    // The generated photographic sheet is not an exact periodic scan. Mirrored
+    // repeat joins identical edge texels instead of exposing a bright/dark seam.
+    sets[name].map.wrapS = sets[name].map.wrapT = T.MirroredRepeatWrapping;
   }
-  {
-    const [c, g] = canvas();
-    g.fillStyle = "#3f3d31";
-    g.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 1300; i++) {
-      const y = random() * 512;
-      g.strokeStyle = `rgba(${random() > 0.4 ? "12,11,8" : "148,128,88"},${0.03 + random() * 0.08})`;
-      g.beginPath();
-      g.moveTo(0, y);
-      g.bezierCurveTo(170, y + random() * 12, 280, y - random() * 12, 512, y);
-      g.stroke();
-    }
-    g.strokeStyle = "#1f221b";
-    g.lineWidth = 5;
-    g.strokeRect(20, 18, 472, 476);
-    g.strokeStyle = "#7b7250";
-    g.lineWidth = 1;
-    g.strokeRect(24, 22, 464, 468);
-    cloud(g, 512, "rgba(0,0,0,.12)");
-    patina(g, 512);
-    maps.panel = texture(c);
-    maps.wood = maps.floor;
-  }
-  {
-    const [c, g] = canvas();
-    g.fillStyle = "#948d76";
-    g.fillRect(0, 0, 512, 512);
-    cloud(g, 512, "rgba(39,35,28,.22)", 30);
-    patina(g, 512, 22000);
-    for (let i = 0; i < 9; i++) {
-      g.strokeStyle = "rgba(23,23,21,.13)";
-      g.lineWidth = 0.5;
-      g.beginPath();
-      let x = random() * 512,
-        y = random() * 512;
-      g.moveTo(x, y);
-      for (let j = 0; j < 9; j++) {
-        x += random() * 25 - 10;
-        y += random() * 22;
-        g.lineTo(x, y);
-      }
-      g.stroke();
-    }
-    maps.concrete = texture(c);
-  }
-  {
-    const [c, g] = canvas();
-    g.fillStyle = "#6a5845";
-    g.fillRect(0, 0, 512, 512);
-    cloud(g, 512, "rgba(19,12,9,.3)", 45);
-    patina(g, 512, 25000);
-    maps.rust = texture(c);
-  }
-  {
-    const [c, g] = canvas();
-    g.fillStyle = "#908b76";
-    g.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 512; i++) {
-      g.fillStyle = i % 2 ? "#ffffff0b" : "#0000000a";
-      g.fillRect(i, 0, 1, 512);
-      g.fillRect(0, i, 512, 1);
-    }
-    cloud(g, 512, "rgba(57,40,27,.08)", 16);
-    maps.linen = texture(c);
-  }
-  const bumps = {};
-  for (const [name, map] of Object.entries(maps)) {
-    const b = map.clone();
-    b.colorSpace = T.NoColorSpace;
-    bumps[name] = b;
-  }
+  const environment = await new RGBELoader().loadAsync(
+    new URL(
+      "../assets/materials/photographic/interior-reflections.hdr",
+      import.meta.url,
+    ).href,
+  );
+  environment.mapping = T.EquirectangularReflectionMapping;
+  const maps = Object.fromEntries(
+    Object.entries(sets).map(([name, set]) => [name, set.map]),
+  );
   function material(name, rx = 1, ry = 1, color = 0xffffff) {
-    const map = maps[name].clone(),
-      bump = bumps[name].clone();
-    map.needsUpdate = bump.needsUpdate = true;
-    map.repeat.set(rx, ry);
-    bump.repeat.copy(map.repeat);
-    return new T.MeshStandardMaterial({
-      map,
+    const source = sets[name];
+    if (!source) throw new Error(`Unknown house surface: ${name}`);
+    const channels = {};
+    for (const [channel, original] of Object.entries(source)) {
+      const map = original.clone();
+      map.repeat.set(rx, ry);
+      map.needsUpdate = true;
+      channels[channel] = map;
+    }
+    const surface = new T.MeshStandardMaterial({
+      ...channels,
       color,
-      roughness: name === "tile" ? 0.5 : 0.88,
-      bumpMap: bump,
-      bumpScale:
-        name === "wallpaper" ? 0.009 : name === "fabric" ? 0.015 : 0.018,
+      roughness: 1,
+      metalness: name === "rust" ? 0.12 : 0,
+      normalScale: new T.Vector2(1, 1),
+      aoMapIntensity: 0.55,
+      // Very faint, broad specular fill; localized house lights do the work.
+      envMapIntensity: 0.06,
     });
+    if (name === "floor") {
+      // The source is a seamlessly tiling wood grain. Meter-scaled joints and
+      // restrained board variation are authored here, rather than baked light.
+      surface.onBeforeCompile = (shader) => {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <map_fragment>",
+          `#include <map_fragment>
+          vec2 boardUV = vMapUv * vec2(12., 1.5);
+          float board = floor(boardUV.x);
+          vec2 jointUV = vec2(fract(boardUV.x), fract(boardUV.y + mod(board, 3.) / 3.));
+          vec2 jointDistance = min(jointUV, 1. - jointUV);
+          vec2 antialiasWidth = max(fwidth(boardUV), vec2(.0002));
+          vec2 joint = 1. - smoothstep(vec2(.009, .0011),
+            vec2(.009, .0011) + antialiasWidth, jointDistance);
+          float boardJoint = max(joint.x, joint.y);
+          float boardTone = .96 + .07 * fract(sin(board * 12.9898 + floor(boardUV.y + mod(board, 3.) / 3.) * 78.233) * 43758.5453);
+          diffuseColor.rgb *= boardTone * (1. - boardJoint * .67);`,
+        );
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <roughnessmap_fragment>",
+          "#include <roughnessmap_fragment>\nroughnessFactor = min(1., roughnessFactor + boardJoint * .24);",
+        );
+      };
+      surface.customProgramCacheKey = () => "meter-scaled-floor-joints-v1";
+    }
+    return surface;
   }
-  return { material, maps };
+  return { material, maps, environment };
 }
 export function writingTexture(
   lines,

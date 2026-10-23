@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#11120f" />
     <title>MIRROR ME — a house that learns</title>
+    <meta
+      name="description"
+      content="A first-person psychological horror game about a house that remembers your mother’s evening, and a reflection learning to finish it. Full free-asset credits are available in game and in GAME_DESCRIPTION.md."
+    />
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="style.css" />
     <script type="importmap">
@@ -12,7 +16,8 @@
     </script>
   </head>
   <body>
-    <div id="veil" aria-hidden="true"></div>
+    <div id="veil" class="clean" aria-hidden="true"></div>
+    <div id="transition" aria-hidden="true"></div>
     <main id="menu">
       <div class="menu-top">
         <span>SKEWERNET PRESENTS</span><span>SHORTY JAM 2026 / INVERTED</span>
@@ -28,6 +33,13 @@
           <button id="start" disabled>LOADING THE HOUSE…</button
           ><button id="restart" class="secondary" hidden>START AGAIN</button>
         </div>
+        <button id="credits-open" class="text-button">CREDITS & ASSETS</button>
+        <aside id="ending-credits" hidden>
+          <p class="eyebrow">MIRROR ME · MADE BY SKEWERNET</p>
+          <p>Thank you for entering the house.</p>
+          <p id="ending-credit-names"></p>
+          <p>Complete sources, licenses and modifications: CREDITS & ASSETS.</p>
+        </aside>
         <p id="error" role="alert"></p>
         <details id="settings">
           <summary>PICTURE, COMFORT & SOUND</summary>
@@ -58,11 +70,15 @@
             ><input id="voice" type="checkbox" checked /> Voice playback</label
           >
           <label
+            ><input id="sudden-scares" type="checkbox" checked /> Sudden
+            scares</label
+          >
+          <label
             >Picture
             <select id="quality">
-              <option value="720">Balanced · 720p</option>
-              <option value="900">Detailed · 900p</option>
-              <option value="480">Retro · 480p</option>
+              <option value="1080" selected>Balanced · up to 1080p</option>
+              <option value="1440">Detailed · up to 1440p</option>
+              <option value="720">Performance · up to 720p</option>
             </select></label
           >
           <label
@@ -80,8 +96,7 @@
               value="1.13"
           /></label>
           <label
-            ><input id="grain" type="checkbox" checked /> Subtle film
-            texture</label
+            ><input id="grain" type="checkbox" /> Subtle film texture</label
           >
         </details>
       </div>
@@ -92,7 +107,7 @@
           PAUSE</span
         ><span
           >HEADPHONES RECOMMENDED<br />DESKTOP BROWSER · DEVELOPMENT BUILD ·
-          MARA / STORY & PICTURE PASS</span
+          REALISM / THRESHOLD LOOP · 0.5</span
         >
       </footer>
     </main>
@@ -140,6 +155,29 @@
           LEAVE IT
         </button>
       </form>
+    </section>
+    <section id="credits" hidden aria-label="Credits and asset licenses">
+      <p class="eyebrow">THE PEOPLE AND TOOLS BEHIND THE HOUSE</p>
+      <h2>Credits & assets</h2>
+      <p>
+        MIRROR ME by Skewernet. Original game, story, procedural furnishings and
+        sound design, developed with Codex assistance. Synthetic voice
+        performances are identified below.
+      </p>
+      <div id="credit-list"></div>
+      <p>
+        Full asset register:
+        <a href="assets/credits.json" target="_blank" rel="noopener"
+          >credits.json</a
+        >.
+        <a href="ATTRIBUTIONS.md" target="_blank" rel="noopener"
+          >Attributions and licenses</a
+        >.
+        <a href="GAME_DESCRIPTION.md" target="_blank" rel="noopener"
+          >Game description & public credits</a
+        >.
+      </p>
+      <button id="credits-close">RETURN</button>
     </section>
     <noscript
       >This house needs JavaScript and a desktop browser with WebGL.</noscript

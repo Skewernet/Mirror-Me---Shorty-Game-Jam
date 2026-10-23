@@ -1,3 +1,4 @@
+import { TARGETS, HALL_CLOCK } from "./layout.mjs";
 import { VOICES } from "./story.mjs";
 export class Sound {
   constructor(onSubtitle) {
@@ -63,9 +64,19 @@ export class Sound {
       air.connect(filter);
       filter.connect(this.ambience);
       air.start();
-      this.phonePanner = this.panner(-3, 1, 6.75);
+      this.phonePanner = this.panner(
+        TARGETS.telephone.x,
+        TARGETS.telephone.y,
+        TARGETS.telephone.z,
+      );
       this.phonePanner.connect(this.master);
-      this.radio = this.roomNoise(11.08, 1.15, 0.68, 850, 0);
+      this.radio = this.roomNoise(
+        TARGETS.radio.x,
+        TARGETS.radio.y,
+        TARGETS.radio.z,
+        850,
+        0,
+      );
       this.radioSpeech = c.createGain();
       this.radioSpeech.gain.value = this.voiceEnabled ? 1.8 : 0;
       this.radioSpeech.connect(this.radio);
@@ -86,11 +97,21 @@ export class Sound {
             error.message,
           ),
         );
-      this.water = this.roomNoise(-3.5, 1, -8.96, 1600, 0.1);
-      this.rain = this.roomNoise(-7.7, 1.7, 5.1, 2100, 0.045);
+      this.water = this.roomNoise(
+        TARGETS.tap.x,
+        TARGETS.tap.y,
+        TARGETS.tap.z,
+        1600,
+        0.1,
+      );
+      this.rain = this.roomNoise(-4.35, 1.7, 4.1, 2100, 0.045);
       this.rain.panner.refDistance = 2.5;
       this.creakNext = c.currentTime + 16;
-      this.musicPanner = this.panner(10.65, 0.9, 4.3);
+      this.musicPanner = this.panner(
+        TARGETS.musicbox.x,
+        TARGETS.musicbox.y,
+        TARGETS.musicbox.z,
+      );
       this.musicPanner.connect(this.master);
     }
     this.paused = false;
@@ -260,13 +281,35 @@ export class Sound {
   effect(id, position = null) {
     if (
       position &&
-      ["frame-shift", "frame-fall", "cup-slide", "cup-fall"].includes(id) &&
+      [
+        "frame-shift",
+        "frame-fall",
+        "cup-slide",
+        "cup-fall",
+        "mirror-snap",
+        "hall-appearance",
+        "loop-latch",
+      ].includes(id) &&
       this.context &&
       !this.paused
     ) {
       const source = this.panner(position.x, position.y || 0.3, position.z);
       source.connect(this.master);
-      if (id === "frame-shift") {
+      if (id === "mirror-snap" || id === "hall-appearance") {
+        // A short, spatial impact with headroom, followed by a thin glass resonance.
+        this.impulse(id === "mirror-snap" ? 56 : 43, 0.24, 0.4, 0, source);
+        this.noiseBurst(
+          0.19,
+          0.16,
+          id === "mirror-snap" ? 1480 : 540,
+          0,
+          source,
+        );
+        for (const f of [730, 1130]) this.impulse(f, 0.018, 0.9, 0, source);
+      } else if (id === "loop-latch") {
+        this.noiseBurst(0.14, 0.09, 860, 0, source);
+        this.impulse(67, 0.1, 0.23, 0, source);
+      } else if (id === "frame-shift") {
         this.noiseBurst(0.4, 0.075, 320, 0, source);
       } else if (id === "cup-slide") {
         this.noiseBurst(0.3, 0.045, 1450, 0, source);
@@ -282,7 +325,15 @@ export class Sound {
       setTimeout(() => source.disconnect(), 2500);
       return;
     }
-    if (["drawer-open", "drawer-close", "door-wood"].includes(id)) {
+    if (
+      [
+        "drawer-open",
+        "drawer-close",
+        "door-wood",
+        "backdoor-open",
+        "backdoor-close",
+      ].includes(id)
+    ) {
       this.noiseBurst(0.52, 0.075, 420, 0.35);
       this.impulse(58, 0.08, 0.16, 0.35);
     }
@@ -294,7 +345,7 @@ export class Sound {
       this.impulse(103, 0.12, 0.19);
       this.noiseBurst(0.12, 0.085, 1500);
     }
-    if (id === "locked" || id === "bedroom-locked")
+    if (id === "locked" || id === "front-locked" || id === "bedroom-locked")
       this.noiseBurst(0.12, 0.08, 850);
     if (id === "knock" || id === "behind") {
       this.impulse(72, 0.15, 0.17, id === "behind" ? -0.8 : 0.7);
@@ -310,7 +361,7 @@ export class Sound {
     if (id === "echo-silenced" || id === "house-quiet")
       this.noiseBurst(0.045, 0.028, 750);
     if (id === "wrong-order") this.impulse(39, 0.07, 1.0);
-    if (id === "drip") this.impulse(850, 0.015, 0.15, 0, this.water.panner);
+    if (id === "drip") this.impulse(850, 0.015, 0.15, 0, this.water?.panner);
   }
   update(state, player) {
     if (!this.context || this.paused) return;
@@ -342,7 +393,7 @@ export class Sound {
     // Sparse structural sound, kept separate from the three puzzle sources.
     if (state.stage < 3 && t > this.creakNext) {
       this.creakNext = t + 24 + Math.random() * 12;
-      const source = this.panner(3.5, 2.5, -3.8);
+      const source = this.panner(4.3, 2.25, 0);
       source.connect(this.master);
       this.noiseBurst(0.8, 0.05, 210, 0, source);
       this.impulse(96, 0.025, 0.6, 0, source);
@@ -350,8 +401,7 @@ export class Sound {
     }
     if (
       !state.clockSolved &&
-      player.z < -5 &&
-      Math.abs(player.x) < 2 &&
+      Math.hypot(player.x - HALL_CLOCK.x, player.z - HALL_CLOCK.z) < 2.3 &&
       t > this.tickNext
     ) {
       this.tickNext = t + 1;
@@ -420,7 +470,7 @@ export class Sound {
         line.speaker === "THE GLASS"
           ? 3200
           : line.speaker === "THE TELEPHONE"
-            ? 2300
+            ? 3300
             : 6000;
       source.connect(filter);
       filter.connect(g);

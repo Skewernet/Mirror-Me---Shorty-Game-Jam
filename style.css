@@ -61,7 +61,7 @@ canvas {
   inset: 0;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
+  image-rendering: auto;
   display: block;
 }
 #veil {
@@ -437,4 +437,88 @@ details[open] {
 }
 #hint {
   color: #d2cab8aa;
+}
+
+#transition {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: #030504;
+  opacity: 0;
+}
+.text-button {
+  min-height: 38px;
+  padding: 12px 0;
+  margin-top: 10px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font-size: 9px;
+}
+.text-button:hover {
+  color: var(--paper);
+  background: transparent;
+}
+#ending-credits {
+  border-top: 1px solid #d5cebb30;
+  padding-top: 12px;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+#ending-credit-names {
+  font-size: 11px;
+}
+#credits {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  padding: 7vh 12vw;
+  background: #0d1411fa;
+  overflow: auto;
+  line-height: 1.8;
+  color: var(--muted);
+}
+#credits h2 {
+  color: var(--paper);
+  font-size: 48px;
+  font-weight: 400;
+  margin: 14px 0;
+}
+#credit-list {
+  max-width: 850px;
+}
+#credit-list article {
+  padding: 16px 0;
+  border-top: 1px solid #d5cebb25;
+}
+#credit-list h3 {
+  color: var(--paper);
+  font-size: 20px;
+  font-weight: 400;
+  margin: 6px 0;
+}
+#credit-list p {
+  margin: 5px 0;
+}
+#credits a {
+  color: #d8b998;
+}
+#credits-close {
+  margin: 20px 0 40px;
+}
+
+.ending-credit {
+  display: block;
+  margin: 14px 0;
+}
+.ending-credit a {
+  color: #d8b998;
+}
+
+#prompt.mirror-prompt {
+  top: auto;
+  bottom: 8%;
 }

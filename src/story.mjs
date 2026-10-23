@@ -12,7 +12,6 @@ export class Story {
     this.armed = false;
     this.frozen = false;
     this.encounter = false;
-    this.crossing = false;
     this.drawerOpen = false;
     this.keyAvailable = false;
     this.hasKey = false;
@@ -101,11 +100,16 @@ export class Story {
       false,
     ][this.stage];
   }
-  traverse(x, z) {
-    if (x > 2.2 && z < -2) this.crossing = true;
-    if (!this.crossing || x < 2.2 || z < 6.2) return null;
-    this.crossing = false;
+  // Traversing the L-shaped hall is ordinary movement. Only a physical rear-door
+  // crossing, checked by the controller, can return Mara to the entrance.
+  traverse() {
+    return null;
+  }
+  crossBackDoor() {
+    if (!this.doorOpen) return null;
+    if (this.stage === 4 && this.exitReleased) return "ending";
     this.laps++;
+    this.doorOpen = false;
     if (this.stage < 4 && this.ready()) {
       this.stage++;
       if (this.stage === 3) this.radioOn = true;
@@ -222,15 +226,28 @@ export class Story {
     }
     if (id === "clock") return "clock";
     if (id === "musicbox")
-      return this.stage === 3 ? this.silence("musicbox") : "musicbox";
-    if (id === "tap") return this.stage === 3 ? this.silence("tap") : "tap";
+      return this.stage >= 4
+        ? "already-quiet"
+        : this.stage === 3
+          ? this.silence("musicbox")
+          : "musicbox";
+    if (id === "tap")
+      return this.stage >= 4
+        ? "already-quiet"
+        : this.stage === 3
+          ? this.silence("tap")
+          : "tap";
     if (id === "photo") return this.stage >= 2 ? "photo-changed" : "photo";
+    if (id === "front-door") return "front-locked";
     if (id === "door") {
-      if (this.doorOpen) return null;
-      if (!this.exitReleased) return this.stage === 4 ? "door-wait" : "locked";
-      this.doorOpen = true;
-      return "unlocked";
+      this.doorOpen = !this.doorOpen;
+      return this.doorOpen
+        ? this.stage === 4 && this.exitReleased
+          ? "unlocked"
+          : "backdoor-open"
+        : "backdoor-close";
     }
+
     return null;
   }
   silence(id) {
@@ -246,21 +263,21 @@ export class Story {
     return "wrong-order";
   }
   hint() {
-    if (this.doorOpen) return "The front door is open.";
+    if (this.doorOpen) return "The back door is open. Try to leave.";
     if (this.stage === 0) {
       if (!this.heardArrival) return "The sitting-room telephone is ringing.";
       if (!this.hasFuse && !this.power)
         return "The kitchen light is dead. Look for a spare fuse.";
       if (!this.power) return "The fuse box is in the utility room.";
       if (this.firstSeen < 1.3) return "There is a mirror in the main hallway.";
-      return "Follow the passage around the house.";
+      return "The back door is at the end of the far hall. Try to leave.";
     }
     if (this.stage === 1) {
       if (!this.encounter)
         return "The glass is late. Watch it, then turn away.";
       if (!this.hasKey) return "Something fell into the hall drawer.";
       if (!this.hasDiary) return "The small key fits the bedroom.";
-      return "The hallway is waiting for another pass.";
+      return "Try the back door again.";
     }
     if (this.stage === 2) {
       if (!this.hasTimeClue)
@@ -268,14 +285,14 @@ export class Story {
       if (!this.clockSolved)
         return "Read the time backward. Set the hall clock.";
       if (!this.heardCall) return "The sitting room telephone is ringing.";
-      return "Follow the return passage.";
+      return "The back door is waiting.";
     }
     if (this.stage === 3)
       return this.echoIndex === 3
-        ? "The house is quiet. Return through the passage."
+        ? "The house is quiet. Leave through the back door."
         : "Her evening, in reverse: bedroom music box, bathroom tap, then kitchen radio. The telephone is not one of them.";
     return this.exitReleased
-      ? "Go back to the front door."
+      ? "Leave through the back door. This time, refuse the glass."
       : "Face the glass. When it calls you closer, leave.";
   }
 }

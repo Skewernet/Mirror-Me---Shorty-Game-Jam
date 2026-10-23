@@ -1,0 +1,211 @@
+[
+  {
+    "file": "original/wallpaper-color.webp",
+    "role": "color",
+    "bytes": 35694,
+    "sha256": "e58621d25535e4b3aff4d25498908cdc301eadc9b4fab60141d841d72a717950",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/wallpaper-normal.webp",
+    "role": "normal",
+    "bytes": 8948,
+    "sha256": "22e5444e920a0a2416b69265148c330b46157c590ce442354bb1075f3cc34091",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/wallpaper-roughness.webp",
+    "role": "roughness",
+    "bytes": 14800,
+    "sha256": "e3f123f1dd4f368ce405a4d9ed2fddfa5b1d0db680f11b943b30def7c34cf18b",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/plaster-color.webp",
+    "role": "color",
+    "bytes": 14302,
+    "sha256": "46d4e82a184e654b1613537e0a2f5f86b245ab78ed7ddbff2a001ebc00ff6622",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/plaster-normal.webp",
+    "role": "normal",
+    "bytes": 44752,
+    "sha256": "91e31951ff75f7f61666c40bf96ab044258bc83e0f0cdbb5a6cabc30cda2ac00",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/plaster-roughness.webp",
+    "role": "roughness",
+    "bytes": 12192,
+    "sha256": "1de6dbcdff3a18b19e6b8f40cf6062ad6ebabd16f032a731e9877b259b16ece0",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/panel-color.webp",
+    "role": "color",
+    "bytes": 15666,
+    "sha256": "d2825444bd33ae8125d86108f775a836f8b91447cf56b1f59d63a9a1cf27b804",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/panel-normal.webp",
+    "role": "normal",
+    "bytes": 19650,
+    "sha256": "4cea4532476dbc545a476897867c0ccf316d05734af77b42edba13e36bcd550e",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/panel-roughness.webp",
+    "role": "roughness",
+    "bytes": 68644,
+    "sha256": "a89bd5ba4db9c706162deb69e4757b9f236159ac14bc07261b8dbca857e7b1fa",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/tile-color.webp",
+    "role": "color",
+    "bytes": 11644,
+    "sha256": "f689f64e9303727c084b8a861249f36cb00927720098ea49c933b65d57891b7a",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/tile-normal.webp",
+    "role": "normal",
+    "bytes": 10982,
+    "sha256": "55e0d1560343618907a6ed0c3092381a579fcc1c8dbe885be2411bf932be3e88",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/tile-roughness.webp",
+    "role": "roughness",
+    "bytes": 11692,
+    "sha256": "78c52ae7042e21f3e1960e22b4801814c93a5ab52c17bec066a13d4148672502",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/linen-color.webp",
+    "role": "color",
+    "bytes": 32164,
+    "sha256": "155f99b79ceebf9fde6e40888db69af9440684be3e49bbeba3f9829e8f3facba",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/linen-normal.webp",
+    "role": "normal",
+    "bytes": 127872,
+    "sha256": "79a350ac9f31342ab4734787f55c11f9748865fe915f137d3fc80b98f64aecce",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/linen-roughness.webp",
+    "role": "roughness",
+    "bytes": 6150,
+    "sha256": "a7fe80cf8a5ab7319d7787e58433c7178558163541e8205a17f311ac4642624f",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/concrete-color.webp",
+    "role": "color",
+    "bytes": 18656,
+    "sha256": "561b14f9a67d4bed7fa84cd29f14b47e2bac5b0477d0d05bfa5550cb37cc446f",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/concrete-normal.webp",
+    "role": "normal",
+    "bytes": 13402,
+    "sha256": "bc8e88f497cfc6633ef30959a71706b709685f9d096d25a3e2655ce18839c396",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/concrete-roughness.webp",
+    "role": "roughness",
+    "bytes": 31168,
+    "sha256": "6f4328506c2ff1732cc2c3110e861f5b5f2971b47b1c3ed7cd141943a7abe17c",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/rust-color.webp",
+    "role": "color",
+    "bytes": 59658,
+    "sha256": "d08e4979164e36c63a24a813348014da7eedb30ad162e5467bdb0779804799b9",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/rust-normal.webp",
+    "role": "normal",
+    "bytes": 47934,
+    "sha256": "961731809145b1cf1185ac0e5fc448477e0afc74a73dfd3fe8c32f48acb423ee",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/rust-roughness.webp",
+    "role": "roughness",
+    "bytes": 97880,
+    "sha256": "ab352f3958835d33dacaea16572887bb9e426de87a80ee4d069baf21514db19f",
+    "license": "Project original",
+    "generator": "tools/materials_prep.py",
+    "nominalRepeatMetres": 1.8
+  },
+  {
+    "file": "original/tactile-house-albedos.png",
+    "role": "original albedo atlas: top left wallpaper, top right plaster, bottom left painted wood; bottom right unused paper",
+    "bytes": 3649868,
+    "sha256": "42ca5e853f78be71b9450fc5c3478581298a96cf51123617dd0f45dff7e86f50",
+    "license": "Project original",
+    "creator": "Original project art generated with OpenAI image generation",
+    "source": "OpenAI image generation; original request 2026-10-23",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "quadrantDimensions": [
+      627,
+      627
+    ],
+    "changes": "Original image unmodified; runtime exact 627x627 quadrant crops uploaded at1024x1024 for WebGL1 repeat/mipmap compatibility. Mirrored texture repeat hides nonperiodic source edges. Existing independent normals and roughness retained.",
+    "prompt": "Photographic material albedo atlas: faded fine Victorian rose-and-sage ivory wallpaper; chalky offwhite plaster; worn pale sage painted wood; unprinted aged ivory paper. Flat neutral diffuse lighting, no perspective, no baked dramatic shadows.",
+    "generationId": "exec-0808588a-ef52-4ea8-803b-2e6bfea5e133"
+  }
+]

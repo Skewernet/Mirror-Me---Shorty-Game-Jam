@@ -1,0 +1,169 @@
+{
+  "title": "MIRROR ME — credits and asset sources",
+  "updated": "2026-10-23",
+  "entries": [
+    {
+      "id": "mirror-me-original-work",
+      "title": "MIRROR ME — concept, story, house and sound",
+      "creator": "Skewernet; AI-assisted development with OpenAI ChatGPT/Codex",
+      "license": "Original project work; no separate asset-license grant",
+      "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam",
+      "licenseUrl": "",
+      "files": [
+        "src/**",
+        "index.html",
+        "style.css"
+      ],
+      "changes": "Original game direction, writing, L-shaped house, authored props, botanical/calendar/writing/radio artwork, interface, interaction and procedural animation. Ambience, footsteps, knocks, mechanical sounds and music-box tones are synthesized with Web Audio; no external sound library."
+    },
+    {
+      "id": "threejs",
+      "title": "Three.js 0.160.1 and addons",
+      "creator": "Three.js authors; copyright 2010–2023",
+      "license": "MIT",
+      "source": "https://github.com/mrdoob/three.js/tree/r160",
+      "licenseUrl": "https://github.com/mrdoob/three.js/blob/r160/LICENSE",
+      "files": [
+        "vendor/three.module.js",
+        "vendor/Reflector.js",
+        "vendor/RoundedBoxGeometry.js",
+        "vendor/GLTFLoader.js",
+        "vendor/BufferGeometryUtils.js",
+        "vendor/SkeletonUtils.js",
+        "vendor/RGBELoader.js",
+        "vendor/THREE-LICENSE.txt"
+      ],
+      "changes": "Vendored locally for rendering, mirrors, glTF loading, skeletal posing, geometry and HDR decoding. License text retained in vendor/THREE-LICENSE.txt."
+    },
+    {
+      "id": "kokoro-voices",
+      "title": "Kokoro-82M v1.0 — synthetic dialogue",
+      "creator": "Kokoro / hexgrad; ONNX conversion and runtime by k2-fsa / sherpa-onnx; original dialogue by MIRROR ME",
+      "license": "Engine and model weights: Apache-2.0; dialogue: original project writing",
+      "source": "https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models",
+      "licenseUrl": "https://github.com/hexgrad/kokoro/blob/main/LICENSE",
+      "files": [
+        "assets/voice/*.ogg",
+        "assets/voice/lines.json",
+        "assets/voice/production.json",
+        "assets/voice/MODEL_CARD.txt",
+        "assets/voice/LICENSE_APACHE_2.0.txt"
+      ],
+      "changes": "Seventeen original lines synthesized offline. Mara and the glass: bf_emma; Mum: bf_isabella; weather bulletin: bm_george. Pacing, telephone/radio filtering, restrained glass echo and loudness/headroom mastering by the project. Supplied synthetic presets; no human actor performance or real-person voice clone is claimed."
+    },
+    {
+      "id": "makehuman-mara-base",
+      "title": "MakeHuman / MPFB — female base, morphology and game rig",
+      "creator": "MakeHuman Team — Data Collection AB, Joel Palmius and Jonas Hauquier",
+      "license": "CC0 1.0",
+      "source": "https://github.com/makehumancommunity/mpfb2/tree/b1a2dc98776da9d1eea751b159d42cf61778fe2e/src/mpfb/data",
+      "licenseUrl": "https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md",
+      "files": [
+        "assets/character/mara.glb",
+        "assets/character/mara.json",
+        "assets/character/sources.json",
+        "assets/character/README.md",
+        "assets/character/LICENSE-CC0.md",
+        "assets/character/MPFB-LICENSE.md"
+      ],
+      "changes": "Adult female morphological blend at 1.74 m; helper removal, anatomical subdivision, resting pose, glTF export and procedural animation."
+    },
+    {
+      "id": "makehuman-system-character",
+      "title": "MakeHuman — system skin, eyes, hair, clothing and shoes",
+      "creator": "MakeHuman Team — Data Collection AB, Joel Palmius and Jonas Hauquier",
+      "license": "CC0 1.0",
+      "source": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+      "licenseUrl": "https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md",
+      "files": [
+        "assets/character/mara.glb",
+        "assets/character/mara.json"
+      ],
+      "changes": "System skin, detailed eyes, bob hairstyle, brows, lashes, casual clothing and shoes03 black shoes fitted to the female character; chestnut hair tint, PBR tuning and authored horror variants."
+    },
+    {
+      "id": "margaret-toigo-mara-costume",
+      "title": "Red Shirt with Black Jeans — costume material",
+      "creator": "Margaret Toigo",
+      "license": "CC0 1.0",
+      "source": "http://www.makehumancommunity.org/node/997",
+      "licenseUrl": "https://static.makehumancommunity.org/assets/assetpacks/system_clothes_materials01.html",
+      "files": [
+        "assets/character/mara.glb",
+        "assets/character/mara.json"
+      ],
+      "changes": "Material used on the refitted female blouse/jeans costume, with roughness and scene-lighting adjustments. Current official MakeHuman asset-pack listing identifies this material as CC0."
+    },
+    {
+      "id": "wayfair-wood",
+      "title": "Chair Damask Purplegold — wood PBR maps",
+      "creator": "Eric Chadwick (models and textures); © 2021 Wayfair",
+      "license": "CC BY 4.0",
+      "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/15cd02d304e54cb42a4db4eefe719f76190f4b68/Models/ChairDamaskPurplegold",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "files": [
+        "assets/materials/photographic/wood-color.jpg",
+        "assets/materials/photographic/wood-normal.jpg",
+        "assets/materials/photographic/wood-roughness.jpg",
+        "assets/materials/licenses/khronos-wood-CC-BY-4.0.md",
+        "assets/materials/licenses/khronos-wood-source.md"
+      ],
+      "changes": "Only the tiling wood texture maps are used. Image files copied unmodified and renamed; runtime tint, repeat and original floorboard joins applied. No chair model is included."
+    },
+    {
+      "id": "polyhaven-fabric",
+      "title": "Fabric Pattern 07 — fabric PBR maps",
+      "creator": "Poly Haven (publisher)",
+      "license": "CC0 1.0",
+      "source": "https://polyhaven.com/a/fabric_pattern_07",
+      "licenseUrl": "https://polyhaven.com/license",
+      "files": [
+        "assets/materials/photographic/fabric-color.jpg",
+        "assets/materials/photographic/fabric-normal.jpg",
+        "assets/materials/photographic/fabric-arm.jpg",
+        "assets/materials/licenses/polyhaven-policy.json"
+      ],
+      "changes": "Color, OpenGL normal and packed AO/roughness/metallic maps from the Godot demo-project mirror. Source images unmodified; repeat, channel interpretation and material tint configured in the game."
+    },
+    {
+      "id": "polyhaven-hdr",
+      "title": "St Fagans Interior — HDR environment",
+      "creator": "Poly Haven (publisher)",
+      "license": "CC0 1.0",
+      "source": "https://polyhaven.com/a/st_fagans_interior",
+      "licenseUrl": "https://polyhaven.com/license",
+      "files": [
+        "assets/materials/photographic/interior-reflections.hdr"
+      ],
+      "changes": "Unmodified 1k HDR from the pmndrs/drei-assets mirror, decoded and prefiltered for restrained indirect/specular interior reflections. It is not used as a visible background."
+    },
+    {
+      "id": "original-pbr-surfaces",
+      "title": "Original house PBR surfaces",
+      "creator": "MIRROR ME — AI-assisted procedural artwork/code",
+      "license": "Original project work; no separate asset-license grant",
+      "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/materials_prep.py",
+      "licenseUrl": "",
+      "files": [
+        "assets/materials/original/*.webp",
+        "assets/materials/original-sources.json",
+        "tools/materials_prep.py"
+      ],
+      "changes": "Original wallpaper, plaster, panelling, tile, linen, concrete and rust generated at 1024 px. Separate albedo, tangent-space normal and roughness maps; no third-party image used as their source."
+    },
+    {
+      "id": "original-ai-art",
+      "title": "Original fictional family images and house material atlases",
+      "creator": "Created for MIRROR ME with OpenAI image generation",
+      "license": "Original project artwork; no third-party asset-license grant",
+      "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/tree/main/assets",
+      "licenseUrl": "",
+      "files": [
+        "assets/art/family-photographs.png",
+        "assets/art/house-materials.png",
+        "assets/materials/original/tactile-house-albedos.png"
+      ],
+      "changes": "Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture."
+    }
+  ]
+}

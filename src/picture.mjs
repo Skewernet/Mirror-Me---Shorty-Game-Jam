@@ -7,8 +7,9 @@ export class Picture {
     this.renderer = renderer;
     this.camera = camera;
     this.contactShadows = true;
-    this.quality = 720;
+    this.quality = 1080;
     const webgl2 = renderer.capabilities.isWebGL2;
+    this.maxSamples = webgl2 ? renderer.capabilities.maxSamples : 0;
     this.hdr = webgl2 && renderer.extensions.has("EXT_color_buffer_float");
     const depthSupported =
       webgl2 || renderer.extensions.has("WEBGL_depth_texture");
@@ -35,6 +36,7 @@ export class Picture {
       projection: { value: camera.projectionMatrix },
       exposure: { value: renderer.toneMappingExposure },
       aoEnabled: { value: 1 },
+      edgeAAEnabled: { value: 1 },
     };
     const kernel = [];
     for (let i = 0; i < 12; i++) {
@@ -66,7 +68,7 @@ export class Picture {
         uniform vec2 texel;
         uniform mat4 inverseProjection, projection;
         uniform vec3 samples[12];
-        uniform float exposure, aoEnabled;
+        uniform float exposure, aoEnabled, edgeAAEnabled;
         vec3 positionAt(vec2 uv){
           float d=texture2D(depth,uv).r;
           vec4 p=inverseProjection*vec4(uv*2.-1.,d*2.-1.,1.);
@@ -80,17 +82,21 @@ export class Picture {
         void main(){
           vec2 uv=uvScreen;
           vec3 center=texture2D(image,uv).rgb;
-          // Directional edge smoothing keeps fine geometry stable without blurring textures.
-          vec3 nw=texture2D(image,uv+texel*vec2(-1.,-1.)).rgb;
-          vec3 ne=texture2D(image,uv+texel*vec2(1.,-1.)).rgb;
-          vec3 sw=texture2D(image,uv+texel*vec2(-1.,1.)).rgb;
-          vec3 se=texture2D(image,uv+texel*vec2(1.,1.)).rgb;
-          float a=luminance(nw),b=luminance(ne),c=luminance(sw),d=luminance(se);
-          vec2 dir=vec2(-((a+b)-(c+d)),(a+c)-(b+d));
-          dir=clamp(dir/(min(abs(dir.x),abs(dir.y))+max((a+b+c+d)*.03125,.0078)),-4.,4.)*texel;
-          vec3 smoothColor=.5*(texture2D(image,uv+dir/6.).rgb+texture2D(image,uv-dir/6.).rgb);
-          float edge=max(max(a,b),max(c,d))-min(min(a,b),min(c,d));
-          vec3 color=mix(center,smoothColor,clamp(edge*2.,0.,.65));
+          vec3 color=center;
+          // WebGL2 uses actual coverage samples. The performance/WebGL1 path
+          // keeps a small directional AA filter without blurring the full image.
+          if(edgeAAEnabled>.5){
+            vec3 nw=texture2D(image,uv+texel*vec2(-1.,-1.)).rgb;
+            vec3 ne=texture2D(image,uv+texel*vec2(1.,-1.)).rgb;
+            vec3 sw=texture2D(image,uv+texel*vec2(-1.,1.)).rgb;
+            vec3 se=texture2D(image,uv+texel*vec2(1.,1.)).rgb;
+            float a=luminance(nw),b=luminance(ne),c=luminance(sw),d=luminance(se);
+            vec2 dir=vec2(-((a+b)-(c+d)),(a+c)-(b+d));
+            dir=clamp(dir/(min(abs(dir.x),abs(dir.y))+max((a+b+c+d)*.03125,.0078)),-4.,4.)*texel;
+            vec3 smoothColor=.5*(texture2D(image,uv+dir/6.).rgb+texture2D(image,uv-dir/6.).rgb);
+            float edge=max(max(a,b),max(c,d))-min(min(a,b),min(c,d));
+            color=mix(center,smoothColor,clamp(edge*2.,0.,.65));
+          }
           float occlusion=0.;
           #ifdef CONTACT_AO
           if(aoEnabled>.5 && texture2D(depth,uv).r<.9999){
@@ -129,6 +135,15 @@ export class Picture {
   }
   resize(width, height, quality) {
     this.quality = quality;
+    const samples = Math.min(
+      this.maxSamples,
+      quality >= 1440 ? 4 : quality >= 1080 ? 2 : 0,
+    );
+    if (samples !== this.target.samples) {
+      this.target.samples = samples;
+      this.target.dispose();
+    }
+    this.uniforms.edgeAAEnabled.value = samples ? 0 : 1;
     this.target.setSize(width, height);
     this.uniforms.texel.value.set(1 / width, 1 / height);
   }

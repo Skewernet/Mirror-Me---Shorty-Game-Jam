@@ -1,0 +1,89 @@
+{
+  "license": "CC0-1.0",
+  "archive": {
+    "url": "https://github.com/Makehuman-2/MH2_Asset_Repository_CCO/releases/download/CC0/mh_system_CC0.zip",
+    "sha256": "d38970b0a2a06dbcb2d3f55aa3d673c45bc88e7bd1f4afa0368a0782938d55bc"
+  },
+  "mpfb": {
+    "url": "https://github.com/makehumancommunity/mpfb2",
+    "commit": "b1a2dc98776da9d1eea751b159d42cf61778fe2e"
+  },
+  "officialLicenseListings": {
+    "system": "https://github.com/makehumancommunity/makehuman-static-website/blob/1f877f13e0259e83ea54615763ad40a4f18274d6/content/Assets/AssetPacks/makehuman_system_assets.md",
+    "costumeMaterial": "https://github.com/makehumancommunity/makehuman-static-website/blob/1f877f13e0259e83ea54615763ad40a4f18274d6/content/Assets/AssetPacks/system_clothes_materials01.md"
+  },
+  "sourceFiles": [
+    {
+      "path": "skins/young_caucasian_female/young_caucasian_female.mhmat",
+      "sha256": "0bdea7786201f0b1132a24088336a97496ccdc54e9984db65d253a6a6d66f24f"
+    },
+    {
+      "path": "skins/young_caucasian_female/young_lightskinned_female_diffuse.png",
+      "sha256": "b2a6ac8cd4f9febdb447368e29c76cd68410bb66e46d9dcfa2d5f75126eea8fc"
+    },
+    {
+      "path": "eyes/high-poly/high-poly.obj",
+      "sha256": "da2493215b708a344c33dc72f2a9a5b8fa985dcc5a70ad3b208995cf871da8e1"
+    },
+    {
+      "path": "eyes/high-poly/high-poly.mhclo",
+      "sha256": "b183cfe37120ab726f9b3f2ea6cd3a64c44ce7b4bd91a77c841cf70c04f83a0d"
+    },
+    {
+      "path": "eyes/materials/brown.mhmat",
+      "sha256": "4abad93ce50541c08127721e77bce035640c9f16bed16cd0f5524b1cd5908465"
+    },
+    {
+      "path": "eyes/materials/brown_eye.png",
+      "sha256": "4659691c7295ad6206c78b003e5fd0e5f91dcd53032fa914a229bb48cabe424b"
+    },
+    {
+      "path": "eyebrows/eyebrow001/eyebrow001.mhclo",
+      "sha256": "54c8892c2ba577f4152d779ce1f20f7cd323beb8cbd9cb701796165c221b4f5b"
+    },
+    {
+      "path": "eyelashes/eyelashes01/eyelashes01.mhclo",
+      "sha256": "5a86b29c15649273d723084954b7fa7bf199112571d4f58539b46734d397ee6b"
+    },
+    {
+      "path": "hair/bob02/bob02.obj",
+      "sha256": "30d44038836d786364eb4134a9259cf93ca0c707f883861b0135ebfb149caa08"
+    },
+    {
+      "path": "hair/bob02/bob02.mhclo",
+      "sha256": "a48dcf87c6a618f9c6e90fcb00eed07cd59ab024d8d994606fa1b070da515b96"
+    },
+    {
+      "path": "hair/bob02/bob02_diffuse.png",
+      "sha256": "38c88e6f71631356591f09b1f17a1bb5a99c3bb095b1a29003f1dc3d3e839b0d"
+    },
+    {
+      "path": "clothes/male_casualsuit01/male_casualsuit01.obj",
+      "sha256": "001921d237e408c35103720d046aa37f9c5512db1a179a5ede6a065cd504ba89"
+    },
+    {
+      "path": "clothes/male_casualsuit01/male_casualsuit01.mhclo",
+      "sha256": "78503ed7f56c149843d85e06e1164bc6871ce7319b2ef689237046352cc90de4"
+    },
+    {
+      "path": "clothes/male_casualsuit01/male_casualsuit01_normal.png",
+      "sha256": "ff029fc5a3350ebc72813cdf050afcffd23064c7701d99e664572713cfa98a5f"
+    },
+    {
+      "path": "clothes/male_casualsuit01/toigo_male_casual_suit_01_red_shirt_with_black_jeans/male_casualsuit01_RedShirt-BlackJeans.png",
+      "sha256": "2e84fc4130042790af0b21e0ca28bd85d10a5dafb452ec72cb17ec4e4e86e21e"
+    },
+    {
+      "path": "clothes/shoes03/shoes03.mhclo",
+      "sha256": "5a388e18e6759db99bcc8c7d062a2b3bed02eecd32705731ba90063a6e35265b"
+    },
+    {
+      "path": "clothes/shoes03/shoes03.obj",
+      "sha256": "b03f46c0b5cdc38e4472e4747ba267f101e1e8ae88656180b1334986646108b2"
+    },
+    {
+      "path": "clothes/shoes03/shoes03_diffuse.png",
+      "sha256": "fe8216fbd0c34ecd3ac0e1a01970a4ccf844417be5fd1d72c527c9209256db93"
+    }
+  ]
+}
