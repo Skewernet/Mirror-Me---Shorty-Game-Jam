@@ -18,104 +18,137 @@
   <body>
     <div id="veil" class="clean" aria-hidden="true"></div>
     <div id="transition" aria-hidden="true"></div>
-    <main id="menu">
+    <main id="menu" aria-label="MIRROR ME main menu">
       <div class="menu-top">
-        <span>SKEWERNET PRESENTS</span><span>SHORTY JAM 2026 / INVERTED</span>
+        <span class="wordmark">SKEWERNET</span>
+        <span>A SHORTY JAM STORY · INVERTED</span>
       </div>
-      <div class="menu-body">
-        <p class="eyebrow" id="chapter">THE HOUSE THAT LEARNS</p>
-        <h1 id="title">MIRROR<span>ME</span></h1>
-        <p id="description">
-          Someone left the house awake.<br />Someone else is learning your way
-          home.
-        </p>
-        <div class="actions">
-          <button id="start" disabled>LOADING THE HOUSE…</button
-          ><button id="restart" class="secondary" hidden>START AGAIN</button>
-          <button id="fullscreen" class="secondary" type="button" aria-pressed="false" disabled>
-            FULLSCREEN
-          </button>
+      <div class="menu-layout">
+        <div class="menu-body">
+          <p class="eyebrow" id="chapter">THE HOUSE THAT LEARNS</p>
+          <h1 id="title">MIRROR<span>ME</span></h1>
+          <p id="description">
+            Someone left the house awake.<br />Someone else is learning your way home.
+          </p>
+          <div class="actions">
+            <button id="start" disabled>LOADING THE HOUSE…</button>
+            <button id="restart" class="secondary" hidden>START AGAIN</button>
+            <button id="fullscreen" class="secondary" type="button" aria-pressed="false" disabled>
+              FULLSCREEN
+            </button>
+          </div>
+          <p id="loading-status" role="status">Loading the house and preparing lighting…</p>
+          <p class="play-help">Enter captures your mouse. <kbd>Esc</kbd> pauses and releases it.</p>
+          <div class="menu-links">
+            <details id="settings">
+              <summary aria-controls="settings-panel">SETTINGS & CONTROLS</summary>
+              <section id="settings-panel" class="settings-panel" aria-labelledby="settings-title">
+                <div class="settings-heading">
+                  <div>
+                    <p class="eyebrow">MAKE YOURSELF COMFORTABLE</p>
+                    <h2 id="settings-title">Settings</h2>
+                  </div>
+                  <button id="settings-close" class="secondary compact-button" type="button">DONE</button>
+                </div>
+                <p class="settings-intro">Adjust the picture, sound and intensity of the house.</p>
+                <fieldset>
+                  <legend>Picture</legend>
+                  <label class="setting-row" for="quality">
+                    <span>Picture quality<small>Maximum internal resolution.</small></span>
+                    <select id="quality">
+                      <option value="720">Performance · 720p</option>
+                      <option value="1080" selected>Balanced · 1080p</option>
+                      <option value="1440">Detailed · 1440p</option>
+                    </select>
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Adaptive resolution<small>Adjusts resolution within your selected quality to keep movement smooth.</small></span>
+                    <input id="auto-quality" type="checkbox" checked />
+                  </label>
+                  <label class="setting-row" for="brightness">
+                    <span>Brightness<small>Keep detail visible in the darkest rooms.</small></span>
+                    <span class="range-control"><input id="brightness" type="range" min="0.8" max="1.6" step="0.01" value="1.13" /><output id="brightness-value" for="brightness">113%</output></span>
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Film lighting<small>Color grading and subtle lens shading.</small></span>
+                    <input id="post-processing" type="checkbox" checked />
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Contact shadows<small>Adds depth where objects meet.</small></span>
+                    <input id="contact-shadows" type="checkbox" checked />
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Film grain<small>Optional fine texture over the picture.</small></span>
+                    <input id="grain" type="checkbox" />
+                  </label>
+                </fieldset>
+                <fieldset>
+                  <legend>Sound & dialogue</legend>
+                  <label class="setting-row" for="volume">
+                    <span>Master volume</span>
+                    <span class="range-control"><input id="volume" type="range" min="0" max="1" step="0.05" value="0.55" /><output id="volume-value" for="volume">55%</output></span>
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Voices<small>Spoken dialogue. Story timing stays the same when muted.</small></span>
+                    <input id="voice" type="checkbox" checked />
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Subtitles<small>Show dialogue captions.</small></span>
+                    <input id="subtitles" type="checkbox" checked />
+                  </label>
+                </fieldset>
+                <fieldset>
+                  <legend>Controls & comfort</legend>
+                  <label class="setting-row" for="sensitivity">
+                    <span>Mouse sensitivity</span>
+                    <span class="range-control"><input id="sensitivity" type="range" min="0.3" max="2" step="0.1" value="1" /><output id="sensitivity-value" for="sensitivity">1.0×</output></span>
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Walking motion<small>Gentle camera movement while walking.</small></span>
+                    <input id="bob" type="checkbox" />
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Sudden scares<small>Creature appearances and the final camera turn.</small></span>
+                    <input id="sudden-scares" type="checkbox" checked />
+                  </label>
+                  <label class="setting-row check-row">
+                    <span>Flickering lights<small>Irregular darkness during creature appearances.</small></span>
+                    <input id="flashing-lights" type="checkbox" checked />
+                  </label>
+                  <dl class="controls-grid">
+                    <div><dt><kbd>W A S D</kbd> / <kbd>↑ ↓ ← →</kbd></dt><dd>Walk</dd></div>
+                    <div><dt>Mouse</dt><dd>Look around</dd></div>
+                    <div><dt><kbd>E</kbd></dt><dd>Interact / pick up</dd></div>
+                    <div><dt><kbd>F</kbd></dt><dd>Raise / put away flashlight</dd></div>
+                    <div><dt><kbd>Tab</kbd></dt><dd>Inventory & journal</dd></div>
+                    <div><dt><kbd>H</kbd></dt><dd>Ask for a hint</dd></div>
+                    <div><dt><kbd>Esc</kbd></dt><dd>Pause / release mouse</dd></div>
+                  </dl>
+                </fieldset>
+                <div class="settings-bottom">
+                  <p id="settings-status" role="status" aria-live="polite">Settings are saved on this browser.</p>
+                  <button id="settings-reset" class="text-button" type="button">RESTORE DEFAULTS</button>
+                </div>
+              </section>
+            </details>
+            <button id="credits-open" class="text-button">CREDITS & ASSETS</button>
+          </div>
+          <aside id="ending-credits" hidden>
+            <p class="eyebrow">MIRROR ME · MADE BY SKEWERNET</p>
+            <p>Thank you for entering the house.</p>
+            <p id="ending-credit-names"></p>
+            <p>Complete sources, licenses and modifications: CREDITS & ASSETS.</p>
+          </aside>
+          <p id="error" role="alert"></p>
         </div>
-        <button id="credits-open" class="text-button">CREDITS & ASSETS</button>
-        <aside id="ending-credits" hidden>
-          <p class="eyebrow">MIRROR ME · MADE BY SKEWERNET</p>
-          <p>Thank you for entering the house.</p>
-          <p id="ending-credit-names"></p>
-          <p>Complete sources, licenses and modifications: CREDITS & ASSETS.</p>
+        <aside class="menu-aside" aria-hidden="true">
+          <div class="menu-mirror"><span>THE HOUSE<br />REMEMBERS.</span></div>
+          <p>A familiar voice.<br />An evening you cannot leave.</p>
         </aside>
-        <p id="error" role="alert"></p>
-        <details id="settings">
-          <summary>PICTURE, COMFORT & SOUND</summary>
-          <label
-            >Mouse sensitivity
-            <input
-              id="sensitivity"
-              type="range"
-              min="0.3"
-              max="2"
-              step="0.1"
-              value="1"
-          /></label>
-          <label
-            >Sound
-            <input
-              id="volume"
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value="0.55"
-          /></label>
-          <label
-            ><input id="bob" type="checkbox" /> Gentle walking motion</label
-          >
-          <label
-            ><input id="voice" type="checkbox" checked /> Voice playback</label
-          >
-          <label
-            ><input id="sudden-scares" type="checkbox" checked /> Sudden
-            scares</label
-          >
-          <label
-            ><input id="flashing-lights" type="checkbox" checked /> Irregular
-            light flicker</label
-          >
-          <label
-            >Picture
-            <select id="quality">
-              <option value="1080" selected>Balanced · up to 1080p</option>
-              <option value="1440">Detailed · up to 1440p</option>
-              <option value="720">Performance · up to 720p</option>
-            </select></label
-          >
-          <label
-            ><input id="contact-shadows" type="checkbox" checked /> Contact
-            shadows · 720p and above</label
-          >
-          <label
-            >Brightness
-            <input
-              id="brightness"
-              type="range"
-              min="0.8"
-              max="1.6"
-              step="0.05"
-              value="1.13"
-          /></label>
-          <label
-            ><input id="grain" type="checkbox" /> Subtle film texture</label
-          >
-        </details>
       </div>
       <footer>
-        <span
-          >W A S D · WALK &nbsp; / &nbsp; MOUSE · LOOK<br />E · INTERACT &nbsp;
-          / &nbsp; F · LIGHT &nbsp; / &nbsp; TAB · POCKET &nbsp; / &nbsp; ESC ·
-          PAUSE</span
-        ><span
-          >GRAPHIC BLOOD & FAMILY VIOLENCE<br />HEADPHONES RECOMMENDED<br />DESKTOP
-          BROWSER · DEVELOPMENT BUILD · DEMONIC PRESENCE · 0.8</span
-        >
+        <div class="quick-controls"><span><kbd>WASD</kbd> Walk</span><span><kbd>E</kbd> Interact</span><span><kbd>F</kbd> Flashlight</span><span><kbd>Tab</kbd> Journal</span><span><kbd>Esc</kbd> Pause</span></div>
+        <span class="content-note">GRAPHIC BLOOD & FAMILY VIOLENCE<br />HEADPHONES RECOMMENDED · DESKTOP · 0.8</span>
       </footer>
     </main>
     <div id="hud" hidden>

@@ -21,7 +21,7 @@ test("shipped speech matches subtitles, synthesis records, hashes and decoded he
 });
 
 test("Mum's call, accusation and attack Goodnight retain the same supplied voice", () => {
-  for (const id of ["recording", "ending", "goodnight"]) {
+  for (const id of ["recording", "call", "ending", "goodnight"]) {
     assert.equal(lines[id].voice, "bf_isabella", id);
     assert.equal(lines[id].speaker_id, 22, id);
     assert.equal(clips[id].speaker_id, 22, `${id} actual render`);
@@ -30,6 +30,22 @@ test("Mum's call, accusation and attack Goodnight retain the same supplied voice
   assert.equal(VOICES.goodnight.text, "Goodnight.");
   assert.match(VOICES.recording.text, /fuse went out again/);
   assert.match(VOICES.recording.text, /Please don't leave before saying goodnight/);
+});
+
+test("Mum's second call has measured phrase captions and uneven pleading pauses", () => {
+  const line = lines.call, clip = clips.call, voice = VOICES.call;
+  assert.equal(voice.text, "Mara... the music box... the bath... the radio... please... please don't leave... please don't do this...");
+  assert.equal(line.segments.length, 7);
+  assert.equal(voice.captionCues.length, line.segments.length);
+  assert.deepEqual(voice.captionCues.map(cue => cue.at), clip.phrase_starts_seconds);
+  const words = text => text.toLowerCase().replace(/[^a-z\s']/g, "").replace(/\s+/g, " ").trim();
+  assert.equal(words(voice.captionCues.map(cue => cue.text).join(" ")), words(voice.text));
+  assert.equal(words(line.segments.join(" ")), words(voice.text));
+  assert.ok(new Set(line.pauses_after_seconds).size > 3);
+  assert.ok(line.pauses_after_seconds.every(pause => pause >= .6 && pause < 2));
+  assert.ok(line.speed < 1 && line.speed >= .75);
+  assert.equal(voice.duration, clip.file_seconds);
+  assert.ok(voice.captionCues.at(-1).at < voice.duration);
 });
 
 test("bathroom clue gives a direct 03:17 observation rather than backward digits", () => {

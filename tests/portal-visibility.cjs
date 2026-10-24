@@ -34,6 +34,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       renderer.setScissor(3, 4, 59, 57);
       renderer.setScissorTest(true);
       const camera = new T.PerspectiveCamera(65, 1.6, .055, 30);
+      camera.layers.enable(2);
       const story = { stage: 2, doorOpen: true };
       let renders = 0;
       const actualRender = renderer.render.bind(renderer);
@@ -53,7 +54,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
         camera.position.set(item.x, 1.64, item.z);
         camera.rotation.set(0, item.yaw, 0, "YXZ");
         camera.updateMatrixWorld(true);
-        const signature = JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray()]);
+        const signature = JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray(), camera.layers.mask]);
         const frameBefore = portal.frames, rendersBefore = renders;
         const viewport = renderer.getViewport(new T.Vector4()).toArray();
         const scissor = renderer.getScissor(new T.Vector4()).toArray();
@@ -64,7 +65,8 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
         check(renderer.getRenderTarget() === destination && renderer.getScissorTest(), item.name + ": renderer state leaked");
         check(JSON.stringify(renderer.getViewport(new T.Vector4()).toArray()) === JSON.stringify(viewport), item.name + ": viewport changed");
         check(JSON.stringify(renderer.getScissor(new T.Vector4()).toArray()) === JSON.stringify(scissor), item.name + ": scissor changed");
-        check(signature === JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray()]), item.name + ": source camera changed");
+        check(signature === JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray(), camera.layers.mask]), item.name + ": source camera changed");
+        check(!portal.camera.layers.isEnabled(2), item.name + ": first-person body leaked into portal view");
         if (item.expected) visible++; else offscreen++;
       }
       const pixels = new Uint16Array(64 * 64 * 4);

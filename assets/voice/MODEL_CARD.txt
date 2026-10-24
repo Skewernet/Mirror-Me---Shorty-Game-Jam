@@ -21,8 +21,8 @@ weights, embeddings, phonemizer data and inference runtime stay outside it.
 
 Preset IDs use the official conversion's table:
 https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/kokoro/v1.0/generate_voices_bin.py
-  21 bf_emma — Mara and the glass; second telephone call
-  22 bf_isabella — Mum / first telephone call, final recognition and attack “Goodnight”
+  21 bf_emma — Mara and the glass
+  22 bf_isabella — Mum / both telephone calls, final recognition and attack “Goodnight”
   26 bm_george — original kitchen weather bulletin and fictional funeral news report
 The preset labels identify supplied synthetic styles, not actors or cloned
 identifiable people. No human performance is claimed.
@@ -48,3 +48,9 @@ The local visual/parlor pass updates the telephone message and direct 03:17
 mirror observation, and adds a finite “Goodnight” at the attack. The new word
 uses bf_isabella / speaker22, exactly as Mum on the telephone, at speed1.10
 with full-range mastering and no pitch shift.
+
+Second-call performance revision: Mum uses bf_isabella / speaker22, speed0.86,
+telephone filtering and a seven-phrase plan with unequal explicit pauses. The
+original plea names the music box, bath and radio. production.json records the
+measured phrase starts, duration, encoded hash and decoded true peak; these starts
+are also the runtime caption cues. No recording or third-party sound was added.

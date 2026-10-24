@@ -94,11 +94,12 @@ require("node:fs").mkdirSync(
       ["1080", "1440", "720"],
     );
     await p.selectOption("#quality", "720");
+    await p.locator("#auto-quality").uncheck();
     await p.locator("#brightness").fill("1.3");
     await p.locator("#grain").uncheck();
     await p.locator("#sudden-scares").uncheck();
     await p.locator("#flashing-lights").uncheck();
-    await p.locator("#settings summary").click();
+    await p.locator("#settings-close").click();
     console.log("Normal mode: starting");
     await p.click("#start");
     await playing();
@@ -144,7 +145,7 @@ require("node:fs").mkdirSync(
     await p.waitForTimeout(500);
     assert.equal(await p.locator("canvas").evaluate((e) => e.height), 900);
     await p.selectOption("#quality", "1080");
-    await p.locator("#settings summary").click();
+    await p.locator("#settings-close").click();
     await p.click("#start");
     await playing();
     await p.keyboard.press("KeyH");

@@ -3,6 +3,9 @@ import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
 import { LookInput } from "./look-input.mjs";
 import { requestGamePointerLock } from "./pointer-lock.mjs";
+import { initSettings } from "./settings.mjs";
+import { createFirstPerson } from "./first-person.mjs";
+import { AdaptiveResolution, warmRenderResources } from "./performance.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
 import { Story, VOICES, WRITINGS } from "./story.mjs";
@@ -52,6 +55,11 @@ renderer.domElement.setAttribute(
   "First-person view of the house",
 );
 document.body.prepend(renderer.domElement);
+function loadingStatus(text) {
+  const status = $("loading-status");
+  if (status) status.textContent = text;
+}
+loadingStatus("Opening the house…");
 let house;
 try {
   [house] = await Promise.all([
@@ -68,13 +76,21 @@ try {
   throw error;
 }
 const picture = new Picture(renderer, camera);
+let subtitlesEnabled = true, currentCaption = "";
 const player = new Player(camera),
   lookInput = new LookInput(),
   mirror = new Mirror(scene, house),
   story = new Story(),
   ray = new T.Raycaster(),
-  sound = new Sound((text) => ($("subtitle").textContent = text)),
+  sound = new Sound(showSubtitle),
   horror = new HorrorDirector(scene, house);
+const firstPerson = createFirstPerson(scene, camera);
+const adaptive = new AdaptiveResolution();
+camera.layers.enable(2);
+const aimCenter = new T.Vector2(), interactionPoint = new T.Vector3();
+const flashlightDirection = new T.Vector3(), safeBeamOffset = new T.Vector3();
+const interactionRange = Math.max(...house.interactables.map(item => item.range));
+let forwardClearance = Infinity;
 let mode = "title",
   active = false,
   target = null,
@@ -112,11 +128,19 @@ let mode = "title",
 const testMode = new URLSearchParams(location.search).get("test") === "1";
 const evidenceSeen = new Set();
 const flashlight = new T.SpotLight(0xe2dfc5, 0, 13, Math.PI * 0.14, 0.7, 1.8);
-flashlight.castShadow = false;
+// Keep the shader's shadow-light count stable. F changes intensity only.
+flashlight.castShadow = true;
+flashlight.shadow.autoUpdate = false;
 flashlight.shadow.mapSize.set(768, 768);
 flashlight.shadow.bias = -0.0004;
 flashlight.shadow.normalBias = 0.025;
 scene.add(flashlight, flashlight.target);
+function showSubtitle(text) {
+  currentCaption = text || "";
+  $("subtitle").textContent = subtitlesEnabled ? currentCaption : "";
+  $("subtitle").hidden = !subtitlesEnabled || !currentCaption;
+  $("message").hidden = subtitlesEnabled && Boolean(currentCaption);
+}
 function say(text, duration = 4) {
   $("message").textContent = text;
   messageUntil = elapsed + duration;
@@ -136,7 +160,7 @@ function resize() {
   renderRequested = true;
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  const h = Math.min(quality, innerHeight);
+  const h = Math.max(1, Math.round(Math.min(quality, innerHeight) * adaptive.scale));
   const w = Math.round(h * camera.aspect);
   renderer.setSize(w, h, false);
   picture.resize(w, h, quality);
@@ -144,27 +168,7 @@ function resize() {
   house.portal?.setQuality(quality);
 }
 resize();
-// Prepare each real light-count variant before play. Hidden revelation/wake
-// lights change every PBR program when revealed; warming only their materials
-// against the ordinary house would still hitch on the transition frame.
-const warmupTarget = renderer.getRenderTarget();
-const warmupVisibility = [house.revelation.group.visible, house.wake.group.visible];
-try {
-  renderer.setRenderTarget(picture.target);
-  await renderer.compileAsync(scene, camera);
-  house.revelation.group.visible = true;
-  await renderer.compileAsync(scene, camera);
-  house.wake.group.visible = true;
-  await renderer.compileAsync(scene, camera);
-  house.revelation.group.visible = warmupVisibility[0];
-  house.wake.group.visible = warmupVisibility[1];
-  house.portal.warmup(renderer, camera);
-} finally {
-  house.revelation.group.visible = warmupVisibility[0];
-  house.wake.group.visible = warmupVisibility[1];
-  renderer.setRenderTarget(warmupTarget);
-}
-window.addEventListener("resize", resize);
+window.addEventListener("resize", () => { adaptive.reset(); resize(); });
 const fullscreenButton = $("fullscreen");
 function syncFullscreenButton() {
   fullscreenButton.hidden = !document.fullscreenEnabled ||
@@ -196,6 +200,7 @@ document.addEventListener("fullscreenchange", (event) => {
   lookInput.reset(event.timeStamp);
   player.clear();
   syncFullscreenButton();
+  adaptive.reset();
   resize();
 });
 function setText(element, text) {
@@ -312,6 +317,7 @@ function reset() {
   story.reset();
   player.reset();
   mirror.reset();
+  firstPerson.reset();
   sound.reset();
   horror.reset();
   elapsed = messageUntil = endingAt = endingStart = 0;
@@ -341,6 +347,7 @@ function reset() {
     $("subtitle").textContent =
     $("prompt").textContent =
       "";
+  showSubtitle("");
   $("title").innerHTML = "MIRROR<span>ME</span>";
   $("description").innerHTML =
     "Someone left the house awake.<br>Someone else is learning your way home.";
@@ -574,8 +581,6 @@ $("credits-close").onclick = () => {
   showMenu();
 };
 loadCredits();
-$("start").disabled = false;
-$("start").textContent = "ENTER THE HOUSE";
 $("start").onclick = enter;
 $("restart").onclick = () => {
   reset();
@@ -585,6 +590,17 @@ $("sensitivity").oninput = (e) => (player.sensitivity = Number(e.target.value));
 $("bob").onchange = (e) => (player.bob = e.target.checked);
 $("volume").oninput = (e) => sound.setVolume(Number(e.target.value));
 $("voice").onchange = (e) => sound.setVoice(e.target.checked);
+$("subtitles").onchange = (e) => {
+  subtitlesEnabled = e.target.checked;
+  showSubtitle(currentCaption);
+};
+$("post-processing").onchange = (e) => {
+  picture.setOptions({ postProcessing: e.target.checked });
+  renderRequested = true;
+};
+$("auto-quality").onchange = (e) => {
+  if (adaptive.setEnabled(e.target.checked) !== null) resize();
+};
 $("sudden-scares").onchange = (e) => {
   scaresEnabled = e.target.checked;
   if (!scaresEnabled) sound.stopCreatureCues();
@@ -593,8 +609,9 @@ $("sudden-scares").onchange = (e) => {
 $("flashing-lights").onchange = (e) => (flashingLights = e.target.checked);
 $("quality").onchange = (e) => {
   quality = Number(e.target.value);
+  adaptive.reset();
   renderer.shadowMap.enabled = quality >= 720;
-  flashlight.castShadow = flashlightOn && quality >= 720;
+  flashlight.castShadow = quality >= 720;
   resize();
 };
 $("brightness").oninput = (e) => {
@@ -676,16 +693,17 @@ document.addEventListener("keydown", (e) => {
   if (endingAt && e.code !== "KeyF") return;
   if (e.code === "KeyF" && !e.repeat) {
     flashlightOn = !flashlightOn;
-    flashlight.castShadow = flashlightOn && quality >= 720;
     sound.effect("switch");
   }
   if (e.code === "KeyH" && !e.repeat) {
     hintUntil = elapsed + 8;
-    say(story.hint(), 5);
   }
   if (e.code === "KeyE" && !e.repeat) {
     target = findTarget();
-    if (target) interact(target.id);
+    if (target) {
+      firstPerson.interact(interactionPoint);
+      interact(target.id);
+    }
   }
 });
 document.addEventListener("keyup", (e) => player.keys.delete(e.code));
@@ -706,7 +724,10 @@ function visibleInTree(object) {
 }
 function findTarget() {
   scene.updateMatrixWorld(true);
-  ray.setFromCamera(new T.Vector2(0, 0), camera);
+  ray.setFromCamera(aimCenter, camera);
+  // Nothing is usable beyond these authored ranges; don't raycast distant
+  // room triangles just to discover that their prompt cannot be displayed.
+  ray.far = interactionRange;
   const items = house.interactables.filter(
     (i) =>
       (i.id !== "note" || !story.hasNote) &&
@@ -722,7 +743,9 @@ function findTarget() {
     ],
     false,
   )[0];
+  forwardClearance = hit?.distance ?? Infinity;
   if (!hit) return null;
+  interactionPoint.copy(hit.point);
   for (let object = hit.object; object; object = object.parent) {
     const id = object.userData.interactionId;
     if (id)
@@ -798,7 +821,7 @@ function respond(event) {
     "clock-set": "You leave the hands where you put them. The house waits.",
     "clock-solved":
       "The hands agree. A faint carrier comes from the kitchen radio.",
-    call: "The caller sounds like you. The keepsakes are still here. The diary remembers their places.",
+    call: "Mum's voice. The music box. The bath. The radio. The diary remembers their places.",
     musicbox: "A few notes turn in the little wooden box.",
     tap: "Water runs into an empty basin.",
     photo:
@@ -880,11 +903,6 @@ function respond(event) {
     clock();
     return;
   }
-  if (lines[event])
-    say(
-      lines[event],
-      ["diary", "letter", "note", "time-clue", "call"].includes(event) ? 7 : 4,
-    );
   const voiced = {
     "photo-crooked": "repeat",
     "photo-straightened": "photoMemory",
@@ -911,7 +929,20 @@ function respond(event) {
     "house-quiet": "released",
     "mirror-enter": "command",
   };
-  if (voiced[event]) queueVoice(voiced[event], 0.35);
+  if (voiced[event]) {
+    // Spoken dialogue owns one caption channel; never print the same thought
+    // above it as a second toast while the voice is queued or playing.
+    $("message").textContent = "";
+    const telephone = event === "arrival-recording" || event === "call";
+    queueVoice(voiced[event], 0.35, telephone ? {
+      onDuration: (duration) => {
+        story.phoneLiftUntil = elapsed + Math.max(0, duration - sound.voiceElapsed()) + .4;
+      },
+      onComplete: () => { story.phoneLiftUntil = elapsed + .4; },
+    } : {});
+  } else if (lines[event]) {
+    say(lines[event], ["diary", "letter", "note", "time-clue"].includes(event) ? 7 : 4);
+  }
   if (event === "room-open" || event === "room-close")
     sound.effect("door-wood");
   if (event === "power") hintUntil = elapsed + 5;
@@ -932,6 +963,7 @@ function finish() {
   showMenu();
 }
 function beginEnding() {
+  forwardClearance = Infinity;
   endingStart = elapsed;
   endingAt = elapsed + 45;
   wakeTurned = false;
@@ -955,20 +987,29 @@ function beginEnding() {
   say("Someone has left a radio on.", 4);
 }
 function updateFlashlight(dt) {
-  const direction = new T.Vector3();
-  camera.getWorldDirection(direction);
-  flashlight.position
-    .copy(camera.position)
-    .add(new T.Vector3(0.07, -0.14, 0).applyQuaternion(camera.quaternion));
+  firstPerson.update(dt, player, {
+    flashlightOn, active, inverted: story.inverted, time: elapsed,
+    clearance: forwardClearance,
+  });
+  const beam = firstPerson.getBeam();
+  flashlightDirection.copy(beam.direction);
+  flashlight.position.copy(beam.position);
+  // Keep the light on our side of nearby walls even during a rapid turn.
+  safeBeamOffset.copy(flashlight.position).sub(camera.position);
+  if (Number.isFinite(forwardClearance) && forwardClearance < safeBeamOffset.length() + .08)
+    flashlight.position.copy(camera.position).addScaledVector(
+      safeBeamOffset.normalize(), Math.max(.025, forwardClearance - .08),
+    );
   flashlight.target.position
-    .copy(camera.position)
-    .addScaledVector(direction, 10);
+    .copy(flashlight.position)
+    .addScaledVector(flashlightDirection, 10);
   flashlight.intensity = T.MathUtils.damp(
     flashlight.intensity,
-    flashlightOn ? 19 : 0,
+    flashlightOn ? 19 * beam.visibility : 0,
     12,
     dt,
   );
+  flashlight.shadow.autoUpdate = flashlight.intensity > .025;
 }
 function renderView() {
   house.portal?.render(renderer, camera, story);
@@ -1092,6 +1133,8 @@ function update(dt) {
       // Hold black long enough for Mum's complete "Goodnight" (or captions).
       if (attack.done && (!goodnightStarted || goodnightFinished)) finish();
     }
+    // The parlor has its own walls; don't retain the last house-door clearance.
+    findTarget();
     updateFlashlight(dt);
     return;
   }
@@ -1156,6 +1199,7 @@ function update(dt) {
   });
   house.applyHorrorLighting?.(light);
   for (const event of horror.drainEvents()) sound.effect(event.id, event);
+  target = findTarget();
   updateFlashlight(dt);
   sound.step(
     player.distance,
@@ -1164,7 +1208,6 @@ function update(dt) {
   );
   sound.update(story, player);
   playPendingVoice();
-  target = findTarget();
   if (target?.id === "photo") {
     const event = story.noticePhoto();
     if (event) respond(event);
@@ -1222,13 +1265,59 @@ function update(dt) {
   if (elapsed > messageUntil) $("message").textContent = "";
   if (elapsed > chapterUntil) $("chapter-mark").textContent = "";
 }
+// Restore preferences before preparing the actual selected render targets.
+const settings = initSettings();
+house.reset(story);
+updateInventory();
+showSubtitle("");
+loadingStatus("Preparing the sounds of the house…");
+await sound.prepare();
+loadingStatus("Preparing your view…");
+const warmupTarget = renderer.getRenderTarget();
+const warmupVisibility = [house.revelation.group.visible, house.wake.group.visible];
+const warmupStats = [];
+try {
+  firstPerson.prepare(player);
+  const preparedBeam = firstPerson.getBeam();
+  flashlight.position.copy(preparedBeam.position);
+  flashlight.target.position.copy(preparedBeam.position).addScaledVector(preparedBeam.direction, 10);
+  flashlight.intensity = 1;
+  flashlight.shadow.needsUpdate = true;
+  renderer.setRenderTarget(picture.target);
+  for (const [revelation, wake] of [[false, false], [true, false], [true, true]]) {
+    house.revelation.group.visible = revelation;
+    house.wake.group.visible = wake;
+    await renderer.compileAsync(scene, camera);
+    warmupStats.push(warmRenderResources(renderer, scene, camera, {
+      target: picture.target, objects: [firstPerson.body, horror.figure.body],
+    }));
+  }
+  house.revelation.group.visible = warmupVisibility[0];
+  house.wake.group.visible = warmupVisibility[1];
+  house.portal.warmup(renderer, camera);
+  await picture.warmup();
+} finally {
+  house.revelation.group.visible = warmupVisibility[0];
+  house.wake.group.visible = warmupVisibility[1];
+  flashlight.intensity = 0;
+  flashlight.shadow.autoUpdate = false;
+  firstPerson.reset();
+  // A temporary warmup body must never remain in a cached room shadow.
+  for (const light of house.architecture.shadowLights) light.shadow.needsUpdate = true;
+  renderer.setRenderTarget(warmupTarget);
+}
+loadingStatus("");
+$("start").disabled = false;
+$("start").textContent = "ENTER THE HOUSE";
 let previous = performance.now(),
   firstFrame = true;
 function tick(now) {
   requestAnimationFrame(tick);
-  const dt = Math.min((now - previous) / 1000, 0.05);
+  const frameMs = now - previous;
+  const dt = Math.min(frameMs / 1000, 0.05);
   previous = now;
   if (!testMode) {
+    if (adaptive.sample(frameMs, active) !== null) resize();
     update(dt);
     if (active || firstFrame || renderRequested) {
       renderView();
@@ -1285,6 +1374,14 @@ if (testMode) {
     },
     doorAngle: house.doorPivot.rotation.y,
     flashlight: flashlightOn,
+    firstPerson: firstPerson.snapshot(),
+    rendering: {
+      programs: renderer.info.programs?.length, flashlightShadow: flashlight.castShadow,
+      adaptive: adaptive.snapshot(), warmup: warmupStats,
+      postProcessing: picture.postProcessing,
+      width: renderer.domElement.width, height: renderer.domElement.height,
+    },
+    settings: settings.snapshot(),
     portal: null,
     lastPortal,
     portalCount,
@@ -1336,5 +1433,3 @@ if (testMode) {
     })),
   };
 }
-house.reset(story);
-updateInventory();

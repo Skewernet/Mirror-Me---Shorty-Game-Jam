@@ -827,6 +827,72 @@ export async function buildHouse(scene) {
   }
   let wakeSealed = false;
   let previousArchitecture = "";
+  const shadowLights = [hallHero, mirrorHero];
+  const shadowPending = new Set();
+  const shadowUpdatedAt = new Map();
+  const doorShadowBounds = new Map();
+  const shadowView = new T.Matrix4();
+  const doorBounds = new T.Box3();
+  const sweptBounds = new T.Box3();
+  scene.updateMatrixWorld(true);
+  const shadowFrusta = new Map(shadowLights.map(light => {
+    light.shadow.updateMatrices(light);
+    shadowView.multiplyMatrices(light.shadow.camera.projectionMatrix, light.shadow.camera.matrixWorldInverse);
+    return [light, new T.Frustum().setFromProjectionMatrix(shadowView)];
+  }));
+  // Shared bulb/shade materials used to keep glowing while their own circuit
+  // was dark. Own one clone per affected zone, leaving unrelated rooms alone.
+  const circuitMaterials = new Map();
+  const fixturePoint = new T.Vector3();
+  scene.traverse(object => {
+    if (!object.isMesh || ![m.bulb, m.shade].includes(object.material)) return;
+    object.getWorldPosition(fixturePoint);
+    let nearest = null, distance = Infinity;
+    for (const light of lights) {
+      if (light.userData.powerCircuit !== "mains") continue;
+      const d = light.position.distanceToSquared(fixturePoint);
+      if (d < distance) { distance = d; nearest = light; }
+    }
+    const zone = nearest?.userData.zone;
+    if (!zone) return;
+    const source = object.material;
+    const key = source.uuid + ':' + zone;
+    if (!circuitMaterials.has(key)) circuitMaterials.set(key, {
+      source, material: source.clone(), zone, unlit: source.isMeshBasicMaterial,
+      currentColor: source.color.clone(), currentEmissive: source.emissiveIntensity,
+    });
+    object.material = circuitMaterials.get(key).material;
+    object.userData.lightCircuit = zone;
+  });
+  // Puzzle props already own the bedside lamp's materials and keep direct
+  // references for its final switch. Retain those pointers instead of cloning
+  // them again, then read their authoritative state after the puzzle updates.
+  furnishings.bedsideLamp.traverse(object => {
+    const material = object.material;
+    if (!object.isMesh || !material || !(
+      material.isMeshBasicMaterial && material.opacity > 0 ||
+      material.emissive?.getHex() > 0 && material.emissiveIntensity > 0
+    )) return;
+    circuitMaterials.set(material.uuid + ':bedroom', {
+      source: material, material, zone: 'bedroom', owned: true,
+      unlit: material.isMeshBasicMaterial,
+      currentColor: material.color.clone(), currentEmissive: material.emissiveIntensity,
+    });
+    object.userData.lightCircuit = 'bedroom';
+  });
+  function flushShadowUpdates(time) {
+    for (const light of shadowPending) {
+      const last = shadowUpdatedAt.get(light) ?? -Infinity;
+      if (time >= last && time - last < 1 / 30 - .00001) continue;
+      light.shadow.needsUpdate = true;
+      shadowUpdatedAt.set(light, time);
+      shadowPending.delete(light);
+    }
+  }
+  function invalidateShadows(time = 0, affected = shadowLights) {
+    for (const light of affected) shadowPending.add(light);
+    flushShadowUpdates(time);
+  }
   function applyHorrorLighting(envelope = {}) {
     for (const light of lights) {
       light.intensity = light.userData.currentBase;
@@ -834,7 +900,7 @@ export async function buildHouse(scene) {
     }
     const multiplier = T.MathUtils.clamp(
       envelope.lightMultiplier ?? 1,
-      0.08,
+      0,
       1.3,
     );
     const affected =
@@ -842,15 +908,30 @@ export async function buildHouse(scene) {
         ? lights
         : lightGroups[envelope.lightSource] || [];
     for (const light of affected)
-      light.intensity = light.userData.currentBase * multiplier;
+      if (light.userData.powerCircuit !== "window")
+        light.intensity = light.userData.currentBase * multiplier;
+    for (const fixture of circuitMaterials.values()) {
+      const factor = envelope.lightSource === "all" || envelope.lightSource === fixture.zone ? multiplier : 1;
+      // A basic bulb is self-lit; an ordinary fabric shade keeps its diffuse
+      // material but loses only its electrically powered emissive component.
+      fixture.material.color.copy(fixture.currentColor);
+      if (fixture.unlit) fixture.material.color.multiplyScalar(factor);
+      if (fixture.currentEmissive !== undefined)
+        fixture.material.emissiveIntensity = fixture.currentEmissive * factor;
+    }
   }
   function setStage(stage) {
     mirrorLight.color.set(stage >= 6 ? 0xdceef6 : 0xd7e4de);
     hallHero.color.set(stage >= 6 ? 0xc7dce9 : 0xffd4a7);
   }
-  function updateDoor(d, opened, dt, rate = 5) {
+  function updateDoor(d, opened, dt, rate = 5, time = 0) {
     const desired = opened ? d.openAngle : 0;
     const moving = Math.abs(d.pivot.rotation.y - desired) > 0.015;
+    if (moving && !doorShadowBounds.has(d)) {
+      d.leaf.updateWorldMatrix(true, false);
+      if (!d.leaf.geometry.boundingBox) d.leaf.geometry.computeBoundingBox();
+      doorShadowBounds.set(d, d.leaf.geometry.boundingBox.clone().applyMatrix4(d.leaf.matrixWorld));
+    }
     d.pivot.rotation.y = T.MathUtils.damp(
       d.pivot.rotation.y,
       desired,
@@ -860,11 +941,22 @@ export async function buildHouse(scene) {
     d.collider.disabled =
       opened && Math.abs(d.pivot.rotation.y) > d.clearanceAngle;
     if (moving) {
-      hallHero.shadow.needsUpdate = true;
-      mirrorHero.shadow.needsUpdate = true;
+      // Door motion used to regenerate BOTH 1536² maps on every frame,
+      // including lights whose cone cannot see that door. Refresh only the
+      // intersecting cones, at most 30 Hz, while keeping a pending final update.
+      d.leaf.updateWorldMatrix(true, false);
+      if (!d.leaf.geometry.boundingBox) d.leaf.geometry.computeBoundingBox();
+      doorBounds.copy(d.leaf.geometry.boundingBox).applyMatrix4(d.leaf.matrixWorld);
+      sweptBounds.copy(doorBounds);
+      const previous = doorShadowBounds.get(d);
+      if (previous) sweptBounds.union(previous);
+      sweptBounds.expandByScalar(.12);
+      previous.copy(doorBounds);
+      invalidateShadows(time, shadowLights.filter(light => shadowFrusta.get(light).intersectsBox(sweptBounds)));
     }
   }
   function animate(time, dt, state, player) {
+    flushShadowUpdates(time);
     drawerSlide.position.z = T.MathUtils.damp(
       drawerSlide.position.z,
       state.drawerOpen ? -0.21 : -0.11,
@@ -882,7 +974,7 @@ export async function buildHouse(scene) {
     lostDoorWall.colliders.forEach(
       (collider) => (collider.disabled = !backdoorGone),
     );
-    updateDoor(back, !backdoorGone && !!state.doorOpen, dt, 4.5);
+    updateDoor(back, !backdoorGone && !!state.doorOpen, dt, 4.5, time);
     if (backdoorGone) back.collider.disabled = true;
     const mirrorPassable = !!state.mirrorReady;
     mirrorWall.group.visible = !mirrorPassable;
@@ -895,10 +987,10 @@ export async function buildHouse(scene) {
       previousArchitecture = architectureState;
     }
     if (state.wakeEntered && player?.z > 8.8) wakeSealed = true;
-    updateDoor(front, !!state.frontOpen && !wakeSealed, dt, 3.3);
+    updateDoor(front, !!state.frontOpen && !wakeSealed, dt, 3.3, time);
     portal.sync(state);
     for (const [id, door] of Object.entries(roomDoors))
-      updateDoor(door, !!state.doors?.[id], dt);
+      updateDoor(door, !!state.doors?.[id], dt, 5, time);
     secondHand.rotation.z = (state.stage >= 1 ? 1 : -1) * time * 0.9;
     minuteHand.rotation.z = (-state.clockMinute / 60) * Math.PI * 2;
     hourHand.rotation.z =
@@ -961,12 +1053,26 @@ export async function buildHouse(scene) {
     revelation.animate(time, state, player);
     if (wake.update) wake.update(time, dt, state, player);
     else wake.animate?.(time, state);
+    for (const fixture of circuitMaterials.values()) {
+      if (fixture.owned && !state.power && !inverted) {
+        if (fixture.unlit) fixture.material.color.copy(m.bulb.color);
+        if (fixture.material.emissive) fixture.material.emissiveIntensity = 0;
+      }
+      fixture.currentColor.copy(fixture.source.color);
+      fixture.material.color.copy(fixture.currentColor);
+      fixture.currentEmissive = fixture.source.emissiveIntensity;
+      if (fixture.currentEmissive !== undefined)
+        fixture.material.emissiveIntensity = fixture.currentEmissive;
+    }
     for (const light of lights) {
       light.userData.currentBase = light.intensity;
       light.userData.currentColor.copy(light.color);
     }
   }
   function reset(state) {
+    shadowPending.clear();
+    shadowUpdatedAt.clear();
+    doorShadowBounds.clear();
     furnishings.reset?.();
     dressing.reset?.();
     for (const d of Object.values(roomDoors)) {
@@ -1025,6 +1131,7 @@ export async function buildHouse(scene) {
     animate,
     reset,
     applyHorrorLighting,
+    invalidateShadows,
     lightingGroups: lightGroups,
     architecture: {
       ceilingHeight: H,

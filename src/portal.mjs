@@ -164,7 +164,8 @@ export class ThresholdPortal {
     );
     this.camera.near = sourceCamera.near;
     this.camera.far = sourceCamera.far;
-    this.camera.layers.mask = sourceCamera.layers.mask;
+    // The first-person body belongs only to the player's direct view.
+    this.camera.layers.mask = sourceCamera.layers.mask & ~(1 << 2);
     this.camera.updateMatrixWorld();
     this.camera.projectionMatrix.copy(sourceCamera.projectionMatrix);
     // Discard the destination front door, wake room and all geometry between

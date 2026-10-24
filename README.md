@@ -4,9 +4,9 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — mouse stability and face-to-face attack:** mouse motion is now drained once per frame with an angular budget, so several individually valid packets cannot accumulate into a sudden half turn. Excess motion is discarded without a delayed spin. Capture requests raw movement with a supported fallback; capture changes and focus loss clear queued motion. Offscreen doorways skip their portal render. Evelyn's actual eyes now meet the player's camera during the lunge, with a larger attacking apparition, torn cheek/mouth tissue, exposed teeth and layered abdominal wounds. The clean casket model retains its own size and materials. This pass is local and not deployed.
+**Current local development — presentation and embodiment:** polished title/pause menus and saved grouped settings, optional subtitles with one dialogue channel, a filmic post pass, real spatial telephone bells, Mum's fragmented pleading call, and irregular crawler light failures. Mara has a visible rigged body, hand-held flashlight with draw/stow, and item-reaching animations using the existing CC0 character. GPU/audio warmup, stable flashlight shaders, local shadow scheduling and adaptive resolution target smoother 60 FPS play; broad hardware performance still needs playtesting. This pass is local and not deployed.
 
-**Published baseline:** `f824f50` contains independent aged Evelyn, the larger warm funeral parlor, clean open-casket body, 0.38-second strike and complete "Goodnight" in Mum's phone voice. It also includes the dark fuse-failure opening, hall-photo interaction, crime trail, rebuilt bookshelf, unlabelled rear door and direct-reading 03:17 clue. Its 133 runtime/credit assets were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=f824f50).
+**Published baseline:** `be16d32` includes fullscreen, the bounded mouse input, face-to-face wounded Evelyn attack, warm funeral parlor and complete Goodnight. Its 134 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=be16d32).
 
 The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
@@ -49,12 +49,12 @@ Use a desktop WebGL browser and click ENTER to capture the mouse and enable audi
 | WASD / arrows | Walk |
 | Mouse | Look |
 | E | Inspect, collect, open doors or operate an object |
-| F | Flashlight; no battery grind |
+| F | Draw / put away the handheld flashlight; no battery grind |
 | Tab | Inventory and journal; pauses play |
 | H | Optional contextual thought |
 | Escape | Pause; leave journal/puzzle forms/credits for menu |
 | Fullscreen button | Toggle fullscreen from the title or pause menu |
-| Settings | Resolution, brightness, contact shadows, grain, sudden scares, irregular light flicker, sensitivity, volume, voices and walking motion |
+| Settings | Picture/adaptive resolution, film response, brightness, shadows/grain, volume/voices/subtitles, sensitivity and comfort; saved in this browser |
 
 Pause, journal and puzzle forms suspend gameplay/audio. Restart clears the house and inventory while keeping settings. Credits are accessible before play, from pause, and at the ending. No sprint, combat, mobile controls or persistent save is included.
 
@@ -65,6 +65,14 @@ python3 tools/check_credits.py
 node --test tests/*.test.mjs
 node tests/browser.cjs
 node tests/browser-smoke.cjs
+node tests/polish.cjs
+node tests/settings.cjs
+node tests/picture.cjs
+node tests/first-person.cjs
+node tests/telephone-ring.cjs
+node tests/crawler-lighting.cjs
+node tests/performance-render.cjs
+node tests/house-shadows.cjs
 node tests/creature-bounds.cjs
 node tests/demon.cjs
 node tests/demon-director.cjs
@@ -104,6 +112,6 @@ Current validation and release evidence are recorded in [current status](PROJECT
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `f824f50`; its automatic deployment and all 133 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `be16d32`; its automatic deployment and all 134 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

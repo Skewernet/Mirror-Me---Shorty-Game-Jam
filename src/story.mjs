@@ -532,7 +532,17 @@ export const VOICES = {
   },
   call: {
     speaker: "THE TELEPHONE",
-    text: "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
+    text: "Mara... the music box... the bath... the radio... please... please don't leave... please don't do this...",
+    duration: 16.3,
+    captionCues: [
+      { at: 0, text: "Mara..." },
+      { at: 2.460, text: "The music box..." },
+      { at: 4.936, text: "The bath..." },
+      { at: 7.251, text: "The radio..." },
+      { at: 10.124, text: "Please..." },
+      { at: 11.806, text: "Please don't leave..." },
+      { at: 14.575, text: "Please don't do this..." },
+    ],
   },
   inverted: {
     speaker: "MARA",

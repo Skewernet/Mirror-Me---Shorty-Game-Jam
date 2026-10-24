@@ -541,6 +541,7 @@ export function createFigure(_house, layer = 1) {
     resetMotion,
     resetPose,
     identity: "Mara Vale",
+    anatomy: rig,
     rig: rigInfo,
   };
 }

@@ -63,11 +63,28 @@
     "speaker_id": 21
   },
   "call": {
-    "text": "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
+    "text": "Mara... the music box... the bath... the radio... please... please don't leave... please don't do this...",
     "role": "phone",
-    "speed": 1,
-    "voice": "bf_emma",
-    "speaker_id": 21
+    "speed": 0.86,
+    "voice": "bf_isabella",
+    "speaker_id": 22,
+    "segments": [
+      "Mara.",
+      "The music box.",
+      "The bath.",
+      "The radio.",
+      "Please.",
+      "Please don't leave.",
+      "Please don't do this."
+    ],
+    "pauses_after_seconds": [
+      1.45,
+      1.12,
+      1.32,
+      1.6,
+      0.72,
+      1.18
+    ]
   },
   "inverted": {
     "text": "This is the room I keep turning away from.",

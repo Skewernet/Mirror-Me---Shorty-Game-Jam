@@ -1,5 +1,6 @@
 import { TARGETS, HALL_CLOCK, EXIT, FRONT_DOOR, MIRROR } from "./layout.mjs";
 import { VOICES } from "./story.mjs";
+import { TelephoneRinger, makeTelephoneRing } from "./telephone-ring.mjs";
 
 // Original, nonverbal performances. The mouth resonances shape noise and an
 // irregular air stream; they never synthesize a word or reuse a story voice.
@@ -99,6 +100,24 @@ function makeDemonTexture(context, kind) {
   return buffer;
 }
 
+function makeRoomAir(context) {
+  const buffer = context.createBuffer(1, context.sampleRate * 3, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let index = 0; index < data.length; index++) {
+    last = (last + (Math.random() * 2 - 1) * .035) / 1.02;
+    data[index] = last;
+  }
+  return buffer;
+}
+
+function makeFoleyNoise(context) {
+  const buffer = context.createBuffer(1, context.sampleRate, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < data.length; index++) data[index] = Math.random() * 2 - 1;
+  return buffer;
+}
+
 export class Sound {
   constructor(onSubtitle) {
     this.onSubtitle = onSubtitle;
@@ -122,13 +141,39 @@ export class Sound {
     this.musicNext = 0;
     this.dripNext = 0;
     this.noteIndex = 0;
-    this.ringNext = 0;
     this.tickNext = 0;
     this.creakNext = 0;
     this.creakIndex = 0;
     this.creatureBuffers = new Map();
     this.creatureNodes = new Set();
     this.creatureStep = 0;
+  }
+  async prepare() {
+    if (this.preparing) return this.preparing;
+    // AudioBuffer is just PCM storage, with no device, clock or activation.
+    // Generate original textures while the title loads, rather than blocking
+    // the pointer-lock click or allocating white noise on the first F press.
+    if (typeof AudioBuffer === "undefined") return;
+    const storage = {
+      sampleRate: 48000,
+      createBuffer: (channels, length, sampleRate) => new AudioBuffer({
+        numberOfChannels: channels, length, sampleRate,
+      }),
+    };
+    const yieldTask = () => new Promise(resolve => setTimeout(resolve, 0));
+    this.preparing = (async () => {
+      for (const kind of Object.keys(DEMON_TEXTURES)) {
+        if (!this.creatureBuffers.has(kind))
+          this.creatureBuffers.set(kind, makeDemonTexture(storage, kind));
+        await yieldTask();
+      }
+      this.noise ||= makeRoomAir(storage);
+      await yieldTask();
+      this.foleyNoise ||= makeFoleyNoise(storage);
+      await yieldTask();
+      this.phoneRingBuffer ||= makeTelephoneRing(storage);
+    })();
+    return this.preparing;
   }
   async start() {
     if (!this.context) {
@@ -137,7 +182,8 @@ export class Sound {
       // Warm these small buffers at the initial audio-unlock screen. Building
       // a first breath while a body enters the hall would hitch its animation.
       for (const kind of Object.keys(DEMON_TEXTURES))
-        this.creatureBuffers.set(kind, makeDemonTexture(c, kind));
+        if (!this.creatureBuffers.has(kind))
+          this.creatureBuffers.set(kind, makeDemonTexture(c, kind));
       this.master = c.createGain();
       this.master.gain.value = this.volume * 0.55;
       const compressor = c.createDynamicsCompressor();
@@ -182,13 +228,8 @@ export class Sound {
         g.connect(this.ambience);
         o.start();
       }
-      this.noise = c.createBuffer(1, c.sampleRate * 3, c.sampleRate);
-      const data = this.noise.getChannelData(0);
-      let last = 0;
-      for (let i = 0; i < data.length; i++) {
-        last = (last + (Math.random() * 2 - 1) * 0.035) / 1.02;
-        data[i] = last;
-      }
+      this.noise ||= makeRoomAir(c);
+      this.foleyNoise ||= makeFoleyNoise(c);
       const air = c.createBufferSource(),
         filter = c.createBiquadFilter();
       filter.type = "lowpass";
@@ -204,6 +245,7 @@ export class Sound {
         TARGETS.telephone.z,
       );
       this.phonePanner.connect(this.master);
+      this.phoneRinger = new TelephoneRinger(c, this.phonePanner, this.phoneRingBuffer);
       this.radio = this.roomNoise(
         TARGETS.radio.x,
         TARGETS.radio.y,
@@ -327,6 +369,7 @@ export class Sound {
   }
   async pause() {
     this.paused = true;
+    this.phoneRinger?.stop(true);
     if (this.currentVoice)
       this.resumeVoice = {
         id: this.currentVoice,
@@ -364,13 +407,13 @@ export class Sound {
   }
   reset() {
     this.stopVoice();
+    this.phoneRinger?.stop(true);
     this.stopCreatureCues();
     this.creatureStep = 0;
     this.resumeVoice = null;
     this.lastStep = 0;
     this.footfallIndex = undefined;
     this.musicNext = this.dripNext = this.noteIndex = 0;
-    this.ringNext = 0;
     this.tickNext = 0;
     this.creakNext = (this.context?.currentTime || 0) + 16;
     this.creakIndex = 0;
@@ -405,11 +448,7 @@ export class Sound {
   noiseBurst(duration, gain, frequency, pan = 0, destination = null) {
     if (!this.context || this.paused) return;
     const c = this.context;
-    if (!this.foleyNoise) {
-      this.foleyNoise = c.createBuffer(1, c.sampleRate, c.sampleRate);
-      const d = this.foleyNoise.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    }
+    this.foleyNoise ||= makeFoleyNoise(c);
     const t = c.currentTime,
       source = c.createBufferSource(),
       f = c.createBiquadFilter(),
@@ -814,18 +853,9 @@ export class Sound {
       this.tickNext = t + 1;
       this.impulse(1380, 0.01, 0.025);
     }
-    if (
+    this.phoneRinger?.update(!quiet && !this.busy &&
       ((!state.heardArrival && state.stage === 0) ||
-        (state.stage === 2 &&
-          state.clockSolved &&
-          state.radioTuned &&
-          !state.heardCall)) &&
-      t > this.ringNext
-    ) {
-      this.ringNext = t + 1.6;
-      this.impulse(930, 0.12, 0.22, 0, this.phonePanner);
-      this.impulse(1130, 0.07, 0.24, 0, this.phonePanner);
-    }
+        (state.stage === 2 && state.clockSolved && state.radioTuned && !state.heardCall)));
     if (
       t > this.musicNext &&
       !quiet &&
@@ -858,15 +888,17 @@ export class Sound {
   async voice(id, options = {}) {
     const line = VOICES[id];
     if (!line) return;
+    this.phoneRinger?.stop();
     this.stopVoice();
     this.busy = true;
     this.currentVoice = id;
     this.voiceOptions = options;
     this.voiceOffset = Math.max(0, options.offset || 0);
     this.voiceStartedAt = performance.now() / 1000;
-    this.voiceDuration = Math.max(3.5, line.text.length * 0.065);
+    this.voiceDuration = Math.max(3.5, line.duration || line.text.length * 0.065);
     const token = this.voiceToken;
-    const chunks = options.segmented
+    const cues = line.captionCues;
+    const chunks = cues?.length ? cues.map(cue => cue.text) : options.segmented
       ? line.text
           .match(/[^.!?]+[.!?]+|[^.!?]+$/g)
           ?.map((part) => part.trim()) || [line.text]
@@ -875,10 +907,15 @@ export class Sound {
     let previousCaption = -1;
     const caption = () => {
       if (token !== this.voiceToken) return;
-      let position = (this.voiceElapsed() / this.voiceDuration) * total;
+      const elapsed = this.voiceElapsed();
+      let position = (elapsed / this.voiceDuration) * total;
       let index = 0;
-      while (index < chunks.length - 1 && position > chunks[index].length)
-        position -= chunks[index++].length;
+      if (cues?.length) {
+        while (index < cues.length - 1 && elapsed >= cues[index + 1].at) index++;
+      } else {
+        while (index < chunks.length - 1 && position > chunks[index].length)
+          position -= chunks[index++].length;
+      }
       if (index !== previousCaption) {
         previousCaption = index;
         this.onSubtitle(`${line.speaker} — “${chunks[index]}”`);

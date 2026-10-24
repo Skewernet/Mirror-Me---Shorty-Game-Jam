@@ -119,16 +119,42 @@
       "decoded_true_peak_dbfs": -4.0
     },
     "call": {
-      "voice": "bf_emma",
-      "speaker_id": 21,
+      "voice": "bf_isabella",
+      "speaker_id": 22,
       "role": "phone",
-      "speed": 1,
-      "text": "Mara. Listen to what you keep calling the last night. The music box was still playing. Your hand was on the lid. You closed it before you called anyone. Put her things back. Then stop the sounds. Don't change the order again.",
-      "speech_seconds": 12.885,
-      "file_seconds": 12.9,
+      "speed": 0.86,
+      "text": "Mara... the music box... the bath... the radio... please... please don't leave... please don't do this...",
+      "speech_seconds": 16.222,
+      "file_seconds": 16.3,
       "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
-      "sha256": "31c8adde7d0eb1174931ff2bbabdbeaa02a11c29f88575a3d136375030592dae",
-      "decoded_true_peak_dbfs": -3.6
+      "sha256": "e0ddccd6161c6bd45fca376e11f2770b887c5a1222a558ccf9efe714ad8cb74d",
+      "decoded_true_peak_dbfs": -3.7,
+      "segments": [
+        "Mara.",
+        "The music box.",
+        "The bath.",
+        "The radio.",
+        "Please.",
+        "Please don't leave.",
+        "Please don't do this."
+      ],
+      "pauses_after_seconds": [
+        1.45,
+        1.12,
+        1.32,
+        1.6,
+        0.72,
+        1.18
+      ],
+      "phrase_starts_seconds": [
+        0.0,
+        2.46,
+        4.936,
+        7.251,
+        10.124,
+        11.806,
+        14.575
+      ]
     },
     "inverted": {
       "voice": "bf_emma",

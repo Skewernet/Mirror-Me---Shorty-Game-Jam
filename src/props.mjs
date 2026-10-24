@@ -841,6 +841,8 @@ export function furnish(b, m) {
   quilt.castShadow = quilt.receiveShadow = true;
   bed.add(quilt);
   const quiltBase = Float32Array.from(qa.array);
+  const quiltWeight = Float32Array.from({ length: qa.count }, (_, i) =>
+    Math.exp(-((qa.getX(i) / .23) ** 2 + ((qa.getY(i) + .1) / .68) ** 2)));
   collision(1.57, 0.8, 2.12, 0, 0.4, 0, bed);
   contact(1.9, 2.4, 7.4, -3.28, 0.65, bedroom);
   const nightstand = table(8.58, -3.45, 0.5, 0.5, 0.69, bedroom);
@@ -1007,7 +1009,10 @@ export function furnish(b, m) {
   const puzzle = addPuzzleProps(b, m, roomGroups, { diary, bedsideLamp });
   let shownFrequency = 88,
     lastStage = 0,
-    lastTime = 0;
+    lastTime = 0,
+    quiltFrame = -1,
+    quiltAmplitude = null;
+  const televisionNoise = screenCtx.createImageData(192, 144);
   function reset() {
     puzzle.reset();
     receiver.position.set(0, 0, 0);
@@ -1026,6 +1031,8 @@ export function furnish(b, m) {
     bathroomMirror.setClueVisible(false);
     lastStage = 0;
     lastTime = 0;
+    quiltFrame = -1;
+    quiltAmplitude = null;
   }
   function animate(time, state, player) {
     if (time < lastTime || (state.stage === 0 && lastStage > 0)) reset();
@@ -1037,7 +1044,7 @@ export function furnish(b, m) {
     const frameNumber = Math.floor(time * 10);
     if (frameNumber !== animate.lastFrame) {
       animate.lastFrame = frameNumber;
-      const im = screenCtx.createImageData(192, 144);
+      const im = televisionNoise;
       for (let i = 0; i < im.data.length; i += 4) {
         const v = (Math.random() * 22 + 5) * (state.stage >= 3 ? 0.1 : 1);
         im.data[i] = v * 0.8;
@@ -1056,19 +1063,18 @@ export function furnish(b, m) {
     invertedChair.userData.collider.disabled = inverted;
     stream.visible = !(state.stage >= 4 && state.echoIndex >= 2);
     if (state.stage >= 2) {
-      for (let i = 0; i < qa.count; i++) {
-        const x = qa.getX(i),
-          y = qa.getY(i),
-          shape = Math.exp(-((x / 0.23) ** 2 + ((y + 0.1) / 0.68) ** 2));
-        qa.setZ(
-          i,
-          quiltBase[i * 3 + 2] +
-            shape *
-              (state.farewellSaid ? 0 : 0.09 + Math.sin(time * 1.3) * 0.005),
-        );
+      const frame = Math.floor(time * 30);
+      const amplitude = state.farewellSaid ? 0 : .09 + Math.sin(time * 1.3) * .005;
+      // This millimetre-scale breathing needs no per-frame exponentials or
+      // repeated normal uploads after it has become still.
+      if (frame !== quiltFrame && amplitude !== quiltAmplitude) {
+        for (let i = 0; i < qa.count; i++)
+          qa.setZ(i, quiltBase[i * 3 + 2] + quiltWeight[i] * amplitude);
+        qa.needsUpdate = true;
+        quiltGeo.computeVertexNormals();
+        quiltFrame = frame;
+        quiltAmplitude = amplitude;
       }
-      qa.needsUpdate = true;
-      quiltGeo.computeVertexNormals();
     }
     const on =
       state.power &&

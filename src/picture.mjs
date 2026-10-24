@@ -1,13 +1,18 @@
 import * as T from "three";
 
-// One beauty render with a depth attachment, followed by a small presentation pass.
-// The room mirror keeps its own optically correct render; no scene-wide blur or DOF.
+const MAX_AO_SAMPLES = 10;
+
+// One linear beauty image and one presentation pass. Color response, lens
+// shading and contact shade share that pass; there is no blur/DOF stack or
+// history buffer to smear a mirror clue, a camera turn or a sudden reveal.
 export class Picture {
   constructor(renderer, camera) {
     this.renderer = renderer;
     this.camera = camera;
     this.contactShadows = true;
+    this.postProcessing = true;
     this.quality = 1080;
+    this.stats = { calls: 0, triangles: 0, points: 0, lines: 0 };
     const webgl2 = renderer.capabilities.isWebGL2;
     this.maxSamples = webgl2 ? renderer.capabilities.maxSamples : 0;
     this.hdr = webgl2 && renderer.extensions.has("EXT_color_buffer_float");
@@ -36,22 +41,15 @@ export class Picture {
       projection: { value: camera.projectionMatrix },
       exposure: { value: renderer.toneMappingExposure },
       aoEnabled: { value: 1 },
+      aoSampleCount: { value: 6 },
       edgeAAEnabled: { value: 1 },
+      postEnabled: { value: 1 },
+      highlightGlow: { value: 0 },
     };
-    const kernel = [];
-    for (let i = 0; i < 12; i++) {
-      const angle = i * 2.399963,
-        z = (i + 0.5) / 12;
-      const length = 0.15 + 0.85 * ((i + 1) / 12) ** 2;
-      kernel.push(
-        new T.Vector3(
-          Math.cos(angle) * Math.sqrt(1 - z * z),
-          Math.sin(angle) * Math.sqrt(1 - z * z),
-          z,
-        ).multiplyScalar(length),
-      );
-    }
-    this.uniforms.samples = { value: kernel };
+    this.uniforms.samples = {
+      value: Array.from({ length: MAX_AO_SAMPLES }, () => new T.Vector3()),
+    };
+    this.updateKernel(6);
     const material = new T.ShaderMaterial({
       uniforms: this.uniforms,
       depthTest: false,
@@ -67,12 +65,20 @@ export class Picture {
         uniform sampler2D image, depth;
         uniform vec2 texel;
         uniform mat4 inverseProjection, projection;
-        uniform vec3 samples[12];
-        uniform float exposure, aoEnabled, edgeAAEnabled;
+        uniform vec3 samples[${MAX_AO_SAMPLES}];
+        uniform float exposure, aoEnabled, aoSampleCount, edgeAAEnabled;
+        uniform float postEnabled, highlightGlow;
         vec3 positionAt(vec2 uv){
           float d=texture2D(depth,uv).r;
           vec4 p=inverseProjection*vec4(uv*2.-1.,d*2.-1.,1.);
           return p.xyz/p.w;
+        }
+        // Only depth is needed for a neighboring surface. Reconstructing a
+        // full vec4/matrix product for every AO tap wastes most of its work.
+        float viewDepthAt(vec2 uv){
+          float z=texture2D(depth,uv).r*2.-1.;
+          return (inverseProjection[2][2]*z+inverseProjection[3][2])/
+            (inverseProjection[2][3]*z+inverseProjection[3][3]);
         }
         float luminance(vec3 c){return dot(c,vec3(.299,.587,.114));}
         vec3 tone(vec3 c){
@@ -101,54 +107,112 @@ export class Picture {
           #ifdef CONTACT_AO
           if(aoEnabled>.5 && texture2D(depth,uv).r<.9999){
             vec3 p=positionAt(uv);
-            vec3 n=normalize(cross(dFdx(p),dFdy(p)));
+            vec3 gradient=cross(dFdx(p),dFdy(p));
+            vec3 n=gradient/max(length(gradient),.000001);
             if(dot(n,-p)<0.) n=-n;
             // Screen-stable interleaved rotation distributes the small hemisphere kernel.
             float noise=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))));
             vec3 randomVector=vec3(cos(noise*6.28318),sin(noise*6.28318),0.);
-            vec3 tangent=normalize(randomVector-n*dot(randomVector,n));
+            vec3 tangent=randomVector-n*dot(randomVector,n);
+            tangent/=max(length(tangent),.000001);
             mat3 basis=mat3(tangent,cross(n,tangent),n);
-            for(int i=0;i<12;i++){
-              vec3 candidate=p+basis*samples[i]*.36;
+            for(int i=0;i<${MAX_AO_SAMPLES};i++){
+              if(float(i)>=aoSampleCount) break;
+              vec3 candidate=p+basis*samples[i]*.30;
               vec4 offset=projection*vec4(candidate,1.);
               vec2 sampleUV=offset.xy/offset.w*.5+.5;
               if(sampleUV.x>0. && sampleUV.x<1. && sampleUV.y>0. && sampleUV.y<1.){
-                float surfaceZ=positionAt(sampleUV).z;
-                float range=smoothstep(0.,1.,.36/(abs(p.z-surfaceZ)+.001));
+                float surfaceZ=viewDepthAt(sampleUV);
+                float range=smoothstep(0.,1.,.30/(abs(p.z-surfaceZ)+.001));
                 occlusion+=step(candidate.z+.018,surfaceZ)*range;
               }
             }
           }
           #endif
-          color*=1.-min(.42,occlusion/12.*.58);
-          // Restrained film response: warm mids, cool shadows, no crushed black threshold.
-          color=mix(vec3(luminance(color)),color,.93);
-          color*=mix(vec3(.94,.985,1.035),vec3(1.025,1.005,.975),smoothstep(.03,.8,luminance(color)));
+          color*=1.-min(.34,occlusion/max(aoSampleCount,1.)*.50);
+          if(postEnabled>.5){
+            // Only the Detailed profile spends four extra taps on a tiny
+            // warm highlight spill. It leaves texture edges and text sharp.
+            if(highlightGlow>.5){
+              vec2 spread=texel*2.25;
+              vec3 glow=max(texture2D(image,uv+spread).rgb-vec3(1.1),vec3(0.));
+              glow+=max(texture2D(image,uv-spread).rgb-vec3(1.1),vec3(0.));
+              glow+=max(texture2D(image,uv+vec2(spread.x,-spread.y)).rgb-vec3(1.1),vec3(0.));
+              glow+=max(texture2D(image,uv+vec2(-spread.x,spread.y)).rgb-vec3(1.1),vec3(0.));
+              color+=min(glow,vec3(6.))*vec3(.020,.014,.009);
+            }
+            float level=luminance(color);
+            float shadows=1.-smoothstep(.015,.32,level);
+            float highlights=smoothstep(.45,2.2,level);
+            color=mix(vec3(level),color,.96-.035*shadows+.015*highlights);
+            // Cool, breathable shadows and restrained amber practical light.
+            // Skin and blood retain their original photographic hue.
+            color*=mix(vec3(.935,.985,1.035),vec3(1.025,1.005,.975),smoothstep(.025,.65,level));
+          }
           color=tone(color);
+          if(postEnabled>.5){
+            // A gentle S response retains zero black and white endpoints.
+            color=mix(color,color*color*(3.-2.*color),.09);
+            vec2 lens=(uv-.5)*vec2(1.,.85);
+            color*=1.-.24*smoothstep(.10,.46,dot(lens,lens));
+          }
           color=mix(color*12.92,1.055*pow(color,vec3(1./2.4))-.055,step(vec3(.0031308),color));
           gl_FragColor=vec4(color,1.);
         }`,
     });
-    const quad = new T.Mesh(new T.PlaneGeometry(2, 2), material);
+    const quad = this.quad = new T.Mesh(new T.PlaneGeometry(2, 2), material);
     quad.frustumCulled = false;
     this.scene.add(quad);
+  }
+  setOptions({ postProcessing = this.postProcessing } = {}) {
+    this.postProcessing = Boolean(postProcessing);
+  }
+  updateKernel(count) {
+    this.uniforms.aoSampleCount.value = count;
+    for (let i = 0; i < MAX_AO_SAMPLES; i++) {
+      const index = Math.min(i, count - 1), angle = index * 2.399963;
+      const z = (index + .5) / count;
+      const radius = .15 + .85 * ((index + 1) / count) ** 2;
+      this.uniforms.samples.value[i].set(
+        Math.cos(angle) * Math.sqrt(1 - z * z),
+        Math.sin(angle) * Math.sqrt(1 - z * z),
+        z,
+      ).multiplyScalar(radius);
+    }
+  }
+  async warmup() {
+    const destination = this.renderer.getRenderTarget();
+    try {
+      // setRenderTarget allocates the beauty attachments on this Three version.
+      // Compile the presentation against the real screen color-space variant.
+      this.renderer.setRenderTarget(this.target);
+      this.renderer.setRenderTarget(null);
+      await this.renderer.compileAsync(this.scene, this.view);
+    } finally {
+      this.renderer.setRenderTarget(destination);
+    }
   }
   resize(width, height, quality) {
     this.quality = quality;
     const samples = Math.min(
       this.maxSamples,
-      quality >= 1440 ? 4 : quality >= 1080 ? 2 : 0,
+      quality >= 1440 ? 2 : 0,
     );
     if (samples !== this.target.samples) {
       this.target.samples = samples;
       this.target.dispose();
     }
     this.uniforms.edgeAAEnabled.value = samples ? 0 : 1;
+    this.uniforms.highlightGlow.value = quality >= 1440 ? 1 : 0;
+    this.updateKernel(quality >= 1440 ? 10 : quality >= 1080 ? 6 : 4);
     this.target.setSize(width, height);
     this.uniforms.texel.value.set(1 / width, 1 / height);
   }
   render(scene, camera) {
+    this.uniforms.inverseProjection.value = camera.projectionMatrixInverse;
+    this.uniforms.projection.value = camera.projectionMatrix;
     this.uniforms.exposure.value = this.renderer.toneMappingExposure;
+    this.uniforms.postEnabled.value = this.postProcessing ? 1 : 0;
     this.uniforms.aoEnabled.value =
       this.ambientOcclusionSupported &&
       this.contactShadows &&
@@ -159,11 +223,16 @@ export class Picture {
     try {
       this.renderer.setRenderTarget(this.target);
       this.renderer.render(scene, camera);
-      this.stats = { ...this.renderer.info.render };
+      Object.assign(this.stats, this.renderer.info.render);
       this.renderer.setRenderTarget(destination);
       this.renderer.render(this.scene, this.view);
     } finally {
       this.renderer.setRenderTarget(destination);
     }
+  }
+  dispose() {
+    this.target.dispose();
+    this.quad.geometry.dispose();
+    this.quad.material.dispose();
   }
 }

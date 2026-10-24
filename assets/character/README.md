@@ -2,7 +2,7 @@
 
 Mara is an original fictional adult woman assembled from MakeHuman's **CC0**
 anatomical mesh, morphology, rig and system assets. The reflection, crawling
-apparitions and wake mourners use the same model. She is 1.74 metres tall, with a
+apparitions, wake mourners and first-person player body use the same model. She is 1.74 metres tall, with a
 chestnut bob, a long-sleeved burgundy blouse, dark jeans and ordinary black shoes.
 The base anatomy is a continuous subdivided, UV-mapped mesh, rather than a
 collection of primitives. This is a game-ready human asset; it is not a scan or
@@ -155,3 +155,13 @@ The creature's stationary contacts accept the director's planned travel directio
 before a backward withdrawal. This initializes real planted anchors without a
 reset or snap; actual velocity takes precedence once movement starts. The normal
 human gait remains separate. See `docs/DEMON_ART.md` for ownership and reset details.
+
+## First-person instance
+
+`src/first-person.mjs` uses a private instance of Mara's existing CC0 rig and
+geometry. It removes head/neck skin and face accessories from that instance,
+retains the blouse, jeans, shoes and real hands, and authors walking, gripping,
+flashlight draw/stow and item-reaching poses with the measured limb solver.
+The flashlight is original project geometry. No separate animation pack, prop
+asset or downloaded model is used. Layer 2 keeps this body out of auxiliary
+portal and reflection views; the existing full reflection remains independent.

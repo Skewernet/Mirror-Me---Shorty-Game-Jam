@@ -181,6 +181,66 @@ fs.mkdirSync(out, { recursive: true });
         );
         checks.push("silent ceiling onset varies the encounter signature");
 
+        const circuits = [];
+        for (const encounter of [
+          { id: "bathroom-ceiling", stage: 2, x: 2, z: 2.2, at: [3.1, 1.86, 2.2], source: "bathroom" },
+          { id: "far-hall-crawler", stage: 3, x: 2, z: 0, at: [5.75, .44, 0], source: "far-hall" },
+          { id: "sitting-room-return", stage: 4, x: 0, z: 1, at: [0, .44, 4.3], source: "entry" },
+          { id: "last-ceiling", stage: 5, x: 4.2, z: 0, at: [7.3, 1.86, 0], source: "far-hall" },
+        ]) {
+          fresh();
+          story.stage = encounter.stage;
+          story.echoIndex = 1;
+          story.silenceComplete = false;
+          story.doors = { bedroom: true, bathroom: true, lounge: true };
+          player.x = encounter.x; player.z = encounter.z;
+          camera.position.set(player.x, 1.64, player.z);
+          face(...encounter.at);
+          for (let index = 0; index < 180 && !director.active; index++) step(1 / 60);
+          check(director.snapshot().active === encounter.id, encounter.id + " did not reveal");
+          check(director.snapshot().lightMultiplier === 1, encounter.id + " hid the initial readable body");
+          let previous = 1, offs = 0, firstOff = null;
+          const began = director.active.started;
+          for (let index = 0; index < 600 && director.active; index++) {
+            const body = director.figure.body;
+            face(body.position.x, body.position.y + (director.active.mode === "ceiling" ? -.38 : .44), body.position.z);
+            const environment = step(1 / 60);
+            check(environment.lightMultiplier === 0 || environment.lightMultiplier === 1,
+              encounter.id + " used a smooth dim instead of a circuit interruption");
+            if (environment.lightMultiplier === 0) {
+              check(environment.lightSource === encounter.source, encounter.id + " affected the wrong circuit");
+              if (previous === 1) { offs++; firstOff ??= time - began; }
+            }
+            previous = environment.lightMultiplier;
+          }
+          check(offs >= 3 && offs <= 4, encounter.id + " did not deliver its finite irregular interruptions");
+          check(firstOff >= .30, encounter.id + " darkened before its readable first glimpse");
+          check(director.snapshot().lightMultiplier === 1 && !director.snapshot().lightSource,
+            encounter.id + " left a circuit dark after withdrawal");
+          const relays = director.drainEvents().filter(event => event.id === "light-relay");
+          check(relays.length === offs, encounter.id + " repeated or missed its circuit relay");
+          circuits.push({ id: encounter.id, interruptions: offs, firstOff });
+        }
+        checks.push("all four crawling/ceiling sightings interrupt their own circuit irregularly after a readable reveal and restore it");
+
+        fresh();
+        face(5.75, .44, 0);
+        started();
+        while (director.snapshot().lightMultiplier !== 0) step(1 / 60);
+        check(step(1 / 60, { flashes: false }).lightMultiplier === 1,
+          "Switching flicker off did not immediately restore a dark circuit");
+        check(step(1 / 60, { dialogueBusy: true }).lightMultiplier === 1,
+          "Essential dialogue did not suppress a current interruption");
+        const pausedTime = time;
+        const paused = director.update(time, 0, story, player, camera);
+        const resumed = director.update(time, 0, story, player, camera);
+        check(paused.lightMultiplier === resumed.lightMultiplier && time === pausedTime,
+          "Paused simulation advanced the electrical sequence");
+        director.reset();
+        check(director.snapshot().lightMultiplier === 1 && !director.snapshot().lightSource,
+          "Restart retained a dark circuit");
+        checks.push("comfort toggle, dialogue priority, paused time and reset cannot retain or replay dark intervals");
+
         fresh();
         face(5.75, 0.44, 0);
         const start = started();
@@ -222,8 +282,8 @@ fs.mkdirSync(out, { recursive: true });
           );
         }
         check(
-          minLight >= 0.2 && maxLight <= 1,
-          "Local light dips exceeded the established readable envelope",
+          minLight === 0 && maxLight === 1,
+          "The crawler circuit never switched fully off and back on",
         );
         step(20);
         check(
@@ -310,9 +370,27 @@ fs.mkdirSync(out, { recursive: true });
         checks.push(
           "disable, ending and restart hide the body and discard pending creature cues",
         );
+        const shadowInvalidations = [];
+        house.invalidateShadows = time => shadowInvalidations.push(time);
+        fresh();
+        face(5.75, .44, 0);
+        started();
+        step(.15);
+        story.endingStarted = true;
+        step(1 / 60);
+        check(shadowInvalidations.length > 2 && shadowInvalidations[0] === 0 &&
+          shadowInvalidations.every(Number.isFinite) && shadowInvalidations.at(-1) === time,
+          "Creature shadows did not delegate reset, motion and finish to the house simulation-time scheduler");
+        delete house.invalidateShadows;
+        house.architecture = { shadowLights: [{ shadow: { needsUpdate: false } }] };
+        director.updateShadows(time);
+        check(house.architecture.shadowLights[0].shadow.needsUpdate,
+          "Custom houses without a shadow scheduler lost their fallback invalidation");
+        checks.push("creature shadow invalidation shares the house scheduler and retains custom-house fallback");
         return {
           checks,
           phases: [...phases],
+          circuits,
           minLight,
           maxLight,
           cueCounts: Object.fromEntries(

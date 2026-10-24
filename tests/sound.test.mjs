@@ -117,3 +117,30 @@ test("the strike word completes in full with its short configured gap after paus
   advance(10);
   assert.deepEqual(completed, ["goodnight"]);
 });
+
+test("the pleading call holds each measured phrase through its pause and resumes without skipping", async (t) => {
+  const advance = clock(t), captions = [], completed = [], sound = new Sound(text => captions.push(text));
+  t.after(() => sound.stopVoice());
+  sound.paused = false;
+  await sound.voice("call", { onComplete: id => completed.push(id) });
+  assert.match(captions.at(-1), /Mara\.\.\./);
+  assert.equal(sound.voiceDuration, 16.3);
+  advance(2300);
+  assert.match(captions.at(-1), /Mara\.\.\./);
+  advance(200);
+  assert.match(captions.at(-1), /The music box/);
+  advance(2700);
+  assert.match(captions.at(-1), /The bath/);
+  await sound.pause();
+  const offset = sound.voiceElapsed();
+  advance(50000);
+  assert.deepEqual(completed, []);
+  sound.resumeDialogue();
+  assert.equal(sound.voiceElapsed(), offset);
+  assert.match(captions.at(-1), /The bath/);
+  advance(2500);
+  assert.match(captions.at(-1), /The radio/);
+  advance(10000);
+  assert.deepEqual(completed, ["call"]);
+  assert.equal(captions.at(-1), "");
+});

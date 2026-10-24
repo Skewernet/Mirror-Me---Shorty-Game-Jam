@@ -2,6 +2,7 @@ import * as T from "three";
 import { createDemon } from "./demon.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
 import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
+import { CRAWLER_FLICKER, crawlerFlickerAt } from "./crawler-flicker.mjs";
 
 // One body, six authored sightings. Every encounter starts from a visible,
 // unobstructed sightline and withdraws into a real room or behind its dressing.
@@ -303,7 +304,7 @@ export class HorrorDirector {
     this.figure.body.rotation.set(0, 0, 0);
     this.figure.resetPose?.();
     this.figure.resetMotion?.();
-    this.updateShadows();
+    this.updateShadows(0);
   }
 
   hasLineOfSight(point, camera, minDistance = 1.1, maxDistance = 8.5) {
@@ -366,13 +367,17 @@ export class HorrorDirector {
 
   finish(time) {
     this.figure.body.visible = false;
-    this.updateShadows();
+    this.updateShadows(time);
     this.active = null;
     this.cooldownUntil = time + 7;
     this.light = { lightMultiplier: 1, lightSource: null };
   }
 
-  updateShadows() {
+  updateShadows(time) {
+    if (typeof this.house.invalidateShadows === "function") {
+      this.house.invalidateShadows(time);
+      return;
+    }
     for (const light of this.house.architecture?.shadowLights || [])
       if (light.shadow) light.shadow.needsUpdate = true;
   }
@@ -563,7 +568,7 @@ export class HorrorDirector {
     const travelIntent = nextPoint
       ? [nextPoint[0] - body.position.x, nextPoint[2] - body.position.z]
       : [0, 0];
-    this.updateShadows();
+    this.updateShadows(time);
     const velocity = body.position
       .clone()
       .sub(this.previousPosition)
@@ -656,23 +661,29 @@ export class HorrorDirector {
         });
     }
     if (flashes && !dialogueBusy) {
-      let multiplier = 1;
-      for (let index = 0; index < definition.pulses.length; index++) {
-        const [from, to, amount] = definition.pulses[index];
-        // Place authored electrical dips around the movement, after the player
-        // has had a readable face/body silhouette. Comfort mode leaves it lit.
-        if (age >= withdrawalAt + from && age < withdrawalAt + to) {
-          // Local electrical dips, never an all-screen white flash or strobe.
-          multiplier = Math.min(multiplier, amount);
-          if (!active.relays.has(index)) {
-            active.relays.add(index);
-            this.events.push({
-              id: "light-relay",
-              x: body.position.x,
-              y: 2,
-              z: body.position.z,
-              encounter: definition.id,
-            });
+      const flicker = crawlerFlickerAt(definition.id, age);
+      let multiplier = flicker.lightMultiplier;
+      const relay = (index) => {
+        if (active.relays.has(index)) return;
+        active.relays.add(index);
+        this.events.push({
+          id: "light-relay",
+          x: body.position.x,
+          y: 2,
+          z: body.position.z,
+          encounter: definition.id,
+        });
+      };
+      if (flicker.index >= 0) relay(flicker.index);
+      // Floor/ceiling encounters have finite, irregular full power failures,
+      // beginning after their first readable glimpse and continuing through
+      // stillness/withdrawal. Keep the separate twisted sighting's old dim.
+      if (!Object.hasOwn(CRAWLER_FLICKER, definition.id)) {
+        for (let index = 0; index < definition.pulses.length; index++) {
+          const [from, to, amount] = definition.pulses[index];
+          if (age >= withdrawalAt + from && age < withdrawalAt + to) {
+            multiplier = Math.min(multiplier, amount);
+            relay(index);
           }
         }
       }

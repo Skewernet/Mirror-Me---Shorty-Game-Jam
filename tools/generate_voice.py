@@ -122,6 +122,7 @@ def main() -> None:
         segments = line.get("segments") or [line["text"]]
         pauses = line.get("pauses_after_seconds", [])
         samples = []
+        phrase_starts = []
         sample_rate = None
         for index, text in enumerate(segments):
             audio = tts.generate(text, sid=line["speaker_id"], speed=line["speed"])
@@ -130,6 +131,7 @@ def main() -> None:
             if sample_rate is not None and sample_rate != audio.sample_rate:
                 raise RuntimeError("Sample rate changed within " + name)
             sample_rate = audio.sample_rate
+            phrase_starts.append(round(len(samples) / sample_rate, 3))
             samples.extend(audio.samples)
             if index < len(segments) - 1 and index < len(pauses):
                 samples.extend([0.] * round(float(pauses[index]) * sample_rate))
@@ -163,6 +165,7 @@ def main() -> None:
         if line.get("segments"):
             report["clips"][name]["segments"] = segments
             report["clips"][name]["pauses_after_seconds"] = pauses
+            report["clips"][name]["phrase_starts_seconds"] = phrase_starts
         report_path.write_text(json.dumps(report, indent=2) + "\n")
         print(f"{name}: {line['voice']}, {duration:.2f}s, rendered in {time.monotonic()-started:.2f}s", flush=True)
 
