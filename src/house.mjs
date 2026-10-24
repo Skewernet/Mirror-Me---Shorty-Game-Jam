@@ -8,6 +8,7 @@ import { ThresholdPortal } from "./portal.mjs";
 import { buildWake } from "./wake.mjs";
 import { buildRevelation } from "./revelation.mjs";
 import { WRITINGS } from "./story.mjs";
+import { FUSE_OUT_LIGHTING } from "./crawler-flicker.mjs";
 import {
   ROOMS,
   roomAt,
@@ -781,6 +782,8 @@ export async function buildHouse(scene) {
     light.userData.powerCircuit = windowLights.has(light) ? "window" : "mains";
   const ambient = new T.HemisphereLight(0xa7bac0, 0x30271e, 0.19);
   ambient.userData.currentBase = ambient.intensity;
+  ambient.userData.currentSky = ambient.color.clone();
+  ambient.userData.currentGround = ambient.groundColor.clone();
   scene.add(ambient);
   const exitLight = point(0xb9d1db, 0, 3.8, 7.4, 2.04, 2.4);
   // Small material accents created by the furnishing helpers should share the
@@ -917,14 +920,24 @@ export async function buildHouse(scene) {
     for (const light of affected)
       if (light.userData.powerCircuit !== "window")
         light.intensity = light.userData.currentBase * multiplier;
-    // A mains failure previously left full moonlight and hemispheric fill,
-    // making only one bulb's dimming visible. Whole-house encounters suppress
-    // those secondary fills as well, without changing visible/light counts.
+    // Mains genuinely switch off, while surviving moonlight and indirect fill
+    // retain the readable failed-fuse arrival level. Absolute exterior bases
+    // prevent the inverted house's brighter windows changing this floor.
     const exterior = T.MathUtils.clamp(envelope.exteriorMultiplier ?? 1, 0, 1);
     for (const light of windowLights)
-      light.intensity = light.userData.currentBase * exterior;
-    ambient.intensity = (ambient.userData.currentBase ?? ambient.intensity) *
-      T.MathUtils.clamp(envelope.ambientMultiplier ?? 1, 0, 1);
+      light.intensity = Number.isFinite(envelope.exteriorBaseScale)
+        ? light.userData.base * T.MathUtils.clamp(envelope.exteriorBaseScale, 0, 1)
+        : light.userData.currentBase * exterior;
+    ambient.color.copy(ambient.userData.currentSky);
+    ambient.groundColor.copy(ambient.userData.currentGround);
+    if (Number.isFinite(envelope.ambientIntensity)) {
+      ambient.intensity = T.MathUtils.clamp(envelope.ambientIntensity, 0, 1);
+      if (envelope.skyColor !== undefined) ambient.color.set(envelope.skyColor);
+      if (envelope.groundColor !== undefined) ambient.groundColor.set(envelope.groundColor);
+    } else {
+      ambient.intensity = ambient.userData.currentBase *
+        T.MathUtils.clamp(envelope.ambientMultiplier ?? 1, 0, 1);
+    }
     const environment = T.MathUtils.clamp(envelope.environmentMultiplier ?? 1, 0, 1);
     for (const [material, base] of environmentMaterials)
       material.envMapIntensity = base * environment;
@@ -1047,9 +1060,10 @@ export async function buildHouse(scene) {
         light.color.set(0xe4f1fb);
         light.intensity = light.userData.base * 1.7;
       }
-    ambient.color.set(inverted ? 0xd8e8ef : 0xa7bac0);
-    ambient.groundColor.set(inverted ? 0x6b7376 : 0x30271e);
-    ambient.intensity = inverted ? 0.45 : 0.19;
+    const parlorFill = state.wakeEntered ? wake.ambientProfile : null;
+    ambient.color.set(parlorFill?.skyColor ?? (inverted ? 0xd8e8ef : 0xa7bac0));
+    ambient.groundColor.set(parlorFill?.groundColor ?? (inverted ? 0x6b7376 : 0x30271e));
+    ambient.intensity = parlorFill?.intensity ?? (inverted ? 0.45 : 0.19);
     exitLight.intensity = T.MathUtils.damp(
       previousExitIntensity,
       state.doorOpen && !backdoorGone ? 5 : 0,
@@ -1061,8 +1075,8 @@ export async function buildHouse(scene) {
     // the flashlight is the player's deliberate way to inspect the rooms.
     if (!state.power && !inverted) {
       for (const light of lights)
-        light.intensity = windowLights.has(light) ? light.userData.base * 0.12 : 0;
-      ambient.intensity = 0.025;
+        light.intensity = windowLights.has(light) ? light.userData.base * FUSE_OUT_LIGHTING.exteriorBaseScale : 0;
+      ambient.intensity = FUSE_OUT_LIGHTING.ambientIntensity;
     }
     m.bulb.color.set(state.power || inverted ? 0xffd9a0 : 0x101411);
     m.shade.emissiveIntensity = state.power || inverted ? 0.2 : 0;
@@ -1087,6 +1101,8 @@ export async function buildHouse(scene) {
       light.userData.currentColor.copy(light.color);
     }
     ambient.userData.currentBase = ambient.intensity;
+    ambient.userData.currentSky.copy(ambient.color);
+    ambient.userData.currentGround.copy(ambient.groundColor);
     if (state.wakeEntered) applyHorrorLighting(wake.blackoutLighting());
   }
   function reset(state) {

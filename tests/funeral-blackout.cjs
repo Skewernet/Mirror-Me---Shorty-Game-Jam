@@ -33,6 +33,7 @@ const base = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\
       const baseLights = new Map(wake.lights.map(light => [light, light.intensity]));
       const baseVisible = wake.lights.map(light => light.visible);
       const ambient = house.ambientLight.intensity;
+      const ambientSky = house.ambientLight.color.clone(), ambientGround = house.ambientLight.groundColor.clone();
       const env = house.materials.wood.envMapIntensity;
       const emissions = new Map();
       wake.group.traverse(object => {
@@ -48,6 +49,8 @@ const base = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\
             'Parlor fixture/window emission failed to restore');
         check(house.ambientLight.intensity === ambient && house.materials.wood.envMapIntensity === env,
           'Parlor indirect light failed to restore');
+        check(house.ambientLight.color.equals(ambientSky) && house.ambientLight.groundColor.equals(ambientGround),
+          'Parlor ambient palette failed to restore');
       };
       const camera = new T.PerspectiveCamera(65, 4 / 3, .055, 40);
       camera.position.set(0, 1.64, 10.2); camera.lookAt(0, 1.2, 15.65); camera.updateMatrixWorld(true);
@@ -71,13 +74,13 @@ const base = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\
       check(!wake.beginBlackout(20), 'Report callback can start a second blackout');
       house.animate(20.2, .2, state, player);
       const dark = measure();
-      check(dark < lit * .40, 'Parlor indirect fill prevents a convincing blackout: ' + dark / lit);
+      check(dark < lit * .80 && dark > 1, 'Parlor outage must interrupt practicals while preserving room silhouettes: ' + dark / lit);
       check(renderer.info.programs.length === programs, 'Outage compiled new shader programs');
       check(wake.lights.every((light, index) => light.intensity === 0 && light.visible === baseVisible[index]),
         'Parlor practicals stayed lit or changed shader light counts');
-      check(house.ambientLight.intensity === ambient * BLACKOUT_ENVIRONMENT.ambientMultiplier &&
+      check(house.ambientLight.intensity === BLACKOUT_ENVIRONMENT.ambientIntensity &&
         house.materials.wood.envMapIntensity === env * BLACKOUT_ENVIRONMENT.environmentMultiplier,
-        'Shared house ambient/environment fill stayed bright in the funeral room');
+        'Parlor did not keep readable failed-fuse ambient/environment fill');
       for (const [material] of emissions) {
         if (material.isMeshBasicMaterial) check(material.color.getHex() === 0, 'Self-lit pendant stayed visible');
         if (material.emissiveIntensity !== undefined) check(material.emissiveIntensity === 0, 'Window/radio emission stayed bright');
@@ -124,7 +127,7 @@ const base = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\
       return { status: 'PASS', litLuminance: lit, darkLuminance: dark,
         darkFraction: dark / lit, programs, shaderProgramsAddedByBlackout: 0,
         practicalLights: baseLights.size, emissiveMaterials: emissions.size, relayEvents: events.length,
-        checks: ['actual parlor darkness', 'stable shader light count', 'shared indirect fill suppression',
+        checks: ['readable parlor outage', 'stable shader light count', 'shared failed-fuse indirect fill',
           'finite off/on relay edges', 'pause', 'comfort off and no late replay',
           'full restoration before accusation/attack', 'attack cancellation', 'restart'] };
     });

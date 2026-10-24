@@ -33,6 +33,7 @@ fs.mkdirSync(out, { recursive: true });
       renderer.outputColorSpace = T.SRGBColorSpace;
       renderer.toneMapping = T.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.13;
+
       document.body.append(renderer.domElement);
       const camera = new T.PerspectiveCamera(65, 4 / 3, .055, 65);
       const picture = new Picture(renderer, camera);
@@ -67,6 +68,31 @@ fs.mkdirSync(out, { recursive: true });
       const programs = renderer.info.programs.length;
       for (let iteration = 0; iteration < 6; iteration++) draw(iteration % 2 === 0);
       check(renderer.info.programs.length === programs, "Post toggle recompiles a shader variant");
+      const difference = (a, b) => a.reduce((sum, value, index) =>
+        sum + (index % 4 === 3 ? 0 : Math.abs(value - b[index])), 0) / (a.length * .75);
+      const unthreatened = draw(true);
+      const cameraBeforeThreat = JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray()]);
+      picture.setThreat(.25, 1);
+      const weakThreat = draw(true);
+      picture.setThreat(.9, 1);
+      const strongThreat = draw(true);
+      const weakDifference = difference(weakThreat, unthreatened), strongDifference = difference(strongThreat, unthreatened);
+      check(weakDifference > .5 && strongDifference > weakDifference * 1.7,
+        "Crawler proximity does not strengthen visible interference");
+      picture.setThreat(.9, 2, { flashes: false });
+      const stillThreat = draw(true);
+      picture.setThreat(.9, 7, { flashes: false });
+      check(difference(stillThreat, draw(true)) === 0, "Reduced flashing retains moving static/jitter");
+      const disabledPostThreat = draw(false);
+      picture.setThreat(0, 0);
+      check(difference(disabledPostThreat, draw(false)) === 0, "Post-off preference retains crawler distortion");
+      picture.setThreat(1, 2, { enabled: false });
+      check(difference(unthreatened, draw(true)) === 0, "Disabled scares retain crawler distortion");
+      picture.setThreat(NaN, Infinity);
+      check(picture.uniforms.threatAmount.value === 0 && picture.uniforms.threatTime.value === 0, "Invalid threat input corrupts shader uniforms");
+      check(cameraBeforeThreat === JSON.stringify([camera.position.toArray(), camera.quaternion.toArray(), camera.projectionMatrix.toArray()]),
+        "Crawler interference moved the physical camera");
+      check(renderer.info.programs.length === programs, "Crawler interference compiled a new shader variant");
       scene.background.setRGB(0, 0, 0);
       for (const post of [true, false]) check(center(draw(post)).every(value => value === 0), "Post lifts exact black into a luminous field");
       scene.background.setRGB(.003, .003, .003);
@@ -152,7 +178,9 @@ fs.mkdirSync(out, { recursive: true });
       scene.remove(red);
       red.geometry.dispose(); red.material.dispose();
       window.pictureFixture = { T, renderer, camera, picture };
-      return { result: "PASS", profiles, maxDepthError, uniformTogglePrograms: programs, greyOff: flatCenter, greyOn: center(greyOn), blood, contactPixels, maxContactDifference, checks: ["single beauty + single presentation", "warmup and render target restoration", "uniform-only post toggle", "finite HDR and low-light response", "brightness independent of post", "restrained grading and lens shading", "bounded AA/contact/highlight profile budgets", "scalar depth matches full inverse projection", "actual contact occlusion", "primary camera body layer preserved"] };
+      return { result: "PASS", profiles, maxDepthError, uniformTogglePrograms: programs, greyOff: flatCenter, greyOn: center(greyOn), blood,
+        threat: { weakDifference, strongDifference, cameraUnchanged: true, zeroProgramVariants: true },
+        contactPixels, maxContactDifference, checks: ["single beauty + single presentation", "warmup and render target restoration", "uniform-only post toggle", "finite HDR and low-light response", "brightness independent of post", "restrained grading and lens shading", "bounded AA/contact/highlight profile budgets", "scalar depth matches full inverse projection", "actual contact occlusion", "primary camera body layer preserved", "bounded proximity interference", "threat comfort/post toggles", "no camera/input mutation"] };
     });
 
     // Inspect the authored house through the real pass, not only a color chart.

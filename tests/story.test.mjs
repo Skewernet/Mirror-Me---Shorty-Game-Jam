@@ -243,14 +243,18 @@ test("the kitchen station clue appears only after the clock and is absent from t
   assert.equal(s.tuneRadio(93.7), "radio-tuned");
   s.interact("telephone");
   leave(s, 3);
-  s.hasStationClue = false;
-  assert.notEqual(s.interact("station-clue"), "station-clue");
-  assert.equal(s.hasStationClue, false, "An inactive kitchen mark cannot be read in later chapters");
+  for (const stage of [3, 4, 5, 6]) {
+    s.stage = stage;
+    assert.equal(s.interact("station-clue"), "station-clue", "Persistent visible writing remains inspectable");
+    assert.equal(s.hasStationClue, true);
+    assert.equal(s.radioTuned, true, "Rereading cannot undo the solved puzzle");
+  }
   assert.doesNotMatch(WRITINGS.diary, /93[.,]7/);
   assert.doesNotMatch(VOICES.diary.text, /93[.,]7|ninety[- ]three/i);
   assert.match(WRITINGS.diary, /close the (?:bedroom )?music box[\s\S]*stop the (?:bathroom )?tap[\s\S]*switch off the (?:kitchen )?radio/i);
   s.reset();
   assert.equal(s.hasStationClue, false);
+  assert.doesNotMatch(WRITINGS.diary, /03:17|3:17|93\.7/, "The early diary must not reveal later numeric solutions");
 });
 test("post-key mirror interactions cycle through eight reminders instead of repeating the drawer clue", () => {
   const s = new Story();
@@ -555,4 +559,23 @@ test("restart clears items, offerings, sounds, vanished doors, mirror world and 
   s.visit("kitchen");
   s.reset();
   assert.deepEqual(s, new Story());
+});
+
+test("the clock loop gives finite, indirect bath clues without repeating the key hint", () => {
+  const s = new Story();
+  firstPass(s);
+  secondPass(s);
+  assert.equal(s.stage, 2);
+  const lines = Array.from({ length: 7 }, () => s.interact("mirror"));
+  assert.deepEqual(lines, ["mirrorClock0", "mirrorClock1", "mirrorClock2", "mirrorClock0", "mirrorClock1", "mirrorClock2", "mirrorClock0"]);
+  for (const id of new Set(lines)) {
+    assert.ok(VOICES[id]);
+    assert.doesNotMatch(VOICES[id].text, /03:17|3:17|three seventeen|set the clock|go to the bathroom|console|drawer|bedroom key/i);
+  }
+  assert.equal(s.hasTimeClue, false);
+  assert.equal(s.clockSolved, false);
+  assert.equal(s.hasStationClue, false);
+  s.reset();
+  assert.equal(s.mirrorClockCursor, 0);
+  assert.equal(s.interact("mirror"), "mirror-first");
 });

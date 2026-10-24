@@ -52,6 +52,9 @@ test("post-key mirror takes have eight indirect lines and original layered glass
 test("Mum's routine call directs the diary and states the reverse-sound sequence", () => {
   const voice = VOICES.routineCall, line = lines.routineCall, clip = clips.routineCall;
   assert.match(voice.text, /diary.*beside the bed/i);
+  assert.match(voice.text, /the diary/i);
+  assert.doesNotMatch(voice.text, /my diary/i);
+  assert.equal(voice.captionCues[1].text, "The diary. Beside the bed.");
   assert.match(voice.text, /music box.*bathroom tap.*kitchen radio/i);
   assert.equal(voice.duration, clip.file_seconds);
   assert.equal(voice.captionCues.length, line.segments.length);
@@ -84,4 +87,16 @@ test("bathroom clue gives a direct 03:17 observation rather than backward digits
   assert.doesNotMatch(story.hint(), /71:30|backward/);
   assert.doesNotMatch(WRITINGS.diary, /hour backward/);
   assert.equal(VOICES.time.text, "The mirror has three seventeen written on it.");
+});
+
+test("clock-loop mirror hints keep the bath/clock connection indirect", () => {
+  const hints = ["mirrorClock0", "mirrorClock1", "mirrorClock2"];
+  assert.equal(new Set(hints.map(id => VOICES[id].text)).size, 3);
+  for (const id of hints) {
+    assert.equal(VOICES[id].speaker, "THE GLASS");
+    assert.equal(lines[id].role, "glass");
+    assert.equal(lines[id].voice, "bf_emma");
+    assert.doesNotMatch(VOICES[id].text, /03:17|three seventeen|go to|set the|use the|bathroom mirror/i);
+  }
+  assert.match(hints.map(id => VOICES[id].text).join(" "), /hands.*water.*Mum.*bath/i);
 });

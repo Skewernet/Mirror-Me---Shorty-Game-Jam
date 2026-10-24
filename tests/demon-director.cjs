@@ -208,9 +208,9 @@ fs.mkdirSync(out, { recursive: true });
             check(environment.lightMultiplier === 0 || environment.lightMultiplier === 1,
               encounter.id + " used a smooth dim instead of a circuit interruption");
             if (environment.lightMultiplier === 0) {
-              check(environment.lightSource === "all" && environment.ambientMultiplier < .05 &&
-                environment.exteriorMultiplier < .05 && environment.environmentMultiplier < .05,
-                encounter.id + " did not fail the whole house supply");
+              check(environment.lightSource === "all" && environment.ambientIntensity === .025 &&
+                environment.exteriorBaseScale === .12 && environment.environmentMultiplier === 1,
+                encounter.id + " did not retain the readable failed-fuse fill");
               if (previous === 1) { offs++; firstOff ??= time - began; }
             }
             previous = environment.lightMultiplier;

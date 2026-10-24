@@ -27,14 +27,15 @@ Then open the local server in a desktop WebGL browser and click ENTER.
 Do not double-click index.html; JavaScript modules need an HTTP server.
 No build, external asset service, credentials or installation is needed to play.
 
-WASD/arrow keys walk. Mouse looks. E interacts. Tab opens/closes your pocket.
+WASD/arrow keys walk. Shift runs. Mouse looks. E interacts. Tab opens/closes your pocket.
 F toggles the flashlight. H gives an optional thought. Escape pauses.
-Picture, comfort and sound controls are in the menu.
+Picture, subtitles, comfort and sound controls are in the menu.
+Chasing and touching a crawler can end the night; restart begins a fresh run.
 Start with the telephone in the sitting room. Keep discoveries in your journal.
 
 Five rooms and seven ordered chapters lead through the mirror to a new ending.
 The sitting-room telephone carries calls. The kitchen radio is a separate object.
-The twenty-five voice takes are synthetic performances, not human acting.
+The forty-two voice takes are synthetic performances, not human acting.
 See ATTRIBUTIONS.md and assets/voice/README.md for licenses and provenance.
 
 This archive has not been deployed or submitted anywhere.

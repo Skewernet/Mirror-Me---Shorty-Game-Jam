@@ -8,11 +8,17 @@ const intervals = {
   "last-ceiling": [[.34, .83], [1.11, 1.64], [2.11, 2.92]],
 };
 
-export const BLACKOUT_ENVIRONMENT = Object.freeze({
-  ambientMultiplier: .025,
-  exteriorMultiplier: .04,
-  environmentMultiplier: .04,
+// Use the same surviving exterior/indirect fill as the failed fuse on arrival.
+// Multiplying already dim fill a second time made encounters almost black,
+// particularly after the inverted house changed the baseline light strengths.
+export const FUSE_OUT_LIGHTING = Object.freeze({
+  ambientIntensity: .025,
+  exteriorBaseScale: .12,
+  skyColor: 0xa7bac0,
+  groundColor: 0x30271e,
+  environmentMultiplier: 1,
 });
+export const BLACKOUT_ENVIRONMENT = FUSE_OUT_LIGHTING;
 
 export const FUNERAL_BLACKOUT = Object.freeze({
   duration: 5.2,

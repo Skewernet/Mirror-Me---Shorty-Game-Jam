@@ -520,15 +520,15 @@
       "speaker_id": 22,
       "role": "phone",
       "speed": 0.86,
-      "text": "Mara... my diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
-      "speech_seconds": 20.639,
-      "file_seconds": 20.7,
+      "text": "Mara... the diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
+      "speech_seconds": 20.585,
+      "file_seconds": 20.6,
       "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
-      "sha256": "d1a72ff20b6060aaa4bd7c4e1c033c34e2c457ae7ae2ac60d7a0aad8e16873c8",
+      "sha256": "3c986a517974125fed32cd604331f38f5bb99a93c8a530d9f69dc8670b5109b1",
       "decoded_true_peak_dbfs": -3.7,
       "segments": [
         "Mara.",
-        "My diary. Beside the bed.",
+        "The diary. Beside the bed.",
         "Read the last page.",
         "End the evening backwards.",
         "The music box.",
@@ -548,13 +548,52 @@
       "phrase_starts_seconds": [
         0.0,
         1.81,
-        5.192,
-        7.696,
-        10.524,
-        12.599,
-        15.161,
-        17.919
+        5.14,
+        7.642,
+        10.47,
+        12.545,
+        15.107,
+        17.866
       ]
+    },
+    "mirrorClock0": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.92,
+      "text": "The hands kept turning. The water went cold.",
+      "speech_seconds": 3.606,
+      "file_seconds": 3.66,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "3419f7b931becfce4648f94a3e4c1bbc8a4c44b4e640feed02ef00efccde8c91",
+      "decoded_true_peak_dbfs": -4.5,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirrorClock1": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.92,
+      "text": "Mum liked her bath warm. You let the hour slip away.",
+      "speech_seconds": 3.75,
+      "file_seconds": 3.8,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "1ed828aca3ec887132a1150ee0c3d27fffb0becdf73e78864ce1483c05e36ea5",
+      "decoded_true_peak_dbfs": -3.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirrorClock2": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.92,
+      "text": "Some things keep time. Some things keep the face you won't look at.",
+      "speech_seconds": 4.378,
+      "file_seconds": 4.5,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "fd0d5a711ae0f19bc88405631e5efff5922950485642286967074992abd009b4",
+      "decoded_true_peak_dbfs": -3.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
     }
   }
 }

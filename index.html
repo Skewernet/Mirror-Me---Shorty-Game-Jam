@@ -10,6 +10,8 @@
       content="A first-person psychological horror game about a house that remembers your mother’s evening, and a reflection learning to finish it. Full free-asset credits are available in game and in GAME_DESCRIPTION.md."
     />
     <link rel="icon" href="data:," />
+    <link rel="preload" href="assets/fonts/RubikDirt-latin.woff" as="font" type="font/woff" crossorigin />
+    <link rel="preload" href="assets/fonts/SpecialElite-latin.woff" as="font" type="font/woff" crossorigin />
     <link rel="stylesheet" href="style.css" />
     <script type="importmap">
       { "imports": { "three": "./vendor/three.module.js" } }
@@ -41,8 +43,8 @@
     <div id="transition" aria-hidden="true"></div>
     <main id="menu" aria-label="MIRROR ME main menu" inert>
       <div class="menu-top">
-        <span class="wordmark">SKEWERNET</span>
-        <span>A SHORTY JAM STORY · INVERTED</span>
+        <span class="wordmark">SKEWER GAMES</span>
+        <span>SHORTY JAM 2026 · INVERTED</span>
       </div>
       <div class="menu-layout">
         <div class="menu-body">
@@ -59,14 +61,14 @@
             </button>
           </div>
           <p id="loading-status" role="status">Loading the house and preparing lighting…</p>
-          <p class="play-help">Enter captures your mouse. <kbd>Esc</kbd> pauses and releases it.</p>
+          <p class="play-help">Starting play captures your mouse. <kbd>Esc</kbd> pauses and releases it.</p>
           <div class="menu-links">
             <details id="settings">
               <summary aria-controls="settings-panel">SETTINGS & CONTROLS</summary>
               <section id="settings-panel" class="settings-panel" aria-labelledby="settings-title">
                 <div class="settings-heading">
                   <div>
-                    <p class="eyebrow">MAKE YOURSELF COMFORTABLE</p>
+                    <p class="eyebrow">BEFORE YOU GO BACK IN</p>
                     <h2 id="settings-title">Settings</h2>
                   </div>
                   <button id="settings-close" class="secondary compact-button" type="button">DONE</button>
@@ -138,6 +140,7 @@
                   </label>
                   <dl class="controls-grid">
                     <div><dt><kbd>W A S D</kbd> / <kbd>↑ ↓ ← →</kbd></dt><dd>Walk</dd></div>
+                    <div><dt><kbd>Shift</kbd> + movement</dt><dd>Run</dd></div>
                     <div><dt>Mouse</dt><dd>Look around</dd></div>
                     <div><dt><kbd>E</kbd></dt><dd>Interact / pick up</dd></div>
                     <div><dt><kbd>F</kbd></dt><dd>Raise / put away flashlight</dd></div>
@@ -164,12 +167,12 @@
           <p id="error" role="alert"></p>
         </div>
         <aside class="menu-aside" aria-hidden="true">
-          <div class="menu-mirror"><span>THE HOUSE<br />REMEMBERS.</span></div>
-          <p>A familiar voice.<br />An evening you cannot leave.</p>
+          <div class="menu-mirror"><span>DON'T<br />LOOK<br />AWAY.</span></div>
+          <p>IT REMEMBERS YOUR HANDS.</p>
         </aside>
       </div>
       <footer>
-        <div class="quick-controls"><span><kbd>WASD</kbd> Walk</span><span><kbd>E</kbd> Interact</span><span><kbd>F</kbd> Flashlight</span><span><kbd>Tab</kbd> Journal</span><span><kbd>Esc</kbd> Pause</span></div>
+        <div class="quick-controls"><span><kbd>WASD</kbd> WALK</span><span><kbd>Shift</kbd> RUN</span><span><kbd>E</kbd> INTERACT</span><span><kbd>F</kbd> FLASHLIGHT</span><span><kbd>Tab</kbd> JOURNAL</span><span><kbd>Esc</kbd> PAUSE</span></div>
         <span class="content-note">FLASHING LIGHTS · GORE · BLOOD · VIOLENCE<br />HEADPHONES RECOMMENDED · DESKTOP · 0.8</span>
       </footer>
     </main>
@@ -183,17 +186,33 @@
       <div id="message" role="status" aria-live="polite"></div>
       <div id="subtitle" role="status" aria-live="polite"></div>
       <div id="hint"></div>
+      <div id="hud-controls" aria-label="Game controls">
+        <span><kbd>E</kbd><b>INTERACT</b></span>
+        <span><kbd>F</kbd><b>FLASHLIGHT</b></span>
+        <span><kbd>Tab</kbd><b>JOURNAL</b></span>
+        <span><kbd>Shift</kbd><b>RUN</b></span>
+      </div>
     </div>
+    <section id="death-screen" hidden role="dialog" aria-modal="true" aria-labelledby="death-title">
+      <p class="eyebrow">YOU FOLLOWED IT.</p>
+      <h2 id="death-title">YOU DIED</h2>
+      <p id="death-status" role="status">The house has not finished with you.</p>
+      <div class="death-actions">
+        <button id="death-retry" type="button">RESTART THE NIGHT</button>
+        <button id="death-menu" class="secondary" type="button">RETURN TO MENU</button>
+      </div>
+      <p class="death-help">Restart begins a new night. <kbd>Esc</kbd> returns to the menu.</p>
+    </section>
     <section id="pocket" hidden aria-label="Inventory">
       <p class="eyebrow">WHAT YOU BROUGHT WITH YOU</p>
       <h2>What you remember</h2>
       <div id="items"></div>
-      <p class="pocket-help">TAB · RETURN &nbsp; / &nbsp; ESC · PAUSE</p>
+      <p class="pocket-help"><kbd>Tab</kbd> RETURN &nbsp; / &nbsp; <kbd>Esc</kbd> PAUSE</p>
     </section>
     <section id="inspect" hidden aria-label="Hall clock">
       <p class="eyebrow">THE HOUR THAT DID NOT HAPPEN</p>
       <h2>The stopped clock</h2>
-      <p>The writing was on the other side of the glass.</p>
+      <p>The hands haven't moved. The house is waiting.</p>
       <form id="clock-form">
         <div class="time-inputs">
           <label

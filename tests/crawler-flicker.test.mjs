@@ -28,8 +28,12 @@ test("every authored floor and ceiling crawler has a distinct irregular electric
   assert.equal(patterns.size, Object.keys(durations).length);
 });
 
-test("whole-house blackouts suppress all indirect fills without changing program light counts", () => {
-  for (const value of Object.values(BLACKOUT_ENVIRONMENT)) assert.ok(value > 0 && value < .05);
+test("whole-house outages keep the original failed-fuse fill instead of compounding dimming", () => {
+  assert.equal(BLACKOUT_ENVIRONMENT.ambientIntensity, .025);
+  assert.equal(BLACKOUT_ENVIRONMENT.exteriorBaseScale, .12);
+  assert.equal(BLACKOUT_ENVIRONMENT.environmentMultiplier, 1);
+  assert.equal(BLACKOUT_ENVIRONMENT.skyColor, 0xa7bac0);
+  assert.equal(BLACKOUT_ENVIRONMENT.groundColor, 0x30271e);
 });
 
 test("the finite funeral outage sequence carries through the final accusation then restores", () => {

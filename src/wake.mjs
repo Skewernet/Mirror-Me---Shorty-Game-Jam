@@ -10,7 +10,8 @@ export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
 
 // A furnished funeral parlor beyond the real front entrance. A clear central
 // aisle ends at Evelyn's open casket; several chairs remain visibly unoccupied.
-// The restrained warm interior belongs to the same tactile house aesthetic.
+// Scorched plaster, damp timber and exhausted practicals preserve the house's
+// tactile materials while making its final remembered room feel corrupted.
 export function buildWake(b, m, surfaces, photos) {
   const { box, cylinder, sphere, group, contact } = b;
   const wake = group();
@@ -40,19 +41,21 @@ export function buildWake(b, m, surfaces, photos) {
         envMapIntensity: 0.06,
       }),
     );
-  const wall = tag(surfaces.material("wallpaper", 1, 1, 0x93846b));
+  const wall = tag(surfaces.material("plaster", 1, 1, 0xb0a38e));
+  wall.map = funeralDecayTexture();
+  wall.name = "Smoke and damp in the funeral plaster";
   wall.normalScale.set(0.35, 0.35);
-  const ceiling = tag(surfaces.material("plaster", 1, 1, 0xa99d84));
+  const ceiling = tag(surfaces.material("plaster", 1, 1, 0x857d6a));
   ceiling.normalScale.set(0.18, 0.18);
-  const floor = tag(surfaces.material("floor", 1, 1, 0x7d6145));
-  const painted = tag(surfaces.material("panel", 1, 1, 0x655544));
-  const wood = tag(surfaces.material("wood", 1, 1, 0x8b7358));
-  const darkWood = tag(surfaces.material("wood", 1, 1, 0x67594b));
-  const upholstery = tag(surfaces.material("linen", 1, 1, 0x645b4c));
+  const floor = tag(surfaces.material("floor", 1, 1, 0x5a463d));
+  const painted = tag(surfaces.material("panel", 1, 1, 0x362e2a));
+  const wood = tag(surfaces.material("wood", 1, 1, 0x594037));
+  const darkWood = tag(surfaces.material("wood", 1, 1, 0x352a28));
+  const upholstery = tag(surfaces.material("linen", 1, 1, 0x362d31));
   const paper = plain(0xe9e3d5),
-    metal = plain(0x999e98, 0.43, 0.48),
-    leaf = plain(0x7c8d70),
-    petal = plain(0xe5e3da, 0.64);
+    metal = plain(0x777267, 0.58, 0.48),
+    leaf = plain(0x3c4436),
+    petal = plain(0x87796c, 0.84);
   const addSolid = (mesh) => {
     const collider = b.solid(mesh);
     colliders.push(collider);
@@ -84,9 +87,9 @@ export function buildWake(b, m, surfaces, photos) {
   function window(x, z) {
     const frame = group(x, 1.94, z, Math.PI, wake);
     slab(1.1, 1.17, 0.065, 0, 0, 0, painted, frame, 0.008);
-    const glass = plain(0x9e9b88, 0.76);
-    glass.emissive.set(0x7d7662);
-    glass.emissiveIntensity = 0.13;
+    const glass = plain(0x777c70, 0.86);
+    glass.emissive.set(0x666e61);
+    glass.emissiveIntensity = 0.10;
     const pane = slab(0.98, 1.03, 0.018, 0, 0, 0.045, glass, frame);
     pane.castShadow = false;
     for (const sx of [-1, 0, 1])
@@ -94,14 +97,14 @@ export function buildWake(b, m, surfaces, photos) {
     for (const sy of [-1, 0, 1])
       slab(1.0, 0.025, 0.035, 0, sy * 0.515, 0.062, painted, frame);
     slab(1.19, 0.045, 0.19, 0, -0.62, 0.075, painted, frame, 0.005);
-    // A narrow cloth blind hangs unevenly; the glass still reads as daylight.
-    const blind = tag(surfaces.material("linen", 1.2, 0.7, 0xe1ded4));
+    // Stained cloth interrupts the weak exterior glow behind the casket.
+    const blind = tag(surfaces.material("linen", 1.2, 0.7, 0x9b9280));
     slab(1.04, 0.14, 0.025, 0, 0.44, 0.1, blind, frame, 0.003);
     return frame;
   }
   window(-2.7, 17.165);
   window(2.7, 17.165);
-  const drape = tag(surfaces.material("fabric", 1.2, 2, 0x443b32));
+  const drape = tag(surfaces.material("fabric", 1.2, 2, 0x3b161b));
   drape.side = T.DoubleSide;
   for (const centre of [-2.7, 2.7]) {
     for (const side of [-1, 1]) {
@@ -490,7 +493,7 @@ export function buildWake(b, m, surfaces, photos) {
   sphere(0.006, 0.006, 0.004, 0.248, 0.23, 0.143, radioLamp, funeralRadio);
   for (const x of [-0.21, 0.21])
     slab(0.043, 0.012, 0.12, x, 0.003, 0, bakelite, funeralRadio, 0.003);
-  const cloth = tag(surfaces.material("linen", 1.5, 0.8, 0xe5dfd3));
+  const cloth = tag(surfaces.material("linen", 1.5, 0.8, 0xb4aa95));
   slab(1.3, 0.008, 0.52, 0, 0.832, 0, cloth, portraitTable);
   for (const sx of [-1, 1])
     slab(0.012, 0.2, 0.52, sx * 0.647, 0.735, 0, cloth, portraitTable);
@@ -574,11 +577,11 @@ export function buildWake(b, m, surfaces, photos) {
   // remembered body is the separately authored Evelyn asset, never Mara.
   const casket = group(0, 0, 15.65, 0, wake);
   casket.name = "Evelyn's open walnut casket";
-  const casketWood = tag(surfaces.material("wood", 1.6, .7, 0x583622));
-  casketWood.roughness = .40;
-  const casketLining = tag(surfaces.material("linen", 1.5, 1, 0xe3d9c4));
+  const casketWood = tag(surfaces.material("wood", 1.6, .7, 0x38221e));
+  casketWood.roughness = .52;
+  const casketLining = tag(surfaces.material("linen", 1.5, 1, 0xc3b8a4));
   casketLining.roughness = .66;
-  const fittings = plain(0xa28b57, .32, .78);
+  const fittings = plain(0x84704d, .48, .72);
   const outline = [[-1.17,-.28],[-.82,-.45],[.63,-.45],[1.17,-.31],[1.17,.31],[.63,.45],[-.82,.45],[-1.17,.28]];
   const shell = new T.Shape();
   outline.forEach(([x,z], i) => i ? shell.lineTo(x,z) : shell.moveTo(x,z));
@@ -702,7 +705,7 @@ export function buildWake(b, m, surfaces, photos) {
     return light;
   }
   function casketLight() {
-    const light = new T.SpotLight(0xf2dbb1, 27, 9.5, .86, .85, 2);
+    const light = new T.SpotLight(0xf2d4ab, 27, 9.5, .86, .85, 2);
     light.position.set(-.9, 2.85, 14.45);
     light.target.position.set(.4, .98, 15.65);
     wake.add(light, light.target);
@@ -719,20 +722,20 @@ export function buildWake(b, m, surfaces, photos) {
     lights.push(light);
   }
   casketLight();
-  point(0xe7c89b, 7.5, 9, 0, 2.8, 11.7);
+  point(0xd4c2a2, 6.2, 9, 0, 2.8, 11.7);
   // The broad room fill has a visible period pendant rather than an
   // unexplained bright patch on the ceiling.
   cylinder(.13,.13,.04,0,3.06,11.7,darkWood,wake,24);
   cylinder(.008,.008,.25,0,2.91,11.7,metal,wake,12);
-  b.lathe([[.23,0],[.225,.03],[.08,.23],[.06,.25]],0,2.61,11.7,plain(0xbca17a,.78),wake);
-  const pendantBulb = new T.Mesh(new T.SphereGeometry(.045,16,12), new T.MeshBasicMaterial({color:0xe3bf82}));
+  b.lathe([[.23,0],[.225,.03],[.08,.23],[.06,.25]],0,2.61,11.7,plain(0x95846a,.86),wake);
+  const pendantBulb = new T.Mesh(new T.SphereGeometry(.045,16,12), new T.MeshBasicMaterial({color:0xc6b58d}));
   pendantBulb.position.set(0,2.70,11.7);
   wake.add(pendantBulb);
   for (const side of [-1, 1]) for (const z of [9.65, 14.0]) {
     const x = side * 3.89;
     slab(.045, .28, .17, x, 1.85, z, darkWood);
-    sphere(.06, .085, .06, x - side * .10, 1.95, z, plain(0xd3b789));
-    point(0xe7bc7c, 5.8, 4.6, x - side * .16, 1.95, z);
+    sphere(.06, .085, .06, x - side * .10, 1.95, z, plain(0xb49b78));
+    point(z > 12 ? 0xc3a1a0 : 0xd5c39a, 4.4, 4.6, x - side * .16, 1.95, z);
   }
   const fixtureMaterials = new Map();
   wake.traverse(object => {
@@ -901,6 +904,7 @@ export function buildWake(b, m, surfaces, photos) {
   });
   reset();
   return {
+    ambientProfile: Object.freeze({ skyColor: 0xb4b7a6, groundColor: 0x342127, intensity: .20 }),
     group: wake,
     lights,
     colliders,
@@ -954,6 +958,60 @@ export function buildWake(b, m, surfaces, photos) {
     }),
     reset,
   };
+}
+
+// One original static surface, generated once at construction. Broad damp
+// blooms and ceiling soot work under the existing plaster normal/roughness
+// maps; this adds no geometry, lights, downloads or per-frame texture work.
+function funeralDecayTexture() {
+  const size = 512, canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const g = canvas.getContext("2d");
+  let seed = 0x71e3;
+  const random = () => ((seed = Math.imul(seed, 1664525) + 1013904223 >>> 0) / 4294967296);
+  g.fillStyle = "#aaa394";
+  g.fillRect(0, 0, size, size);
+  for (let index = 0; index < 95; index++) {
+    const x = random() * size, y = random() * size, radius = 16 + random() * 86;
+    const damp = g.createRadialGradient(x, y, 0, x, y, radius);
+    damp.addColorStop(0, `rgba(47,35,31,${.025 + random() * .11})`);
+    damp.addColorStop(1, "rgba(47,35,31,0)");
+    g.fillStyle = damp;
+    g.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+  }
+  const soot = g.createLinearGradient(0, 0, 0, 205);
+  soot.addColorStop(0, "rgba(24,18,17,.80)");
+  soot.addColorStop(.22, "rgba(36,25,23,.46)");
+  soot.addColorStop(1, "rgba(36,25,23,0)");
+  g.fillStyle = soot;
+  g.fillRect(0, 0, size, 205);
+  for (let index = 0; index < 57; index++) {
+    const x = random() * size, length = 35 + random() * 240, width = 2 + random() * 13;
+    const streak = g.createLinearGradient(0, 0, 0, length);
+    streak.addColorStop(0, "rgba(47,29,25,.30)");
+    streak.addColorStop(1, "rgba(47,29,25,0)");
+    g.fillStyle = streak;
+    g.fillRect(x, 0, width, length);
+  }
+  for (let index = 0; index < 19; index++) {
+    let x = random() * size, y = random() * 190;
+    g.beginPath(); g.moveTo(x, y);
+    for (let step = 0, count = 5 + Math.floor(random() * 14); step < count; step++) {
+      x += (random() - .5) * 22; y += 5 + random() * 12; g.lineTo(x, y);
+    }
+    g.strokeStyle = "rgba(34,27,24,.17)"; g.lineWidth = .4 + random() * .5; g.stroke();
+  }
+  for (let index = 0; index < 3300; index++) {
+    g.fillStyle = random() < .5 ? "rgba(24,19,16,.035)" : "rgba(230,218,190,.035)";
+    g.fillRect(random() * size, random() * size, 1, 1);
+  }
+  const texture = new T.CanvasTexture(canvas);
+  texture.name = "Original scorched funeral plaster";
+  texture.colorSpace = T.SRGBColorSpace;
+  texture.wrapS = texture.wrapT = T.RepeatWrapping;
+  texture.repeat.set(.22, 1 / 3.1);
+  texture.anisotropy = 4;
+  return texture;
 }
 
 function cardTexture(lines, sizes) {

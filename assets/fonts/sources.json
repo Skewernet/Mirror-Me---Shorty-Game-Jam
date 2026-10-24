@@ -1,0 +1,42 @@
+{
+  "sourceRepository": "https://github.com/google/fonts",
+  "retrieved": "2026-10-24",
+  "modifications": "Latin/punctuation subset and WOFF compression using fontTools; outlines retained. No remote runtime font requests.",
+  "fonts": [
+    {
+      "family": "RubikDirt",
+      "sourceFile": "RubikDirt-Regular.ttf",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdirt/RubikDirt-Regular.ttf",
+      "licenseUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdirt/OFL.txt",
+      "sourceSha256": "9de3d928e434a47ec85d759012c8a0ebfeab0860076eea4e3989a47c5e213123",
+      "outputFile": "RubikDirt-latin.woff",
+      "outputSha256": "927c3148391a00b10f9ee04be9966ebf5aa88f53ff0abf2db4f8d7d570b99d5a",
+      "bytes": 190240,
+      "licenseFile": "RubikDirt-OFL.txt",
+      "names": [
+        "Copyright 2020 The Rubik Filtered Project Authors (https://github.com/NaN-xyz/Rubik-Filtered)",
+        "Hubert & Fischer, NaN",
+        "Hubert and Fischer, NaN",
+        "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
+        "https://scripts.sil.org/OFL"
+      ]
+    },
+    {
+      "family": "SpecialElite",
+      "sourceFile": "SpecialElite-Regular.ttf",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/main/apache/specialelite/SpecialElite-Regular.ttf",
+      "licenseUrl": "https://raw.githubusercontent.com/google/fonts/main/apache/specialelite/LICENSE.txt",
+      "sourceSha256": "a776fcb4ceb8bdf03e2967688ebdad42680de5b91a7e62c17e718ae212d14bc4",
+      "outputFile": "SpecialElite-latin.woff",
+      "outputSha256": "c0ac83687e87a0d1ebbd00ee329dcb16367b83dea0119789759a62ba3d8794ec",
+      "bytes": 64404,
+      "licenseFile": "SpecialElite-LICENSE.txt",
+      "names": [
+        "Copyright (c) 2010 by Brian J. Bonislawsky DBA Astigmatic (AOETI). All rights reserved. Available under the Apache 2.0 licence.\rhttp://www.apache.org/licenses/LICENSE-2.0.html",
+        "Astigmatic (AOETI)",
+        "Licensed under the Apache License, Version 2.0",
+        "http://www.apache.org/licenses/LICENSE-2.0"
+      ]
+    }
+  ]
+}

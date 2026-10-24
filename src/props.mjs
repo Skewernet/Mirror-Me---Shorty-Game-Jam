@@ -5,6 +5,7 @@ import { addPuzzleProps } from "./puzzle-props.mjs";
 import { WRITINGS } from "./story.mjs";
 import { createBathroomMirror } from "./bathroom-mirror.mjs";
 import { createKitchenFrequency } from "./kitchen-frequency.mjs";
+import { createHallBlood } from "./hall-blood.mjs";
 
 // Furnishings use measured human dimensions and the same coordinates as story
 // targeting/audio. The tight floor plan is furnished deliberately, not scaled
@@ -430,6 +431,7 @@ export function furnish(b, m) {
 
   // KITCHEN: full-height cupboards, stone worktops and a separate wooden radio.
   const kitchen = roomGroups.kitchen;
+  const kitchenCabinets = [], kitchenCupboards = [];
   function cabinet(x, z, rotation, w = 0.72) {
     const g = group(x, 0, z, rotation, kitchen);
     slab(w, 0.84, 0.52, 0, 0.43, 0, m.cabinet, g, 0.012);
@@ -463,6 +465,8 @@ export function furnish(b, m) {
       );
     box(0.13, 0.018, 0.044, 0, 0.7, 0.315, m.steel, false, g, 0.006);
     collision(w, 0.95, 0.59, 0, 0.47, 0, g);
+    g.userData.cabinetWidth = w;
+    kitchenCabinets.push(g);
     return g;
   }
   for (const z of [-3.85, -3.12, -2.39, -1.66]) cabinet(1.23, z, Math.PI / 2);
@@ -511,6 +515,7 @@ export function furnish(b, m) {
   );
   for (const x of [1.22, 4.08]) {
     const cupboard = group(x, 1.72, -4.36, 0, kitchen);
+    kitchenCupboards.push(cupboard);
     slab(0.64, 0.6, 0.29, 0, 0, 0, m.cabinet, cupboard, 0.018);
     box(0.59, 0.55, 0.02, 0, 0, 0.163, m.cabinetFront, false, cupboard, 0.01);
     box(
@@ -615,7 +620,10 @@ export function furnish(b, m) {
   const invertedChair = chair(3.0, -2.95, -Math.PI / 2, kitchen);
   cylinder(0.15, 0.15, 0.013, 0, 0.78, 0, m.ceramic, dining);
   mug(3.85, 0.78, -3.23, kitchen);
-  const kitchenFrequency = createKitchenFrequency(kitchen, b);
+  const kitchenFrequency = createKitchenFrequency(kitchen, b, {
+    fridge, cabinets: kitchenCabinets, cupboards: kitchenCupboards,
+  });
+  const hallBlood = createHallBlood(scene);
 
   // BATHROOM: sanitary fittings constrain movement naturally while the target
   // side of the sink and the mirror remain reachable from the room's centre.
@@ -1018,6 +1026,7 @@ export function furnish(b, m) {
   function reset() {
     puzzle.reset();
     kitchenFrequency.reset();
+    hallBlood.reset();
     receiver.position.set(0, 0, 0);
     receiver.rotation.set(0, 0, 0);
     radioKnob.rotation.z = 0;
@@ -1119,6 +1128,7 @@ export function furnish(b, m) {
     tvScreen.material.map = state.stage >= 4 ? m.photos[1] : screenMap;
     bathroomMirror.setClueVisible(state.stage >= 2);
     kitchenFrequency.animate(state);
+    hallBlood.animate(state);
     fuseGroup.visible = !state.hasFuse && !state.power;
     fuseGlow.material = state.power ? m.greenBulb : m.redBulb;
     const musicClosed = state.stage >= 4 && state.echoIndex >= 1;
@@ -1144,6 +1154,7 @@ export function furnish(b, m) {
     receiver,
     radio,
     kitchenFrequency,
+    hallBlood,
     letter,
     family,
     diary,

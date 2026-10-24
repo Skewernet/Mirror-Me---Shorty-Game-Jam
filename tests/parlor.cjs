@@ -100,6 +100,13 @@ fs.mkdirSync(out, { recursive: true });
       await page.screenshot({path:`${out}/${name}.png`});
     }
     await page.evaluate(() => {
+      const {house,state} = window.parlorFixture;
+      house.wake.beginBlackout(20);
+      house.animate(20.2, 0, state, {x:0,z:10,yaw:Math.PI});
+      window.parlorView([0,1.64,10.2], [0,1.2,15.65]);
+    });
+    await page.screenshot({path:`${out}/outage.png`});
+    await page.evaluate(() => {
       const {house,state}=window.parlorFixture;
       state.reset(); house.reset(state);
       if (house.wake.group.visible || house.wake.snapshot().attack.active)

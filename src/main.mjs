@@ -5,7 +5,12 @@ import { LookInput } from "./look-input.mjs";
 import { requestGamePointerLock } from "./pointer-lock.mjs";
 import { initSettings } from "./settings.mjs";
 import { createFirstPerson } from "./first-person.mjs";
-import { AdaptiveResolution, warmRenderResources } from "./performance.mjs";
+import {
+  AdaptiveResolution, prepareRenderPrograms, prepareRenderTextures,
+  warmProgramView, warmRenderResources, waitForRenderResources,
+} from "./performance.mjs";
+import { CrawlerFailure } from "./crawler-threat.mjs";
+import { renderHorrorText, decorateHorrorText } from "./ui-text.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
 import { Story, VOICES, WRITINGS } from "./story.mjs";
@@ -85,6 +90,7 @@ const player = new Player(camera),
   sound = new Sound(showSubtitle),
   horror = new HorrorDirector(scene, house);
 const firstPerson = createFirstPerson(scene, camera);
+const failure = new CrawlerFailure();
 const adaptive = new AdaptiveResolution();
 camera.layers.enable(2);
 const aimCenter = new T.Vector2(), interactionPoint = new T.Vector3();
@@ -125,6 +131,7 @@ let mode = "title",
   mirrorSnap = false,
   quality = 1080,
   renderRequested = true;
+let failing = false;
 const testMode = new URLSearchParams(location.search).get("test") === "1";
 const evidenceSeen = new Set();
 const flashlight = new T.SpotLight(0xe2dfc5, 0, 13, Math.PI * 0.14, 0.7, 1.8);
@@ -137,12 +144,12 @@ flashlight.shadow.normalBias = 0.025;
 scene.add(flashlight, flashlight.target);
 function showSubtitle(text) {
   currentCaption = text || "";
-  $("subtitle").textContent = subtitlesEnabled ? currentCaption : "";
+  renderHorrorText($("subtitle"), subtitlesEnabled ? currentCaption : "");
   $("subtitle").hidden = !subtitlesEnabled || !currentCaption;
   $("message").hidden = subtitlesEnabled && Boolean(currentCaption);
 }
 function say(text, duration = 4) {
-  $("message").textContent = text;
+  renderHorrorText($("message"), text);
   messageUntil = elapsed + duration;
 }
 function queueVoice(id, delay = 0, options = {}) {
@@ -239,7 +246,7 @@ function updateInventory() {
     );
   if (story.hasKey)
     item("Bedroom key", "The little brass tag reads BEDROOM.", "⚿");
-  if (story.hasDiary) item("Mara’s bedside diary", WRITINGS.diary);
+  if (story.hasDiary) item("The bedside diary", WRITINGS.diary);
   if (story.hasLetter) item("The discharge receipt", WRITINGS.letter);
   if (story.hasTimeClue)
     item(
@@ -306,13 +313,19 @@ function updateInventory() {
   $("items").innerHTML =
     cards.join("") ||
     '<article class="item"><h3>Nothing yet.</h3><p>The sitting-room telephone is ringing.</p></article>';
+  decorateHorrorText($("items"));
 }
 function announceChapter() {
-  $("chapter-mark").textContent = CHAPTER_NAMES[story.stage];
+  renderHorrorText($("chapter-mark"), CHAPTER_NAMES[story.stage]);
   chapterUntil = elapsed + 6;
 }
 
 function reset() {
+  failing = false;
+  document.body.classList.remove("is-dying");
+  failure.reset();
+  $("death-screen").hidden = true;
+  picture.setThreat(0, 0);
   lookInput.reset();
   story.reset();
   player.reset();
@@ -382,6 +395,10 @@ function showMenu() {
     $("start").textContent = "RETURN TO THE HOUSE";
     $("restart").hidden = false;
     $("chapter").textContent = "THE HOUSE CAN WAIT";
+  } else {
+    $("start").textContent = "ENTER THE HOUSE";
+    $("restart").hidden = true;
+    $("ending-credits").hidden = true;
   }
   $("start").focus({ preventScroll: true });
 }
@@ -536,29 +553,18 @@ async function loadCredits() {
       item.append(changes);
       $("credit-list").append(item);
     }
-    for (const entry of data.entries) {
+    // Keep the ending readable; the adjacent Credits & Assets button opens
+    // every source, license and modification in the complete register above.
+    for (const line of [
+      "Skewernet · Skewer Games · AI-assisted development with Codex",
+      "Wood textures: Eric Chadwick / Wayfair · CC BY 4.0 · modified in game",
+    ]) {
       const credit = document.createElement("span");
       credit.className = "ending-credit";
-      credit.append(
-        document.createTextNode(
-          `${entry.title} — ${entry.creator}. ${entry.license}. `,
-        ),
-      );
-      const source = document.createElement("a");
-      source.href = entry.source;
-      source.textContent = "Source";
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      credit.append(source);
-      if (entry.licenseUrl) {
-        const license = source.cloneNode();
-        license.href = entry.licenseUrl;
-        license.textContent = "License";
-        credit.append(document.createTextNode(" · "), license);
-      }
-      credit.append(document.createTextNode(". " + entry.changes));
+      credit.textContent = line;
       $("ending-credit-names").append(credit);
     }
+    decorateHorrorText($("credit-list"));
   } catch (error) {
     $("credit-list").textContent =
       "Credits could not load. See ATTRIBUTIONS.md in this build for the complete asset register.";
@@ -586,6 +592,8 @@ $("restart").onclick = () => {
   reset();
   enter();
 };
+$("death-retry").onclick = () => { reset(); enter(); };
+$("death-menu").onclick = () => { reset(); showMenu(); };
 $("sensitivity").oninput = (e) => (player.sensitivity = Number(e.target.value));
 $("bob").onchange = (e) => (player.bob = e.target.checked);
 $("volume").oninput = (e) => sound.setVolume(Number(e.target.value));
@@ -630,6 +638,7 @@ $("grain").onchange = (e) =>
 document.addEventListener("pointerlockchange", (e) => {
   lookInput.reset(e.timeStamp);
   if (document.pointerLockElement === renderer.domElement) {
+    if (mode === "dead") { document.exitPointerLock(); return; }
     mode = "playing";
     active = true;
     $("menu").hidden =
@@ -647,7 +656,7 @@ document.addEventListener("pointerlockchange", (e) => {
       say("The sitting-room telephone is ringing.", 4);
     }
   } else if (
-    !["pocket", "clock", "credits", "radio", "offering"].includes(mode)
+    !["pocket", "clock", "credits", "radio", "offering", "dead"].includes(mode)
   )
     showMenu();
 });
@@ -664,13 +673,19 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 document.addEventListener("mousemove", (e) => {
-  if (!active || funeralAttack || document.pointerLockElement !== renderer.domElement) return;
+  if (!active || funeralAttack || failing || document.pointerLockElement !== renderer.domElement) return;
   lookInput.enqueue(e, performance.now());
 });
 document.addEventListener("keydown", (e) => {
+  if (mode === "dead" && e.code === "Escape") {
+    e.preventDefault();
+    reset();
+    showMenu();
+    return;
+  }
   if (e.code === "Tab" && (active || mode === "pocket")) {
     e.preventDefault();
-    if (!e.repeat && !endingAt) pocket();
+    if (!e.repeat && !endingAt && !failing) pocket();
     return;
   }
   if (
@@ -686,6 +701,7 @@ document.addEventListener("keydown", (e) => {
     document.exitPointerLock();
     return;
   }
+  if (failing) return;
   if (
     ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
       e.code,
@@ -715,9 +731,12 @@ renderer.domElement.addEventListener("webglcontextlost", (e) => {
   active = false;
   player.clear();
   sound.pause();
+  $("death-screen").hidden = true;
+  document.body.classList.remove("is-dying");
   if (document.pointerLockElement) document.exitPointerLock();
   showMenu();
   $("start").disabled = true;
+  $("restart").disabled = true;
   $("error").textContent =
     "The graphics context was lost. Reload to restart the house.";
 });
@@ -798,9 +817,10 @@ function respond(event) {
     return;
   }
   sound.effect(event);
-  const mirrorTaunt = /^mirror[0-7]$/.test(event);
+  const mirrorClock = /^mirrorClock[0-2]$/.test(event);
+  const mirrorTaunt = /^mirror[0-7]$/.test(event) || mirrorClock;
   if (mirrorTaunt) {
-    const index = Number(event.slice(6));
+    const index = mirrorClock ? 8 + Number(event.slice(11)) : Number(event.slice(6));
     mirror.react(elapsed, index, { enabled: scaresEnabled });
     if (scaresEnabled) sound.effect("reflection-twitch", { x: MIRROR.x, y: 1.6, z: MIRROR.z });
   }
@@ -987,6 +1007,7 @@ function finish() {
   showMenu();
 }
 function beginEnding() {
+  picture.setThreat(0, elapsed);
   forwardClearance = Infinity;
   endingStart = elapsed;
   endingAt = elapsed + 45;
@@ -1004,15 +1025,42 @@ function beginEnding() {
   $("cross").classList.remove("active");
   $("location").textContent = "THE FUNERAL ROOM";
   $("hint").textContent =
-    "WASD · WALK    MOUSE · LOOK    F · LIGHT    ESC · PAUSE";
+    "WASD · WALK    SHIFT · RUN    F · FLASHLIGHT    ESC · PAUSE";
   mirror.body.visible = false;
   house.wake?.begin?.(elapsed, player);
   sound.effect("wake-entered", { x: 0, y: 1.4, z: 11 });
   say("Someone has left a radio on.", 4);
 }
+function beginFailure(event) {
+  if (!event.playerInitiated || failing || endingAt || story.ended) return;
+  if (!failure.begin(elapsed, player)) return;
+  failing = true;
+  player.clear();
+  lookInput.reset();
+  target = null;
+  pending = [];
+  sound.stopVoice();
+  sound.stopCreatureCues();
+  sound.effect("crawler-failure", event);
+  document.body.classList.add("is-dying");
+  $("prompt").textContent = $("hint").textContent = $("message").textContent = "";
+  $("cross").classList.remove("active");
+}
+function showDeath() {
+  active = false;
+  mode = "dead";
+  player.clear();
+  lookInput.reset();
+  sound.pause();
+  picture.setThreat(0, elapsed);
+  $("hud").hidden = $("menu").hidden = true;
+  $("death-screen").hidden = false;
+  $("death-retry").focus({ preventScroll: true });
+  document.exitPointerLock();
+}
 function updateFlashlight(dt) {
   firstPerson.update(dt, player, {
-    flashlightOn, active, inverted: story.inverted, time: elapsed,
+    flashlightOn, active: active && !failing, inverted: story.inverted, time: elapsed,
     clearance: forwardClearance,
   });
   const beam = firstPerson.getBeam();
@@ -1079,8 +1127,25 @@ function crossGlass() {
 function update(dt) {
   if (!active) return;
   const look = lookInput.consume(dt, player.sensitivity);
-  if (look && !funeralAttack) player.look(look.x, look.y);
+  if (look && !funeralAttack && !failing) player.look(look.x, look.y);
   elapsed += dt;
+  if (failing) {
+    horror.updateFailure(elapsed);
+    const hit = failure.update(elapsed);
+    player.yaw = hit.yaw;
+    player.pitch = hit.pitch;
+    player.syncCamera();
+    camera.position.y = hit.eyeHeight;
+    camera.updateMatrixWorld();
+    updateFlashlight(dt);
+    picture.setThreat(.35 + hit.strike * .65, elapsed, {
+      enabled: scaresEnabled, flashes: flashingLights,
+    });
+    $("transition").style.opacity = String(hit.fade);
+    // The strike resolves quickly; let its complete finite audio tail play.
+    if (hit.done && elapsed - failure.startedAt >= 1.42) showDeath();
+    return;
+  }
   if (endingAt) {
     const t = elapsed - endingStart;
     if (!funeralAttack) player.update(dt, house.colliders);
@@ -1123,6 +1188,7 @@ function update(dt) {
           if (!endingAt || startedAt !== endingStart) return;
           lastLineFinished = true;
           funeralAttack = true;
+          if (scaresEnabled) sound.effect("funeral-turn", { x: 1.62, y: 1.2, z: 9.65 });
           house.wake.beginAttack(elapsed, player, { enabled: scaresEnabled });
           $("veil").style.transition = "none";
           endingAt = elapsed + 10;
@@ -1224,7 +1290,14 @@ function update(dt) {
     dialogueBusy: sound.busy || pending.length > 0,
   });
   house.applyHorrorLighting?.(light);
-  for (const event of horror.drainEvents()) sound.effect(event.id, event);
+  for (const event of horror.drainEvents()) {
+    if (event.id === "crawler-contact") beginFailure(event);
+    else sound.effect(event.id, event);
+  }
+  picture.setThreat(horror.threat.amount, elapsed, {
+    enabled: scaresEnabled, flashes: flashingLights,
+  });
+  if (failing) return;
   target = findTarget();
   updateFlashlight(dt);
   mirror.update(elapsed, player, story, looking, firstPerson.capturePose());
@@ -1278,18 +1351,18 @@ function update(dt) {
   if (target?.id === "front-door")
     label = story.frontReleased ? "OPEN FRONT DOOR" : "TRY FRONT DOOR";
   if (target?.id === "mirror" && story.mirrorReady) label = "THE GLASS IS OPEN";
-  $("prompt").textContent = label ? "[ E ] " + label : "";
+  renderHorrorText($("prompt"), label ? "[ E ] " + label : "");
   $("prompt").classList.toggle("mirror-prompt", target?.id === "mirror");
   $("cross").classList.toggle("active", !!target);
-  $("location").textContent =
+  renderHorrorText($("location"),
     ROOMS.find((r) => r.id === room)?.name ||
-    (story.inverted ? "THE OTHER HALL" : "THE HALL");
-  $("hint").textContent =
+    (story.inverted ? "THE OTHER HALL" : "THE HALL"));
+  renderHorrorText($("hint"),
     elapsed < hintUntil
       ? story.hint()
       : elapsed < 12
-        ? "F · LIGHT     TAB · REMEMBER     H · A THOUGHT"
-        : "";
+        ? "[ H ] ASK FOR A HINT"
+        : "");
   if (elapsed > messageUntil) $("message").textContent = "";
   if (elapsed > chapterUntil) $("chapter-mark").textContent = "";
 }
@@ -1302,8 +1375,37 @@ loadingStatus("Preparing the sounds of the house…");
 await sound.prepare();
 loadingStatus("Preparing your view…");
 const warmupTarget = renderer.getRenderTarget();
-const warmupVisibility = [house.revelation.group.visible, house.wake.group.visible];
 const warmupStats = [];
+const preparation = { essential: false, revelation: false, wake: false, error: null };
+const essentialObjects = [
+  firstPerson.body, firstPerson.flashlight, mirror.flashlight.root,
+  horror.figure.body, house.props.kitchenFrequency.root, house.props.hallBlood.root,
+];
+const nextPreparationTask = () => new Promise(resolve => setTimeout(resolve, active ? 25 : 0));
+const idlePreparation = async () => {
+  // Small texture batches may progress during play; render submissions wait
+  // for the title, journal or a mandatory puzzle form to cover the world.
+  while (active) await new Promise(resolve => setTimeout(resolve, 100));
+};
+async function preparePhase(phase, include, exclude, { essential = false } = {}) {
+  const began = performance.now();
+  const programs = await prepareRenderPrograms(renderer, scene, camera, {
+    target: picture.target, include, exclude,
+  });
+  const textures = await prepareRenderTextures(renderer, programs.view, {
+    yieldTask: nextPreparationTask,
+  });
+  if (!essential) await idlePreparation();
+  const resources = await warmProgramView(renderer, programs.view, camera, {
+    target: picture.target, beforeSubmit: essential ? undefined : idlePreparation,
+  });
+  const stats = { phase, meshes: programs.meshes, lights: programs.lights,
+    materials: programs.materials, textures: textures.textures, uploaded: textures.uploaded,
+    programs: resources.programs, ms: performance.now() - began };
+  warmupStats.push(stats);
+  if (!essential) preparation[phase] = true;
+  return programs;
+}
 try {
   firstPerson.prepare(player);
   const preparedBeam = firstPerson.getBeam();
@@ -1311,30 +1413,44 @@ try {
   flashlight.target.position.copy(preparedBeam.position).addScaledVector(preparedBeam.direction, 10);
   flashlight.intensity = 1;
   flashlight.shadow.needsUpdate = true;
-  renderer.setRenderTarget(picture.target);
-  for (const [revelation, wake] of [[false, false], [true, false], [true, true]]) {
-    house.revelation.group.visible = revelation;
-    house.wake.group.visible = wake;
-    await renderer.compileAsync(scene, camera);
-    warmupStats.push(warmRenderResources(renderer, scene, camera, {
-      target: picture.target,
-      objects: [firstPerson.body, horror.figure.body, house.props.kitchenFrequency.root],
-    }));
-  }
-  house.revelation.group.visible = warmupVisibility[0];
-  house.wake.group.visible = warmupVisibility[1];
+  const essential = await preparePhase("essential", essentialObjects,
+    [house.revelation.group, house.wake.group], { essential: true });
+  // Allocate the real flashlight target and room caches only once. Future
+  // lighting states use tiny isolated views instead of full-world warm draws.
+  warmRenderResources(renderer, scene, camera, {
+    target: picture.target, objects: essentialObjects, textureScene: essential.view, finish: false,
+  });
   house.portal.warmup(renderer, camera);
   await picture.warmup();
+} catch (error) {
+  $("error").textContent = "Graphics preparation could not finish. Reload the page to try again.";
+  throw error;
 } finally {
-  house.revelation.group.visible = warmupVisibility[0];
-  house.wake.group.visible = warmupVisibility[1];
   flashlight.intensity = 0;
   flashlight.shadow.autoUpdate = false;
   firstPerson.reset();
-  // A temporary warmup body must never remain in a cached room shadow.
+  // Temporary warmup bodies must never remain in a cached room shadow.
   for (const light of house.architecture.shadowLights) light.shadow.needsUpdate = true;
   renderer.setRenderTarget(warmupTarget);
 }
+// A compiled post-process can still have first-draw driver work. Complete a
+// real F-off world/reflection/presentation frame before declaring play ready.
+renderView();
+await waitForRenderResources(renderer);
+preparation.essential = true;
+async function prepareFutureRooms() {
+  await idlePreparation();
+  await preparePhase("revelation", [...essentialObjects, house.revelation.group], [house.wake.group]);
+  await idlePreparation();
+  await preparePhase("wake", [...essentialObjects, house.revelation.group,
+    house.wake.group, house.wake.attackBody], []);
+}
+// This promise is deliberately independent of the entry button: late rooms
+// have minutes of gameplay and several mandatory forms to prepare under.
+prepareFutureRooms().catch(error => {
+  preparation.error = error.message;
+  console.warn("Background room preparation:", error.message);
+});
 loadingStatus("");
 $("start").disabled = false;
 $("start").textContent = "ENTER THE HOUSE";
@@ -1362,6 +1478,7 @@ if (testMode) {
   const snapshot = () => ({
     mode,
     active,
+    failure: { active: failing, ...failure.update(elapsed) },
     time: elapsed,
     pose: player.pose(),
     speed: player.speed,
@@ -1407,7 +1524,7 @@ if (testMode) {
     firstPerson: firstPerson.snapshot(),
     rendering: {
       programs: renderer.info.programs?.length, flashlightShadow: flashlight.castShadow,
-      adaptive: adaptive.snapshot(), warmup: warmupStats,
+      adaptive: adaptive.snapshot(), warmup: warmupStats, preparation: { ...preparation },
       postProcessing: picture.postProcessing,
       width: renderer.domElement.width, height: renderer.domElement.height,
     },

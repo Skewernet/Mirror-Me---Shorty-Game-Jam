@@ -294,14 +294,14 @@
     "speaker_id": 21
   },
   "routineCall": {
-    "text": "Mara... my diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
+    "text": "Mara... the diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
     "role": "phone",
     "speed": 0.86,
     "voice": "bf_isabella",
     "speaker_id": 22,
     "segments": [
       "Mara.",
-      "My diary. Beside the bed.",
+      "The diary. Beside the bed.",
       "Read the last page.",
       "End the evening backwards.",
       "The music box.",
@@ -318,5 +318,26 @@
       0.88,
       0.95
     ]
+  },
+  "mirrorClock0": {
+    "text": "The hands kept turning. The water went cold.",
+    "role": "glass",
+    "speed": 0.92,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirrorClock1": {
+    "text": "Mum liked her bath warm. You let the hour slip away.",
+    "role": "glass",
+    "speed": 0.92,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirrorClock2": {
+    "text": "Some things keep time. Some things keep the face you won't look at.",
+    "role": "glass",
+    "speed": 0.92,
+    "voice": "bf_emma",
+    "speaker_id": 21
   }
 }

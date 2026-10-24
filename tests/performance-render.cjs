@@ -14,7 +14,7 @@ const url = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\/
     await page.goto(url + '/__performance-render__');
     const report = await page.evaluate(async () => {
       const T = await import('three');
-      const { warmRenderResources } = await import('/src/performance.mjs');
+      const { warmRenderResources, prepareRenderPrograms, prepareRenderTextures, warmProgramView } = await import('/src/performance.mjs');
       const check = (value, text) => { if (!value) throw new Error(text); };
       const scene = new T.Scene();
       const camera = new T.PerspectiveCamera(65, 1, .055, 20);
@@ -77,10 +77,58 @@ const url = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\/
       try { warmRenderResources(renderer, scene, camera, { target, objects: [hidden] }); } catch { threw = true; }
       check(threw && !hidden.visible && hidden.frustumCulled && renderer.getRenderTarget() === null, 'Warmup failure leaked state');
       renderer.render = render;
+      const future = new T.Group(); future.visible = false;
+      const futureLight = new T.PointLight(0xffbbaa, 4, 8);
+      futureLight.position.set(0, 2, 1);
+      futureLight.castShadow = true; futureLight.shadow.mapSize.set(32, 32);
+      const futureMaterial = material.clone(); futureMaterial.alphaTest = .15;
+      const futureMesh = new T.Mesh(new T.SphereGeometry(.25, 12, 8), futureMaterial);
+      futureMesh.castShadow = true;
+      futureMesh.position.set(.8, .5, 0);
+      future.add(futureLight, futureMesh); scene.add(future);
+      const sourceChildren = scene.children.slice(), beforeFuturePrograms = renderer.info.programs.length;
+      const pending = prepareRenderPrograms(renderer, scene, camera, { target, include: [future] });
+      check(renderer.getRenderTarget() === null && !future.visible && future.parent === scene,
+        'Pending future compilation changed the live scene or render target');
+      renderer.render(scene, camera); // A real live frame while compilation waits.
+      const futurePrepared = await pending;
+      const futureTextures = await prepareRenderTextures(renderer, futurePrepared.view);
+      let signalGate, releaseGate;
+      const reachedGate = new Promise(resolve => { signalGate = resolve; });
+      const resumedGate = new Promise(resolve => { releaseGate = resolve; });
+      const warmingFuture = warmProgramView(renderer, futurePrepared.view, camera, { target,
+        beforeSubmit: () => { signalGate(); return resumedGate; } });
+      await reachedGate;
+      renderer.render(scene, camera); // Resumed play can postpone the tiny submission.
+      check(!future.visible && renderer.getRenderTarget() === null,
+        'Waiting for a safe submission changed the live scene');
+      const beforeWarmFrame = renderer.info.render.frame;
+      releaseGate();
+      const futureWarmed = await warmingFuture;
+      check(renderer.info.render.frame > beforeWarmFrame,
+        'Isolated warmup rewound the frame used by skeleton upload caches');
+      check(renderer.getRenderTarget() === null && !future.visible && !futureLight.shadow.map,
+        'Tiny isolated warmup leaked the live target, visibility or shadow allocation');
+      check(scene.children.every((child, i) => child === sourceChildren[i]) && !future.visible,
+        'Compile descriptors reparented or revealed gameplay nodes');
+      const preparedFuturePrograms = renderer.info.programs.length;
+      future.visible = true;
+      renderer.setRenderTarget(target);
+      renderer.render(scene, camera);
+      check(renderer.info.programs.length === preparedFuturePrograms,
+        'First future-room reveal compiled an unprepared shader variant');
+      future.visible = false;
+      renderer.setRenderTarget(null);
       target.dispose(); light.shadow.map.dispose(); renderer.dispose();
       return { status: 'PASS', oldShaderPrograms: baseline, afterOldFToggle: switched,
-        stablePrograms, prepared, toggles, checks: ['old F shader-variant reproduction', 'stable shadow/light key',
-          'no toggle-time shadow target allocation', 'off-state shadow work skipped', 'GPU resource warmup', 'render state/error restoration'] };
+        stablePrograms, prepared, toggles,
+        future: { before: beforeFuturePrograms, prepared: preparedFuturePrograms,
+          meshes: futurePrepared.meshes, lights: futurePrepared.lights, textures: futureTextures, warmed: futureWarmed },
+        checks: ['old F shader-variant reproduction', 'stable shadow/light key',
+          'no toggle-time shadow target allocation', 'off-state shadow work skipped', 'GPU resource warmup',
+          'render state/error restoration', 'isolated future compile during live rendering',
+          'safe submission gate after async linking', 'tiny isolated shadow/buffer warmup',
+          'zero-program first future reveal'] };
     });
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({ ...report, errors }));

@@ -3,12 +3,26 @@ import { createDemon } from "./demon.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
 import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
 import { BLACKOUT_ENVIRONMENT, CRAWLER_FLICKER, crawlerFlickerAt } from "./crawler-flicker.mjs";
+import { CRAWLER_FAILURE_SECONDS, crawlerThreatTarget, playerInitiatedContact } from "./crawler-threat.mjs";
 
 // One body, six authored sightings. Every encounter starts from a visible,
 // unobstructed sightline and withdraws into a real room or behind its dressing.
-// None is an objective, a timer gate, or a collision obstacle.
+// None initiates a chase or blocks an objective. Only a player deliberately
+// closing into an existing posed crawler can trigger contact failure.
 const CEILING = CEILING_HEIGHT - 0.08;
 const UP = new T.Vector3(0, 1, 0);
+const CONTACT_BONES = [
+  ["head", "head", .145], ["neck_01", "spine_03", .13],
+  ["spine_03", "spine_01", .15], ["spine_01", "pelvis", .14],
+  ...["l", "r"].flatMap(side => [
+    [`upperarm_${side}`, `lowerarm_${side}`, .075],
+    [`lowerarm_${side}`, `hand_${side}`, .065],
+    [`hand_${side}`, `middle_02_${side}`, .055],
+    [`thigh_${side}`, `calf_${side}`, .085],
+    [`calf_${side}`, `foot_${side}`, .06],
+    [`foot_${side}`, `ball_${side}`, .055],
+  ]),
+];
 const SIGHTINGS = [
   {
     id: "bedroom-fold",
@@ -273,6 +287,24 @@ export class HorrorDirector {
     this.viewDirection = new T.Vector3();
     this.previousPosition = new T.Vector3();
     this.headBone = this.figure.body.getObjectByName("head");
+    this.contactRay = new T.Raycaster();
+    this.contactOrigin = new T.Vector3();
+    this.contactDirection = new T.Vector3();
+    this.contactPoint = new T.Vector3();
+    this.failureRotation = new T.Quaternion();
+    this.failureEuler = new T.Euler();
+    this.failureBones = [
+      ["head", -.13, .05, .18], ["neck_01", -.06, 0, -.05],
+      ["clavicle_l", 0, 0, -.08], ["clavicle_r", 0, 0, .08],
+    ].flatMap(([name, x, y, z]) => {
+      const bone = this.figure.body.getObjectByName(name);
+      return bone ? [{ bone, base: new T.Quaternion(), x, y, z }] : [];
+    });
+    this.failureSkin = this.figure.body.getObjectByName("Mara_Skin");
+    this.contactShapes = CONTACT_BONES.flatMap(([from, to, radius]) => {
+      const aBone = this.figure.body.getObjectByName(from), bBone = this.figure.body.getObjectByName(to);
+      return aBone && bBone ? [{ aBone, bBone, a: [0, 0, 0], b: [0, 0, 0], radius, name: `${from}:${to}` }] : [];
+    });
     this.headLocal = {};
     if (this.headBone && this.figure.setCreaturePose) {
       // Cache the real rig's head location for each hidden starting pose. This
@@ -298,6 +330,9 @@ export class HorrorDirector {
     this.lastTime = -1;
     this.lastStage = 0;
     this.cooldownUntil = 0;
+    this.previousPlayer = null;
+    this.contactsReady = false;
+    this.threat = { amount: 0, gaze: 0, distance: null, contact: false, encounter: null };
     this.light = { lightMultiplier: 1, lightSource: null };
     this.figure.body.visible = false;
     this.figure.body.position.set(0, 0, 0);
@@ -356,12 +391,16 @@ export class HorrorDirector {
       lastCueAt: definition.premonition
         ? (this.anticipationStarted[definition.id] ?? -Infinity)
         : -Infinity,
+      nextClickAt: time + .54,
+      clickIndex: 0,
+      contacted: false,
     };
     this.completed[definition.id] = true;
     this.figure.resetPose?.();
     this.figure.resetMotion?.();
     this.figure.body.position.copy(origin);
     this.previousPosition.copy(origin);
+    this.contactsReady = false;
     this.figure.body.visible = true;
     this.figure.body.rotation.y = facingFor(definition, origin, player);
   }
@@ -370,6 +409,7 @@ export class HorrorDirector {
     this.figure.body.visible = false;
     this.updateShadows(time);
     this.active = null;
+    this.contactsReady = false;
     this.cooldownUntil = time + 7;
     this.light = { lightMultiplier: 1, lightSource: null };
   }
@@ -381,6 +421,57 @@ export class HorrorDirector {
     }
     for (const light of this.house.architecture?.shadowLights || [])
       if (light.shadow) light.shadow.needsUpdate = true;
+  }
+
+  updateThreat(dt, visible = false, gaze = 0, distance = Infinity) {
+    const target = crawlerThreatTarget({ visible, gaze, distance });
+    const delta = Number.isFinite(dt) ? T.MathUtils.clamp(dt, 0, .05) : 0;
+    this.threat.amount = T.MathUtils.damp(this.threat.amount, target, target > this.threat.amount ? 5 : 8, delta);
+    if (this.threat.amount < .001) this.threat.amount = 0;
+    this.threat.gaze = visible ? Math.max(0, gaze) : 0;
+    this.threat.distance = visible && Number.isFinite(distance) ? distance : null;
+    this.threat.encounter = this.active?.definition.id || null;
+  }
+
+  captureContacts() {
+    for (const shape of this.contactShapes) {
+      shape.aBone.getWorldPosition(this.contactPoint).toArray(shape.a);
+      shape.bBone.getWorldPosition(this.contactPoint).toArray(shape.b);
+    }
+    this.contactsReady = this.contactShapes.length > 0;
+  }
+
+  contactVisible(player, point) {
+    this.contactOrigin.set(player.x, T.MathUtils.clamp(point[1], .1, 1.7), player.z);
+    this.contactDirection.fromArray(point).sub(this.contactOrigin);
+    const distance = this.contactDirection.length();
+    if (distance < .015) return true;
+    this.contactDirection.divideScalar(distance);
+    this.contactRay.set(this.contactOrigin, this.contactDirection);
+    this.contactRay.far = Math.max(0, distance - .015);
+    return this.contactRay.intersectObjects((this.house.occluders || []).filter(visibleInTree), false).length === 0;
+  }
+
+  // The consequence animates only after the player's valid contact event.
+  // Preserve the actual caught pose and world transform: a short local flinch
+  // gives the camera fall a physical response without launching another chase.
+  updateFailure(time) {
+    if (!this.active?.contacted) return null;
+    const elapsed = Math.max(0, (Number.isFinite(time) ? time : this.active.contactedAt) - this.active.contactedAt);
+    const rise = T.MathUtils.smoothstep(elapsed, 0, .09);
+    const settle = 1 - T.MathUtils.smoothstep(elapsed, .13, .52);
+    const strike = rise * settle;
+    for (const pose of this.failureBones) {
+      this.failureEuler.set(pose.x * strike, pose.y * strike, pose.z * strike);
+      this.failureRotation.setFromEuler(this.failureEuler);
+      pose.bone.quaternion.copy(pose.base).multiply(this.failureRotation);
+    }
+    const jaw = this.failureSkin?.morphTargetDictionary?.Mara_Jaw_Open;
+    if (jaw !== undefined)
+      this.failureSkin.morphTargetInfluences[jaw] = Math.min(1, this.active.failureJaw + .38 * strike);
+    this.figure.body.updateMatrixWorld(true);
+    return { active: elapsed < CRAWLER_FAILURE_SECONDS, done: elapsed >= CRAWLER_FAILURE_SECONDS,
+      progress: T.MathUtils.clamp(elapsed / CRAWLER_FAILURE_SECONDS, 0, 1), strike };
   }
 
   update(
@@ -395,6 +486,9 @@ export class HorrorDirector {
       this.reset();
     this.lastTime = time;
     this.lastStage = story.stage;
+    const previousPlayer = Number.isFinite(player.previousX) && Number.isFinite(player.previousZ)
+      ? { x: player.previousX, z: player.previousZ } : this.previousPlayer;
+    this.previousPlayer = { x: player.x, z: player.z };
     this.light = { lightMultiplier: 1, lightSource: null };
     if (!enabled || story.endingStarted || story.wakeEntered || story.ended) {
       if (this.active) this.finish(time);
@@ -405,6 +499,7 @@ export class HorrorDirector {
         SIGHTINGS.map((s) => [s.id, false]),
       );
       this.anticipationStarted = {};
+      this.threat = { amount: 0, gaze: 0, distance: null, contact: false, encounter: null };
       return this.light;
     }
     if (this.active && !this.active.definition.stages.includes(story.stage))
@@ -478,7 +573,34 @@ export class HorrorDirector {
         }
       }
     }
-    if (!this.active) return this.light;
+    if (!this.active) {
+      this.updateThreat(dt);
+      return this.light;
+    }
+
+    // Test player movement against the prior posed body before moving the
+    // actor. The authored path can never cause a passive collision death.
+    const currentMode = this.active.mode;
+    if (this.active.contacted) return this.light;
+    if (this.contactsReady && (currentMode === "crawl" || currentMode === "ceiling") &&
+        Math.hypot(player.x - this.figure.body.position.x, player.z - this.figure.body.position.z) < 2.1) {
+      const hit = playerInitiatedContact(previousPlayer, player, this.contactShapes);
+      // Ceiling contacts additionally require attention to the hanging body;
+      // simply following the required hall route under it is not pursuit.
+      const attentive = currentMode !== "ceiling" || this.threat.gaze > .86;
+      if (hit && attentive && this.contactVisible(player, hit.point)) {
+        this.active.contacted = true;
+        this.active.contactedAt = time;
+        for (const pose of this.failureBones) pose.base.copy(pose.bone.quaternion);
+        const jaw = this.failureSkin?.morphTargetDictionary?.Mara_Jaw_Open;
+        this.active.failureJaw = jaw === undefined ? 0 : this.failureSkin.morphTargetInfluences[jaw];
+        this.threat = { amount: 1, gaze: this.threat.gaze, distance: hit.distance,
+          contact: true, encounter: this.active.definition.id };
+        this.events.push({ id: "crawler-contact", x: hit.point[0], y: hit.point[1], z: hit.point[2],
+          encounter: this.active.definition.id, part: hit.name, playerInitiated: true });
+        return this.light;
+      }
+    }
 
     const active = this.active,
       definition = active.definition;
@@ -500,7 +622,8 @@ export class HorrorDirector {
           : "withdraw";
     const body = this.figure.body;
     // The first view lasts long enough to read a distorted anatomy. Closing on
-    // it makes it retreat; the player can never walk through a stationary model.
+    // it makes it retreat along its authored exit. Sprinting can catch that
+    // withdrawal, but the creature never turns it into an incoming chase.
     const playerDistance = Math.hypot(
       player.x - body.position.x,
       player.z - body.position.z,
@@ -614,6 +737,17 @@ export class HorrorDirector {
         mode === "ceiling" ? -0.38 : mode === "twisted" ? 1.12 : 0.44;
     }
     const visible = this.canSee(this.target, camera, 0.2, 12);
+    const crawling = mode === "crawl" || mode === "ceiling";
+    camera.getWorldDirection(this.viewDirection);
+    const gaze = this.viewDirection.dot(this.direction);
+    this.updateThreat(dt, crawling && visible, gaze, this.target.distanceTo(camera.position));
+    if (crawling) this.captureContacts();
+    else this.contactsReady = false;
+    if (crawling && visible && !dialogueBusy && time >= active.nextClickAt) {
+      active.nextClickAt = time + [.61, .94, .73, 1.08][active.clickIndex++ % 4];
+      this.events.push({ id: "crawler-click", x: this.target.x, y: this.target.y, z: this.target.z,
+        encounter: definition.id, intensity: .45 + this.threat.amount * .55 });
+    }
     active.seen += visible ? dt : 0;
     active.away = visible ? 0 : active.away + dt;
     active.progress = progress;
@@ -726,6 +860,7 @@ export class HorrorDirector {
       position: this.figure.body.position.toArray(),
       completed: { ...this.completed },
       gait: this.figure.body.userData.creatureGait || null,
+      threat: { ...this.threat },
       ...this.light,
     };
   }

@@ -30,7 +30,12 @@ const base = process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000';
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.pointerLockElement && !document.querySelector('#menu').hidden);
     };
-    assert.equal((await snap()).rendering.warmup.length, 3);
+    assert.equal((await snap()).rendering.preparation.essential, true);
+    // Future variants prepare under the menu independently of entry. Wait
+    // here so their program counts cannot be misattributed to the F toggle.
+    await page.waitForFunction(() => window.__mirror.snapshot().rendering.preparation.wake);
+    assert.equal((await snap()).rendering.preparation.error, null);
+    assert.deepEqual((await snap()).rendering.warmup.map(phase => phase.phase), ['essential', 'revelation', 'wake']);
     assert.equal((await snap()).settings.quality, '720');
     assert.equal((await snap()).rendering.adaptive.enabled, false);
     await start();
@@ -91,12 +96,25 @@ const base = process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000';
     await start();
     await advance(.02);
     assert.equal((await snap()).active, true);
+    console.log('Polish: graphics-loss recovery');
+    await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      gl.getExtension('WEBGL_lose_context').loseContext();
+    });
+    await page.waitForFunction(() => !document.pointerLockElement &&
+      document.querySelector('#start').disabled && document.querySelector('#restart').disabled &&
+      document.querySelector('#error').textContent.includes('Reload'));
+    assert.equal((await snap()).active, false);
+    assert.equal(await page.locator('#menu').isVisible(), true);
+    assert.equal(await page.locator('#death-screen').isVisible(), false);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
     console.log(JSON.stringify({ result: 'PASS', programs: baseline,
       firstPersonTriangles: lit.firstPerson.triangles,
       checks: ['prepared actual game', 'first F compiles zero programs', 'draw/stow and physical beam',
-        'look-down body', 'settings application', 'single caption channel', 'subtitle switch', 'pause/resume'],
+        'look-down body', 'settings application', 'single caption channel', 'subtitle switch', 'pause/resume',
+        'graphics-loss message and disabled stale restart'],
       errors, failed }));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

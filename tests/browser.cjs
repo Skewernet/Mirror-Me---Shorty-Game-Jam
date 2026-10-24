@@ -4,6 +4,9 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const url = process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000";
 const out = process.env.MIRROR_TEST_OUTPUT || "/tmp/mirror-me-crescendo-checks";
+// These isolated routes stop after contact failure. Use "escape" to exercise
+// its alternate exit; "1" or "retry" exercises the visible restart button.
+const crawlerDeath = process.env.MIRROR_TEST_CRAWLER_DEATH || "";
 fs.mkdirSync(out, { recursive: true });
 (async () => {
   const { TARGETS, ROOMS, SPAWN, MIRROR, EXIT, PORTAL } = await import(
@@ -261,6 +264,108 @@ fs.mkdirSync(out, { recursive: true });
           JSON.stringify((await snap()).scares),
       );
     }
+    async function testCrawlerFailure() {
+      const identity = `crawler-death-${Date.now()}`;
+      await p.evaluate(value => { window.__crawlerDeathDocument = value; }, identity);
+      const before = await snap();
+      assert.equal(before.story.stage, 3);
+      assert.equal(before.scares.active, "far-hall-crawler");
+      await p.keyboard.down("ShiftLeft");
+      await p.keyboard.down("KeyW");
+      let contact;
+      for (let frame = 0; frame < 60 * 5; frame++) {
+        const state = await snap();
+        if (state.scares.threat.contact) { contact = state; break; }
+        assert.equal(state.scares.active, "far-hall-crawler", "The real crawler withdrew before the pursuit caught it");
+        const [x, y, z] = state.scares.position;
+        const dx = x - state.pose.x, dz = z - state.pose.z;
+        await face(Math.atan2(-dx, -dz), Math.atan2(y + .44 - 1.64, Math.hypot(dx, dz)));
+        await advance(1 / 60);
+      }
+      await p.keyboard.up("KeyW");
+      await p.keyboard.up("ShiftLeft");
+      assert.ok(contact, "Resolved Shift+W movement did not touch the visible crawler");
+      assert.equal(contact.failure.phase, "hit");
+      assert.deepEqual(contact.input.keys, []);
+      assert.equal(contact.story.stage, before.story.stage);
+      assert.equal(contact.portalCount, before.portalCount);
+      assert.equal(contact.story.ended, false, "Contact must not complete the story");
+      await advance(.13);
+      const hit = await snap();
+      assert.ok(hit.failure.progress > 0 && hit.failure.progress < 1);
+      assert.notDeepEqual(hit.pose, contact.pose, "The finite contact animation has no camera response");
+
+      await p.keyboard.press("Escape");
+      await p.waitForFunction(() => !document.pointerLockElement && !document.querySelector("#menu").hidden);
+      const paused = await snap();
+      await frozenModal("paused");
+      assert.deepEqual((await snap()).failure, paused.failure, "Pause advanced the contact animation");
+      assert.deepEqual((await snap()).scares, paused.scares, "Pause advanced the contacted actor");
+      await p.click("#start");
+      await playing();
+      let dead;
+      for (let frame = 0; frame < 120; frame++) {
+        await advance(1 / 60);
+        const state = await snap();
+        if (state.mode === "dead") { dead = state; break; }
+      }
+      assert.ok(dead, "Contact failure did not reach a death screen within two simulation seconds");
+      await p.waitForFunction(() => !document.pointerLockElement);
+      assert.equal(dead.active, false);
+      assert.equal(dead.failure.done, true);
+      assert.equal(dead.failure.fade, 1);
+      assert.equal(dead.story.stage, 3);
+      assert.equal(dead.story.ended, false);
+      assert.equal(await p.locator("#death-screen").isVisible(), true);
+      assert.equal(await p.locator("#menu").isVisible(), false);
+      assert.equal(await p.locator("#hud").isVisible(), false);
+      assert.match(await p.locator("#death-retry").innerText(), /restart the night/i);
+      await p.keyboard.press("KeyW");
+      await p.keyboard.press("KeyF");
+      await p.keyboard.press("KeyE");
+      await advance(2);
+      await p.waitForTimeout(100);
+      const held = await snap();
+      assert.equal(held.time, dead.time);
+      assert.deepEqual(held.pose, dead.pose);
+      assert.deepEqual(held.story, dead.story);
+      assert.deepEqual(held.input.keys, []);
+      assert.equal(await p.evaluate(() => !!document.pointerLockElement), false, "Death automatically recaptured the mouse");
+
+      if (crawlerDeath === "escape") {
+        await p.keyboard.press("Escape");
+        await p.waitForFunction(() => !document.querySelector("#menu").hidden);
+        assert.equal(await p.locator("#death-screen").isVisible(), false);
+        const menu = await snap();
+        assert.equal(menu.active, false);
+        assert.equal(menu.story.stage, 0);
+        assert.equal(menu.mode, "title");
+        assert.equal(await p.evaluate(() => !!document.pointerLockElement), false);
+        await p.click("#start");
+      } else {
+        await p.click("#death-retry");
+      }
+      await playing();
+      const restarted = await snap();
+      assert.equal(await p.evaluate(() => window.__crawlerDeathDocument), identity, "Restart reloaded the document and assets");
+      assert.equal(restarted.story.stage, 0);
+      assert.equal(restarted.story.laps, 0);
+      assert.equal(restarted.story.ended, false);
+      assert.equal(restarted.story.hasKey, false);
+      assert.equal(restarted.story.hasDiary, false);
+      assert.equal(restarted.portalCount, 0);
+      assert.equal(restarted.pose.x, SPAWN.x);
+      assert.equal(restarted.pose.z, SPAWN.z);
+      assert.equal(restarted.failure.phase, "idle");
+      assert.equal(restarted.scares.threat.contact, false);
+      assert.ok(Object.values(restarted.scares.completed).every(value => value === false));
+      assert.equal(await p.locator("#death-screen").isVisible(), false);
+      assert.deepEqual(errors, []);
+      assert.deepEqual(failed, []);
+      console.log(JSON.stringify({ result: "PASS", route: "crawler-contact-death", exit: crawlerDeath === "escape" ? "escape" : "retry",
+        checks: ["real Shift+W pursuit and contact", "finite actor and camera consequence", "paused failure clock and pose", "complete death screen",
+          "no automatic capture", "story does not advance", "restart without document reload", "fresh-night state"] }));
+    }
     function checkTransform(last, kind) {
       assert.equal(last.kind, kind);
       const { from, to } = last;
@@ -480,6 +585,18 @@ fs.mkdirSync(out, { recursive: true });
       "PASS 2: delayed/held reflection, key, diary and paused readable journal",
     );
 
+    await hallCorner();
+    await walk(6.7, 0);
+    await waitDialogue();
+    assert.equal((await snap()).story.hasTimeClue, false);
+    await use("mirror");
+    const clockHint = await snap();
+    assert.equal(clockHint.story.mirrorClockCursor, 1);
+    assert.equal(clockHint.story.hasTimeClue, false, "A hall reflection hint must not grant the bathroom clue");
+    assert.equal(clockHint.story.clockSolved, false, "A reflection hint cannot solve the clock");
+    assert.ok(clockHint.dialogue.id === "mirrorClock0" || clockHint.dialogue.queued.includes("mirrorClock0"),
+      "The clock loop uses its own eerie reflection voice instead of repeating a key hint");
+    await hallCorner();
     await enterBathroom();
     await use("bath-clue");
     assert.equal((await snap()).story.hasTimeClue, true);
@@ -566,6 +683,10 @@ fs.mkdirSync(out, { recursive: true });
     await walk(2, 0);
     const crawler = await encounter("far-hall-crawler", 5.75, 0.44, 0);
     assert.equal(crawler.scares.mode, "crawl");
+    if (crawlerDeath) {
+      await testCrawlerFailure();
+      return;
+    }
     await advance(0.3);
     await photo("floor-crawler");
     await advance(5);
@@ -1025,7 +1146,7 @@ fs.mkdirSync(out, { recursive: true });
       return result;
     });
     assert.equal(Object.keys(voices).length, Object.keys(VOICES).length);
-    assert.equal(Object.keys(voices).length, 39);
+    assert.equal(Object.keys(voices).length, 42);
     assert.ok(voices.news > 10, "The funeral news is a complete voiced report");
     assert.ok(voices.sob > 0, "Mara's broken confession has audible content");
     assert.ok(voices.routineCall > 0, "Mum's reverse-routine hint has an audible local take");
@@ -1052,6 +1173,7 @@ fs.mkdirSync(out, { recursive: true });
             "five furnished rooms",
             "faithful/delayed/held/empty reflection",
             "post-key mirror reminder replaces the stale drawer clue",
+            "clock-loop reflection hint preserves the real bathroom clue and puzzle gates",
             "readable script journal",
             "clock and tuning UI pause",
             "separate telephone/radio",

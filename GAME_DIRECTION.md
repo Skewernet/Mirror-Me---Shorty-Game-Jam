@@ -18,7 +18,7 @@ The mirror matters because it keeps the actor in frame. Its delay, fixed gaze an
 
 The old hospital envelope is a genuine **discharge / personal-property receipt**, not a death notice. It explicitly says Evelyn returned to care at home. The watch, ring and ribbon came home when she did. Mara’s assumption that the hospital explains the end of Mum’s life is hers; the paper never confirms it.
 
-Mara says the nurse called at 03:17. The diary repeats that claim, but its first word has been rubbed through the paper. The final news report establishes the opposite direction of the call: Mara called the emergency service from the house. This contradiction is deliberate and resolved, not a continuity mistake.
+Mara says the nurse called at 03:17. The diary repeats the claim about the nurse, with its first word rubbed through the paper; it deliberately withholds the numeric time until the bathroom clue. The final news report establishes the opposite direction of the call: Mara called the emergency service from the house. This contradiction is deliberate and resolved, not a continuity mistake.
 
 The mirror-side bedroom reveals the same place without the protective retelling: extensive blood on bedding and surrounding surfaces, the kitchen knife, ruined domestic care objects and Mum’s human presence or remains. The scene must clearly show a violent death in the bed; do not let generic red lighting substitute for physical evidence. Preserve the familiar bed, lamp, music box and room dimensions so the player recognizes what has changed. Crying and breath belong to Mara’s recognition. Do not make the victim perform screams as a reward.
 
@@ -44,7 +44,7 @@ The 10–15-minute first-play target remains a human-playtest target, not a meas
 
 Preserve the claustrophobic L, five furnished rooms and readable kitchen entrance that the player has already approved. A repaired rear-door leaf must stay inside its swept opening and must not appear through destination walls. The return is an immediate view into the same front hall.
 
-Mara’s ordinary female identity remains recognizable in the glass and bodily sightings. The early mirror uses timing and gaze. Faithful and 680 ms delayed reflection phases replay the real hand, finger, reaching and flashlight poses. The held copy captures the last displayed pose; later player motion cannot alter it. Post-key inspection has a finite private twitch/eye-bleed treatment and eight indirect voiced reminders; essential dialogue takes priority. Later physical deformation and blood are manifestations of an account she cannot hold together, not a replacement culprit. Crawlers need weight and believable contact even when their joint angles are impossible. Creature sightings are authored, optional and finite; no fight or chase gate is introduced.
+Mara’s ordinary female identity remains recognizable in the glass and bodily sightings. The early mirror uses timing and gaze. Faithful and 680 ms delayed reflection phases replay the real hand, finger, reaching and flashlight poses. The held copy captures the last displayed pose; later player motion cannot alter it. Post-key inspection has a finite private twitch/eye-bleed treatment and eight indirect voiced reminders; essential dialogue takes priority. Later physical deformation and blood are manifestations of an account she cannot hold together, not a replacement culprit. Crawlers need weight and believable contact even when their joint angles are impossible. Creature sightings are authored, optional and finite; no fight or chase gate is introduced. Direct visible gaze adds proximity-scaled image disturbance, which decays when the player looks away. Only fresh player motion into a prior posed crawler can cause contact failure; the creature never pursues or kills a stationary player. A finite fall/blackout leads to a fresh-night retry or menu. Shift runs with normalized diagonal movement and the existing collision/threshold transforms.
 
 The local 0.8 creature revision gives the intruder a separate facial sculpt, marbled pallor, a torn mouth corner and ruined domestic clothing. Its working production name, **The Unkept**, is not new on-screen supernatural lore. Preserve Mara's female proportions and recognizable dark hair, with original wet strand clumps. Its familiar human origin and held attention matter more than decoration. The held mouth begins slack, then opens once as its head reorients, before the body commits to withdrawal. Some sightings begin silently; others have one localized breath beforehand. Their anatomy intensifies across the existing chapters. Do not turn every appearance into the same loud warning and fleeing animation. The original generated tissue decal supplies detailed ragged damage on this instance only; its provenance is in the asset register.
 
@@ -54,7 +54,7 @@ Keep the sound puzzle’s earned silence in chapters 5 and 6. The bath, music bo
 
 ## Funeral-room coda
 
-The front door opens into a larger warm, enclosed funeral parlor: familiar chairs, a place reserved for Mara, flowers, portrait and the veiled seated versions of her. Walnut trim, aged wallpaper, drapes, empty seats and an open casket give the room a credible funeral arrangement. Keep bounded walking, free look, flashlight and pause. The final attack belongs to the wounded human mother and follows the complete admission, report and final accusation; it never replaces them.
+The front door opens into a larger, enclosed funeral parlor with scorched damp plaster and charred trim: familiar chairs, a place reserved for Mara, flowers, portrait and the veiled seated versions of her. Dark wine drapes, empty seats and an open casket retain the funeral arrangement beneath the ruined surfaces. Restrained sickly practical light keeps Evelyn and the final attacker readable. The same slow original dread theme used in the title menu returns here and ducks under speech. Keep bounded walking, free look, flashlight and pause. The final attack belongs to the wounded human mother and follows the complete admission, report and final accusation; it never replaces them.
 
 A **separate, visible funeral radio** plays the new factual `news` take once. Its source position belongs to that prop. The kitchen radio remains silent; it is neither secretly moved into the wake nor reused as a puzzle target. The news confirms Evelyn’s age, Mara’s seven-year role, the admitted repeated stabbing and the 03:17 emergency call. It explicitly rules out illness as the cause of death.
 
@@ -107,7 +107,11 @@ The weather file alone carries an eighteen-second quiet tail for sparse ambience
 | `mirror5` / post-key mirror inspection | THE GLASS: “You washed your hands before you answered.” | Indirect reminder; original rough layer and dry clicks preserve Mara’s base identity. No final confession before the bedroom. |
 | `mirror6` / post-key mirror inspection | THE GLASS: “Look at me. You knew how to look at her.” | Indirect reminder; original rough layer and dry clicks preserve Mara’s base identity. No final confession before the bedroom. |
 | `mirror7` / post-key mirror inspection | THE GLASS: “Tell it again. Leave yourself in this time.” | Indirect reminder; original rough layer and dry clicks preserve Mara’s base identity. No final confession before the bedroom. |
-| `routineCall` / phone after the keepsakes are returned | THE TELEPHONE: “Mara... my diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.” | Mum’s established voice. A direct, optional clue points to the diary by her bed and the reverse sequence; it never becomes a new progression lock. |
+| `routineCall` / phone after the keepsakes are returned | THE TELEPHONE: “Mara... the diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.” | Mum’s established voice. A direct, optional clue points to the diary by her bed and the reverse sequence; it never becomes a new progression lock. |
+
+| `mirrorClock0` / clock-loop mirror inspection | THE GLASS: “The hands kept turning. The water went cold.” | Indirect bath/clock hint; finite private twitch and original clicks, without a numeric answer or navigation instruction. |
+| `mirrorClock1` / clock-loop mirror inspection | THE GLASS: “Mum liked her bath warm. You let the hour slip away.” | Indirect bath/clock hint; finite private twitch and original clicks, without a numeric answer or navigation instruction. |
+| `mirrorClock2` / clock-loop mirror inspection | THE GLASS: “Some things keep time. Some things keep the face you won't look at.” | Indirect bath/clock hint; finite private twitch and original clicks, without a numeric answer or navigation instruction. |
 
 ## Shared written discoveries
 
@@ -138,7 +142,7 @@ WHAT I BROUGHT HOME
 I left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.
 
 AFTER THE CALL
-The bathroom mirror had 03:17 written in the condensation. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.
+The glass held an hour I couldn't bring myself to copy down. I wrote: the nurse called. The first word has been rubbed through the paper.
 
 THE LAST PAGE — TO END HER EVENING
 Do the sounds in reverse. FIRST close the bedroom music box. SECOND stop the bathroom tap. LAST switch off the kitchen radio. The telephone does not belong to this order.
@@ -148,7 +152,7 @@ I have written that last line twice.
 
 ### Kitchen station and diary last page
 
-The kitchen walls show nine original blood-written **93.7** marks only after the chapter-2 clock is solved. No radio frequency appears in the diary or its bedside card. The optional third phone call points back to the diary; rereading it during the later puzzles opens this focused entry:
+After the chapter-2 clock is solved, 32 original finger-traced blood patches cover kitchen walls, cabinets, worktops and the refrigerator. **93.7** recurs amid rain, radio and Mum ramblings, with connected drips and smears. These persist through the ending and remain inspectable. Five earlier hallway patches and three clock-loop glass replies connect the hands, cold bath and face without stating 03:17 or telling the player the next action. No numeric clock/radio answer appears in the early diary or its bedside card. The optional third phone call points back to the diary; rereading it during the later puzzles opens this focused entry:
 
 ```text
 THE LAST PAGE — END HER EVENING

@@ -35,6 +35,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       house.animate(2, 2, state, player);
       const baseline = new Map(house.lights.map(light => [light, light.intensity]));
       const ambientBase = house.ambientLight.intensity;
+      const ambientSky = house.ambientLight.color.clone(), ambientGround = house.ambientLight.groundColor.clone();
       const environmentBase = house.materials.wood.envMapIntensity;
       const visibility = new Map(house.lights.map(light => [light, light.visible]));
       const windowLights = house.lights.filter(light => light.userData.powerCircuit === "window");
@@ -55,6 +56,8 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
         }
         check(house.ambientLight.intensity === ambientBase && house.materials.wood.envMapIntensity === environmentBase,
           "Electrical restoration retained dim indirect light");
+        check(house.ambientLight.color.equals(ambientSky) && house.ambientLight.groundColor.equals(ambientGround),
+          "Electrical restoration retained the outage's ambient palette");
       };
       const circuits = [];
       for (const [zone, lights] of Object.entries(house.lightingGroups)) {
@@ -94,11 +97,11 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
           lightSource: "all", ...BLACKOUT_ENVIRONMENT });
         check(house.lights.filter(light => light.userData.powerCircuit !== "window").every(light => light.intensity === 0),
           id + " did not turn off every practical in the house");
-        for (const light of windowLights) check(light.intensity === baseline.get(light) * BLACKOUT_ENVIRONMENT.exteriorMultiplier,
-          id + " left full exterior fill during the blackout");
-        check(house.ambientLight.intensity === ambientBase * BLACKOUT_ENVIRONMENT.ambientMultiplier &&
+        for (const light of windowLights) check(light.intensity === light.userData.base * BLACKOUT_ENVIRONMENT.exteriorBaseScale,
+          id + " did not preserve the failed-fuse exterior fill");
+        check(house.ambientLight.intensity === BLACKOUT_ENVIRONMENT.ambientIntensity &&
           house.materials.wood.envMapIntensity === environmentBase * BLACKOUT_ENVIRONMENT.environmentMultiplier,
-          id + " left ambient/image lighting at normal brightness");
+          id + " did not preserve readable arrival ambient/image fill");
         check(house.lights.every(light => light.visible === visibility.get(light)),
           id + " changed shader light counts instead of light intensity");
         restore();
@@ -171,7 +174,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       return { status: "PASS", rendered: false, circuits, encounters: Object.keys(encounterSources).length,
         moonlightSources: windowLights.length, fixtures: fixtures.length,
         shadowInvalidations: invalidations.length,
-        checks: ["actual circuit power off/on", "all four whole-house crawling blackouts", "exterior/ambient/image lighting suppressed then restored",
+        checks: ["actual circuit power off/on", "all four whole-house crawling blackouts", "failed-fuse exterior/ambient/image fill and palette restored",
           "local bulb/shade emission and material isolation", "comfort toggle restores real lights", "shared shadow scheduler delegation",
           "puzzle-owned lampOff/material pointers preserved", "restart keeps failed fuse and fixture emission off"] };
     });

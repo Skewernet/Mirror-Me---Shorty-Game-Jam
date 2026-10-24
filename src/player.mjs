@@ -2,6 +2,8 @@ import * as T from "three";
 import { wishDirection, moveWithCollision } from "./physics.mjs";
 import { SPAWN } from "./layout.mjs";
 import { LOOK_RADIANS_PER_PIXEL } from "./look-input.mjs";
+export const WALK_SPEED = 1.85;
+export const RUN_SPEED = 3.25;
 export class Player {
   constructor(camera) {
     this.camera = camera;
@@ -25,6 +27,9 @@ export class Player {
     this.vx = 0;
     this.vz = 0;
     this.speed = 0;
+    this.sprinting = false;
+    this.previousX = this.x;
+    this.previousZ = this.z;
   }
   look(dx, dy) {
     this.yaw -= dx * LOOK_RADIANS_PER_PIXEL * this.sensitivity;
@@ -43,10 +48,15 @@ export class Player {
       Number(this.keys.has("KeyA") || this.keys.has("ArrowLeft"));
     const direction = wishDirection(forward, strafe, this.yaw),
       blend = 1 - Math.exp(-dt * (forward || strafe ? 15 : 22));
-    this.vx += (direction.x * 1.85 - this.vx) * blend;
-    this.vz += (direction.z * 1.85 - this.vz) * blend;
+    this.sprinting = Boolean((forward || strafe) &&
+      (this.keys.has("ShiftLeft") || this.keys.has("ShiftRight")));
+    const speed = this.sprinting ? RUN_SPEED : WALK_SPEED;
+    this.vx += (direction.x * speed - this.vx) * blend;
+    this.vz += (direction.z * speed - this.vz) * blend;
     const bx = this.x,
       bz = this.z;
+    this.previousX = bx;
+    this.previousZ = bz;
     moveWithCollision(this, this.vx * dt, this.vz * dt, colliders);
     const travelled = Math.hypot(this.x - bx, this.z - bz);
     this.distance += travelled;
@@ -71,6 +81,7 @@ export class Player {
       speed: this.speed,
       vx: this.vx,
       vz: this.vz,
+      sprinting: this.sprinting,
     };
   }
 }

@@ -97,7 +97,7 @@ const base = process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000';
       return { status: 'PASS', measurements, durations,
         checks: ['context-free preparation', 'zero play-time PCM allocations', 'finite original clicking/relay cues',
           'source/panner completion cleanup', 'pause retained tail', 'comfort/reset cancellation',
-          'nine new Oggs decode with headroom', 'actual mother reminder duration'] };
+          'additional Oggs decode with headroom', 'actual mother reminder duration'] };
     });
     assert.deepEqual(errors, []); assert.deepEqual(failed, []);
     console.log(JSON.stringify({ ...report, errors, failed }));

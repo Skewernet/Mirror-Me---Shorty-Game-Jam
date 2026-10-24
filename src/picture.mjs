@@ -45,6 +45,9 @@ export class Picture {
       edgeAAEnabled: { value: 1 },
       postEnabled: { value: 1 },
       highlightGlow: { value: 0 },
+      threatAmount: { value: 0 },
+      threatTime: { value: 0 },
+      threatMotion: { value: 1 },
     };
     this.uniforms.samples = {
       value: Array.from({ length: MAX_AO_SAMPLES }, () => new T.Vector3()),
@@ -67,7 +70,8 @@ export class Picture {
         uniform mat4 inverseProjection, projection;
         uniform vec3 samples[${MAX_AO_SAMPLES}];
         uniform float exposure, aoEnabled, aoSampleCount, edgeAAEnabled;
-        uniform float postEnabled, highlightGlow;
+        uniform float postEnabled, highlightGlow, threatAmount, threatTime, threatMotion;
+        float screenNoise(vec2 p){return fract(52.9829189*fract(dot(p,vec2(.06711056,.00583715))));}
         vec3 positionAt(vec2 uv){
           float d=texture2D(depth,uv).r;
           vec4 p=inverseProjection*vec4(uv*2.-1.,d*2.-1.,1.);
@@ -87,6 +91,17 @@ export class Picture {
         }
         void main(){
           vec2 uv=uvScreen;
+          float threat=postEnabled>.5?clamp(threatAmount,0.,1.):0.;
+          // The scene image shivers by only a few pixels. Camera orientation,
+          // aiming, physical movement and the crisp DOM HUD are untouched.
+          if(threat>.001 && threatMotion>.5){
+            float band=floor(uv.y*31.);
+            float beat=floor(threatTime*15.);
+            float shiver=screenNoise(vec2(band,beat))-.5;
+            uv.x+=shiver*texel.x*6.*threat*threat;
+            uv.y+=sin(threatTime*19.)*texel.y*.65*threat*threat;
+            uv=clamp(uv,texel*.5,vec2(1.)-texel*.5);
+          }
           vec3 center=texture2D(image,uv).rgb;
           vec3 color=center;
           // WebGL2 uses actual coverage samples. The performance/WebGL1 path
@@ -156,6 +171,18 @@ export class Picture {
             vec2 lens=(uv-.5)*vec2(1.,.85);
             color*=1.-.24*smoothstep(.10,.46,dot(lens,lens));
           }
+          if(threat>.001){
+            float grey=luminance(color);
+            color=mix(color,vec3(grey)*vec3(.95,1.,.96),threat*.27);
+            vec2 edge=(uvScreen-.5)*vec2(1.,.85);
+            color*=1.-threat*.48*smoothstep(.035,.43,dot(edge,edge));
+            // No full-screen flash: bounded fine static, with temporal noise
+            // disabled by the player's irregular-light preference.
+            float phase=threatMotion>.5?floor(threatTime*12.):0.;
+            float grain=screenNoise(gl_FragCoord.xy+vec2(phase*17.,phase*5.))-.5;
+            float scan=sin((uvScreen.y/texel.y+phase)*1.2);
+            color=clamp(color+grain*threat*.075+scan*threat*.008,0.,1.);
+          }
           color=mix(color*12.92,1.055*pow(color,vec3(1./2.4))-.055,step(vec3(.0031308),color));
           gl_FragColor=vec4(color,1.);
         }`,
@@ -166,6 +193,12 @@ export class Picture {
   }
   setOptions({ postProcessing = this.postProcessing } = {}) {
     this.postProcessing = Boolean(postProcessing);
+  }
+  setThreat(amount = 0, time = 0, { enabled = true, flashes = true } = {}) {
+    this.uniforms.threatAmount.value = enabled && Number.isFinite(amount)
+      ? T.MathUtils.clamp(amount, 0, 1) : 0;
+    this.uniforms.threatTime.value = Number.isFinite(time) ? Math.max(0, time) % 600 : 0;
+    this.uniforms.threatMotion.value = flashes ? 1 : 0;
   }
   updateKernel(count) {
     this.uniforms.aoSampleCount.value = count;

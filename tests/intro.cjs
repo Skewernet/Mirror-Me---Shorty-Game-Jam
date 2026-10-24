@@ -39,6 +39,7 @@ const fixture = `
     observe(page);
     await page.goto(base + '/');
     await page.waitForFunction(() => window.__mirrorIntro && window.introFixtureReady);
+    const introStarted = Date.now();
     const snapshot = () => page.evaluate(() => window.__mirrorIntro.snapshot());
     assert.equal((await snapshot()).stage, 0);
     assert.equal(await page.locator('#intro-kicker').innerText(), 'PRODUCED BY');
@@ -52,7 +53,8 @@ const fixture = `
     });
     await page.waitForFunction(() => window.__mirrorIntro.snapshot().stage === 1);
     assert.equal(await page.locator('#intro-title').innerText(), 'SHORTY JAM 2026');
-    await page.waitForFunction(() => window.__mirrorIntro.snapshot().stage === 2);
+    await page.waitForFunction(() => window.__mirrorIntro.snapshot().stage === 2 && window.__mirrorIntro.snapshot().phase === 'hold');
+    assert.ok(Date.now() - introStarted >= 14000, 'Branding cards actually fade and hold instead of jumping straight into the menu');
     assert.equal(await page.locator('#intro-title').innerText(), 'MIRROR ME');
     const warning = await page.locator('#intro-warning').innerText();
     for (const term of ['flashing lights', 'gore', 'blood', 'violence']) assert.ok(warning.includes(term));
@@ -74,6 +76,8 @@ const fixture = `
     await page.waitForFunction(() => window.__mirrorIntro.snapshot().ready);
     assert.match(await page.locator('#intro-load-status').innerText(), /ready when you are/);
     await page.click('#intro-silent');
+    assert.equal((await snapshot()).accepting, true, 'Consent fades the title before opening the menu');
+    await page.waitForFunction(() => !window.__mirrorIntro.snapshot().visible);
     assert.equal(await page.locator('#intro').isVisible(), false);
     assert.equal(await page.locator('#menu').evaluate(element => element.inert), false);
     assert.equal(await page.evaluate(() => sessionStorage.getItem('mirror-me.intro.v1')), 'acknowledged');
@@ -128,6 +132,23 @@ const fixture = `
     await privatePage.evaluate(() => window.__mirrorIntro.dispose());
     assert.equal(await privatePage.evaluate(() => window.__mirrorIntro.snapshot().audio.context), 'closed');
     assert.equal(await privatePage.locator('#menu').evaluate(element => element.inert), false);
+    // A skip before the previous card has painted must invalidate both RAFs,
+    // not let its delayed callbacks fade/advance the content warning later.
+    await privatePage.evaluate(async () => {
+      const { initIntro } = await import('/src/intro.mjs');
+      for (const id of ['intro-sound', 'intro-silent']) document.getElementById(id).disabled = false;
+      const state = { enabled: false, context: 'uncreated', volume: .55 };
+      const atmosphere = { snapshot: () => ({...state}), setActive() {}, setVolume() {},
+        async setEnabled(enabled) { state.enabled = enabled; }, async dispose() {} };
+      window.__mirrorIntro = initIntro({ atmosphere, fadeDuration: 40, holdDuration: 40, blankDuration: 10 });
+      document.getElementById('intro-skip').click();
+    });
+    await privatePage.waitForTimeout(350);
+    const skipped = await privatePage.evaluate(() => window.__mirrorIntro.snapshot());
+    assert.equal(skipped.stage, 2);
+    assert.equal(skipped.phase, 'hold');
+    assert.equal(skipped.visible, true);
+    await privatePage.evaluate(() => window.__mirrorIntro.dispose());
     await page.evaluate(async () => {
       const {MenuAtmosphere} = await import('/src/menu-audio.mjs');
       for (const action of ['capture', 'mute']) {
@@ -157,6 +178,6 @@ const fixture = `
     console.log(JSON.stringify({ result: 'PASS', checks: ['producer and jam splashes under loading stalls', 'MIRROR ME content warning',
       'no audio or device before consent', 'skip and keyboard focus', 'responsive warning', 'loading and session acknowledgement',
       'explicit sound and silent choices', 'master volume', 'native capture/menu audio handoff', 'hidden-page suspension',
-      'storage refusal', 'context disposal', 'pending resume reconciles newer capture/mute'], errors, failed }));
+      'storage refusal', 'context disposal', 'skip invalidates unpainted stage callbacks', 'pending resume reconciles newer capture/mute'], errors, failed }));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

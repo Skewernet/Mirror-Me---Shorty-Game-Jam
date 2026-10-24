@@ -1,6 +1,8 @@
 import { TARGETS, HALL_CLOCK, EXIT, FRONT_DOOR, MIRROR } from "./layout.mjs";
 import { VOICES } from "./story.mjs";
 import { TelephoneRinger, makeTelephoneRing } from "./telephone-ring.mjs";
+import { DreadScore } from "./dread-score.mjs";
+import { HORROR_TEXTURES, makeHorrorTexture } from "./horror-textures.mjs";
 
 // Original, nonverbal performances. The mouth resonances shape noise and an
 // irregular air stream; they never synthesize a word or reuse a story voice.
@@ -171,6 +173,9 @@ export class Sound {
     this.creatureBuffers = new Map();
     this.creatureNodes = new Set();
     this.creatureStep = 0;
+    this.attackBuffers = new Map();
+    this.funeralActive = false;
+    this.funeralTension = 0;
   }
   async prepare() {
     if (this.preparing) return this.preparing;
@@ -199,6 +204,10 @@ export class Sound {
       this.switchBankBuffer ||= makeHauntTexture(storage, "switches");
       await yieldTask();
       this.reflectionRattleBuffer ||= makeHauntTexture(storage, "reflection");
+      for (const kind of Object.keys(HORROR_TEXTURES)) {
+        if (!this.attackBuffers.has(kind)) this.attackBuffers.set(kind, makeHorrorTexture(storage, kind));
+        await yieldTask();
+      }
     })();
     return this.preparing;
   }
@@ -213,6 +222,8 @@ export class Sound {
           this.creatureBuffers.set(kind, makeDemonTexture(c, kind));
       this.switchBankBuffer ||= makeHauntTexture(c, "switches");
       this.reflectionRattleBuffer ||= makeHauntTexture(c, "reflection");
+      for (const kind of Object.keys(HORROR_TEXTURES))
+        if (!this.attackBuffers.has(kind)) this.attackBuffers.set(kind, makeHorrorTexture(c, kind));
       this.master = c.createGain();
       this.master.gain.value = this.volume * 0.55;
       const compressor = c.createDynamicsCompressor();
@@ -318,6 +329,7 @@ export class Sound {
         TARGETS.musicbox.z,
       );
       this.musicPanner.connect(this.master);
+      this.funeralScore = new DreadScore(c, this.master, { noiseBuffer: this.noise });
     }
     this.paused = false;
     await this.context.resume();
@@ -439,6 +451,9 @@ export class Sound {
     this.phoneRinger?.stop(true);
     this.stopCreatureCues();
     this.creatureStep = 0;
+    this.funeralActive = false;
+    this.funeralTension = 0;
+    this.funeralScore?.silence();
     this.resumeVoice = null;
     this.lastStep = 0;
     this.footfallIndex = undefined;
@@ -555,11 +570,15 @@ export class Sound {
       this.noiseBurst(0.19, carpet ? 0.012 : 0.016, carpet ? 760 : 620, pan);
     }
   }
-  // All new creature/transition sounds are authored synthesis, not downloaded
-  // recordings. Spatial sources remain quiet enough for a whispered line.
+  // Creature/transition sounds are authored synthesis. Ordinary spatial cues
+  // duck with dialogue; finite attack stings retain their measured headroom.
   horrorCue(id, position = null) {
     if (!this.context || this.paused) return;
-    const source =
+    const urgent = ["funeral-turn", "funeral-impact", "crawler-contact", "crawler-failure"].includes(id);
+    const bus = urgent ? this.master : this.effects || this.master;
+    // The forced-view sting belongs to the player's cinematic turn. A fixed
+    // room coordinate would attenuate it when walking across the large parlor.
+    const source = id === "funeral-turn" ? null :
       position ||
       (id === "backdoor-unlocked"
         ? { ...EXIT, y: 1.1 }
@@ -584,14 +603,15 @@ export class Sound {
           "joint-fold",
           "ceiling-breath",
           "witness-breath",
+          "crawler-click", "crawler-contact", "crawler-failure",
         ].includes(id)
       ) {
         p.refDistance = 1.8;
         p.rolloffFactor = 1.1;
       }
-      p.connect(this.effects || this.master);
+      p.connect(bus);
     }
-    const destination = p || this.effects || this.master,
+    const destination = p || bus,
       nodes = [],
       track = (node) => {
         if (node) nodes.push(node);
@@ -603,6 +623,10 @@ export class Sound {
       track(this.noiseBurst(duration, gain, frequency, 0, destination));
     const texture = (kind, gain) =>
       track(this.creatureTexture(kind, gain, destination));
+    const sting = (kind, gain) => {
+      if (!this.attackBuffers.has(kind)) this.attackBuffers.set(kind, makeHorrorTexture(this.context, kind));
+      return track(this.preparedTexture(this.attackBuffers.get(kind), gain, destination));
+    };
     if (id === "demon-inhale") {
       texture("inhale", 0.047);
     } else if (id === "demon-reveal") {
@@ -627,9 +651,14 @@ export class Sound {
       noise(0.31, 0.013, 1750);
       impulse(184, 0.008, 0.23);
     } else if (id === "light-relay" || id === "light-switch-bank") {
+      if (this.funeralActive) this.funeralTension = Math.max(.75, this.funeralTension);
       track(this.preparedTexture(this.switchBankBuffer, .105, destination));
     } else if (id === "reflection-twitch") {
       track(this.preparedTexture(this.reflectionRattleBuffer, .13, destination));
+    } else if (id === "crawler-click") {
+      sting("click", .16 + Math.max(0, Math.min(1, position?.intensity || 0)) * .07);
+    } else if (id === "crawler-contact" || id === "crawler-failure") {
+      sting("failure", .43);
     } else if (id === "mirror-crossed" || id === "mirror-enter") {
       for (const frequency of [417, 629, 947]) impulse(frequency, 0.025, 1.65);
       noise(1.15, 0.055, 1600);
@@ -661,14 +690,14 @@ export class Sound {
     } else if (id === "wake-turn") {
       noise(0.85, 0.045, 330);
       impulse(106, 0.025, 0.42);
+    } else if (id === "funeral-turn") {
+      this.funeralTension = 1;
+      this.funeralScore?.setTension(1);
+      sting("turn", .41);
     } else if (id === "funeral-lunge") {
-      // A finite inward breath and close cloth rush; keep dialogue/master
-      // headroom instead of making the final scare depend on excessive level.
-      noise(0.16, 0.075, 1800);
-      impulse(47, 0.09, 0.22);
+      sting("lunge", .23);
     } else if (id === "funeral-impact") {
-      noise(0.10, 0.085, 1100);
-      impulse(58, 0.11, 0.24);
+      sting("impact", .34);
     }
     if (p) {
       // Audio completion, rather than a wall-clock timer: pausing for several
@@ -699,6 +728,7 @@ export class Sound {
         "light-relay",
         "light-switch-bank",
         "reflection-twitch",
+        "crawler-click", "crawler-contact", "crawler-failure",
         "mirror-crossed",
         "mirror-enter",
         "backdoor-unlocked",
@@ -715,6 +745,7 @@ export class Sound {
         "wake-turn",
         "funeral-lunge",
         "funeral-impact",
+        "funeral-turn",
       ].includes(id)
     ) {
       this.horrorCue(id, position);
@@ -820,6 +851,15 @@ export class Sound {
     const c = this.context,
       t = c.currentTime,
       l = c.listener;
+    const inFuneral = Boolean(state.wakeEntered && !state.ended);
+    if (inFuneral && !this.funeralActive) {
+      this.funeralTension = .2;
+      this.funeralScore?.restart();
+    }
+    if (!inFuneral) this.funeralTension = 0;
+    this.funeralActive = inFuneral;
+    this.funeralScore?.setTension(this.funeralTension);
+    this.funeralScore?.setLevel(inFuneral ? this.busy ? .10 : .42 : 0, this.busy ? .12 : .75);
     if (l.positionX) {
       l.positionX.value = player.x;
       l.positionY.value = 1.64;
