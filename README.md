@@ -4,7 +4,7 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — horror presentation and stability:** distressed local typography, a redesigned menu/HUD, slow fading producer/jam splashes, readable electrical outages, persistent finger-written kitchen/hall evidence, indirect bath/clock mirror replies, deliberate crawler-contact failure and Shift running. Menu and funeral share an original slow dread score. Essential-first asynchronous render preparation reduces the controlled software-renderer cold start from 46.52 s to 20.42 s while retaining zero-program first flashlight/mirror/future-room draws. A full collision, dialogue and gameplay regression pass accompanies the changes. This build is local and has not been pushed or deployed.
+**Current local development — horror presentation and stability:** distressed local typography, a redesigned menu/HUD, slow fading producer/jam splashes, readable electrical outages, persistent overlapping kitchen/hall ramblings with rushed finger-written lettering, indirect bath/clock mirror replies, deliberate crawler-contact failure and Shift running. Menu and funeral share an original slow dread score. Essential-first asynchronous render preparation reduces the controlled software-renderer cold start from 46.52 s to 20.42 s while retaining zero-program first flashlight/mirror/future-room draws. A full collision, dialogue and gameplay regression pass accompanies the changes. This build is local and has not been pushed or deployed.
 
 **Published baseline:** `1fe6069f9933b4281e8fcede5f49ce1167e35fd3` contains the previously approved mirror/clue/blackout/intro pass. Its 153 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=1fe6069).
 
@@ -108,7 +108,7 @@ node tests/evelyn-wounds.cjs
 node tests/parlor.cjs
 ```
 
-Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
+CPU checks require Node 22.15+; browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
 
 Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 13 entries, 79 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 

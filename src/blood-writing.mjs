@@ -36,6 +36,61 @@ const glyphs = {
   "'": [[[.48,.04],[.35,.21]]],
 };
 
+// These are movements of a hand, including loops that never quite close,
+// oversized ascenders and tails pulled back through an earlier stroke. Most
+// phrases use this hurried lowercase; occasional capitals interrupt it.
+const hand = {
+  a: [[[.76,.18],[.44,.04],[.12,.28],[.09,.77],[.35,.98],[.72,.72],[.75,.19],[.71,.92],[1.04,.83]]],
+  b: [[[.08,.92],[.16,-.57],[.4,-.78],[.36,-.33],[.11,.38],[.29,.12],[.69,.13],[.87,.47],[.72,.86],[.36,1.02],[.12,.83],[.99,.78]]],
+  c: [[[.83,.18],[.53,.02],[.17,.2],[.07,.64],[.31,.98],[.66,.9],[.99,.68]]],
+  d: [[[.72,.21],[.37,.04],[.1,.37],[.16,.83],[.46,.96],[.71,.63],[.85,-.64],[1.02,-.82],[.91,-.22],[.74,.94],[1.05,.8]]],
+  e: [[[.08,.56],[.67,.45],[.79,.17],[.46,.02],[.12,.32],[.09,.76],[.44,.98],[.84,.78],[1.02,.63]]],
+  f: [[[.05,1.43],[.3,.7],[.55,-.33],[.48,-.74],[.23,-.55],[.14,.01],[.42,.79],[.55,1.28],[.3,1.48],[.13,1.22]],[[.02,.29],[.87,.15]]],
+  g: [[[.75,.18],[.43,.03],[.11,.25],[.09,.75],[.37,.98],[.74,.62],[.83,.13],[.69,1.34],[.4,1.72],[.07,1.53],[.44,1.22],[1.1,.85]]],
+  h: [[[.11,.96],[.17,-.65],[.37,-.81],[.31,-.26],[.09,.62],[.4,.12],[.66,.07],[.78,.32],[.72,.97],[1.06,.83]]],
+  i: [[[.19,.28],[.12,.92],[.42,1.02],[.79,.79]],[[.24,-.17],[.29,-.1]]],
+  j: [[[.63,.2],[.58,.91],[.39,1.59],[.1,1.66],[-.11,1.4],[.42,1.19],[.94,.8]],[[.7,-.21],[.76,-.14]]],
+  k: [[[.11,.98],[.16,-.65],[.36,-.79],[.32,-.19],[.11,.58]],[[.86,.03],[.31,.55],[.56,.59],[.81,.95],[1.03,.8]]],
+  l: [[[.08,.88],[.58,-.51],[.47,-.79],[.21,-.58],[.15,.01],[.12,.74],[.42,1.02],[.93,.76]]],
+  m: [[[.04,.94],[.13,.14],[.28,.06],[.32,.34],[.3,.89],[.59,.14],[.76,.08],[.85,.34],[.78,.94],[1.09,.12],[1.3,.11],[1.4,.43],[1.37,.98],[1.65,.82]]],
+  n: [[[.05,.96],[.15,.1],[.27,.08],[.25,.74],[.56,.11],[.76,.08],[.86,.37],[.79,.96],[1.08,.8]]],
+  o: [[[.73,.18],[.4,.02],[.11,.22],[.07,.68],[.36,.99],[.7,.84],[.83,.42],[.67,.13],[.45,.24],[1.03,.46]]],
+  p: [[[.16,1.54],[.24,.22],[.21,.04],[.1,.76],[.39,.12],[.7,.05],[.91,.3],[.84,.76],[.49,.99],[.27,.84],[1.05,.77]]],
+  q: [[[.72,.19],[.4,.02],[.11,.24],[.1,.78],[.4,.97],[.75,.62],[.83,.11],[.75,1.49],[1.12,1.25]]],
+  r: [[[.06,.96],[.15,.12],[.29,.07],[.26,.57],[.51,.03],[.76,.16],[.92,.07]]],
+  s: [[[.81,.12],[.53,-.03],[.19,.2],[.28,.5],[.7,.65],[.74,.89],[.36,1.02],[.07,.8],[1.02,.72]]],
+  t: [[[.46,-.49],[.3,.77],[.39,.99],[.7,.87],[.92,.62]],[[.01,.24],[.89,.08]]],
+  u: [[[.14,.09],[.06,.68],[.23,.99],[.53,.83],[.8,.12],[.71,.91],[1.05,.83]]],
+  v: [[[.06,.12],[.16,.77],[.34,1.01],[.81,.15],[.98,.28]]],
+  w: [[[.06,.1],[.13,.82],[.32,.98],[.65,.18],[.66,.78],[.84,1.02],[1.22,.15],[1.4,.28]]],
+  x: [[[.08,.14],[.85,.96],[1.06,.79]],[[.9,.05],[.04,1.04]]],
+  y: [[[.12,.12],[.06,.71],[.23,.99],[.58,.73],[.81,.1],[.66,1.37],[.36,1.69],[.04,1.46],[.47,1.2],[1.06,.83]]],
+  z: [[[.05,.19],[.72,.08],[.24,.62],[.73,.62],[.88,.9],[.56,1.39],[.22,1.42],[.55,1.09],[1.05,.83]]],
+  I: [[[.47,-.04],[.36,1.05]]],
+  T: [[[.01,.13],[.46,-.02],[1.04,.08]],[[.52,.03],[.4,1.07]]],
+};
+
+// Deliberately composed scraps, not evenly fitted lines. Words intrude into
+// each other, dwindle, restart lower down or lean against a larger thought.
+// The fourth coordinate is x-height; lowercase ascenders/descenders overshoot.
+const scraps = [
+  null, null,
+  [['the',53,112,70,-.2,205,'readable'],['radio',58,229,105,.1,410,'readable']],
+  [['she',49,119,64,.17,176],['loved',197,171,86,-.2,277,'rewrite'],['the',35,307,47,-.08,150],['radio',150,322,78,.08,315]],
+  [['rain',43,110,86,-.1,330,'readable'],['rain',194,187,66,.22,250,'cross'],['always',36,287,56,-.19,283],['rain',238,356,73,-.12,235,'rewrite']],
+  [['I',38,97,86,-.18,45],['just',91,114,68,.12,178],['wanted',130,201,72,-.14,340,'cross'],['the',42,272,48,.2,125],['radio',131,320,86,-.17,313,'rewrite'],['STOP',216,408,62,-.03,249]],
+  [['why',38,100,92,.15,232,'readable'],['wouldn\'t',95,200,53,-.1,365,'readable'],['she',49,282,45,-.25,148],['listen',180,320,68,.08,278,'readable'],['to me',94,413,51,-.18,327]],
+  [['STOP',37,113,139,-.08,408,'rewrite'],['the',76,277,49,.2,137],['noise',134,333,93,-.12,333,'cross']],
+  null,
+  [['she',37,121,72,-.22,175],['wanted',153,163,68,.16,319,'rewrite'],['her',48,307,80,.12,183],['bath',220,342,90,-.18,250]],
+  [['the',45,99,51,.16,133],['water',112,187,105,-.1,347,'rewrite'],['remembers',41,355,72,.07,421]],
+  [['hands',38,131,98,-.13,370],['keep',219,256,65,.16,238],['turning',48,361,86,-.15,413,'rewrite']],
+  [['I',39,91,93,.1,45],['still',107,133,85,-.16,269,'rewrite'],['hear',52,299,105,.15,303],['it',322,372,72,-.16,133]],
+  [['Mum',50,143,132,-.16,363,'rewrite'],['is',343,173,48,.16,100],['waiting',44,348,91,.08,424,'cross']],
+  [['rain',31,103,78,.13,308,'readable'],['RAIN',172,219,98,-.16,306,'rewrite'],['rain',54,356,113,-.1,403]],
+  [['the',41,99,51,-.18,145],['radio',150,165,92,.12,310,'rewrite'],['never',39,294,82,-.14,302,'cross'],['stops',197,373,78,.12,268]],
+];
+
 export const BLOOD_RECIPES = Object.freeze([
   { text: "93.7", lines: ["93.7"], seed: 101 },
   { text: "93.7", lines: ["93.7"], seed: 387, overwrite: true },
@@ -62,117 +117,257 @@ function randomSequence(seed) {
   };
 }
 
-function traceFinger(g, points, width, random) {
-  // Small overlapping pressure stamps keep a ragged physical finger margin
-  // instead of the perfectly round, even vector stroke of the old clue.
-  // A dragged finger rounds a change of direction; a little corner cutting
-  // avoids the hard straight-edged polygon joints of a digital letter.
-  if (points.length > 2) {
-    const rounded = [points[0]];
-    for (let i = 1; i < points.length - 1; i++) {
-      const previous = points[i - 1], corner = points[i], next = points[i + 1];
-      rounded.push([corner[0] * .82 + previous[0] * .18, corner[1] * .82 + previous[1] * .18],
-        [corner[0] * .82 + next[0] * .18, corner[1] * .82 + next[1] * .18]);
+function roundedStroke(points, width, random) {
+  const samples = [];
+  let travelled = 0;
+  const phase = random() * 9;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[Math.max(0, i - 1)], b = points[i];
+    const c = points[i + 1], d = points[Math.min(points.length - 1, i + 2)];
+    const steps = Math.max(2, Math.ceil(Math.hypot(c[0] - b[0], c[1] - b[1]) / 2.2));
+    for (let step = 0; step < steps; step++) {
+      const t = step / steps, t2 = t * t, t3 = t2 * t;
+      const point = [0, 1].map(axis => .5 * ((2 * b[axis]) + (-a[axis] + c[axis]) * t +
+        (2 * a[axis] - 5 * b[axis] + 4 * c[axis] - d[axis]) * t2 +
+        (-a[axis] + 3 * b[axis] - 3 * c[axis] + d[axis]) * t3));
+      const last = samples.at(-1);
+      if (last) travelled += Math.hypot(point[0] - last.x, point[1] - last.y);
+      const direction = Math.atan2(c[1] - b[1], c[0] - b[0]);
+      const shake = width * (.045 * Math.sin(travelled * .27 + phase) + .022 * Math.sin(travelled * 1.31));
+      samples.push({ x: point[0] - Math.sin(direction) * shake,
+        y: point[1] + Math.cos(direction) * shake, direction, travelled });
     }
-    rounded.push(points.at(-1)); points = rounded;
   }
-  const phase = random() * Math.PI * 2;
-  let distance = 0;
-  for (let segment = 1; segment < points.length; segment++) {
-    const a = points[segment - 1], b = points[segment];
-    const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    const steps = Math.max(1, Math.ceil(length / Math.max(1.1, width * .14)));
-    for (let step = 0; step <= steps; step++) {
-      const t = step / steps;
-      const pressure = .76 + .15 * Math.sin((distance + length * t) * .08 + phase) + (random() - .5) * .12;
-      const radius = width * pressure * .5;
-      const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
-      g.fillStyle = `rgba(${73 + Math.floor(random() * 16)},${4 + Math.floor(random() * 4)},3,.96)`;
-      g.beginPath();
-      g.ellipse(x + (random() - .5) * .8, y + (random() - .5) * .8, radius, radius * (.72 + random() * .22), random() * .8, 0, Math.PI * 2);
-      g.fill();
-    }
-    distance += length;
+  const end = points.at(-1);
+  samples.push({ x: end[0], y: end[1], direction: samples.at(-1)?.direction || 0, travelled: travelled + 2 });
+  return samples;
+}
+
+function traceFinger(g, points, width, random, { clean = false, opacity = 1, loaded = false } = {}) {
+  if (points.length < 2) return;
+  const samples = roundedStroke(points, width, random), length = samples.at(-1).travelled || 1;
+  const phase = random() * 8, breakAt = .32 + random() * .34;
+  const broken = !clean && !loaded && random() < .21;
+  // A loaded finger starts broad and wet, then leaves two ragged edges as it
+  // runs dry. Strokes are individual pressure deposits, never a font outline.
+  for (const sample of samples) {
+    const t = sample.travelled / length;
+    if (broken && t > breakAt && t < breakAt + .055) continue;
+    const load = Math.max(.08, 1 - .8 * Math.pow(t, 1.9));
+    const pressure = (.79 + .18 * Math.sin(sample.travelled * .105 + phase) + (random() - .5) * .13) *
+      (clean ? .86 + .14 * load : .34 + .66 * load);
+    const radius = width * pressure * .5;
+    const wet = loaded ? .85 : clean ? .92 : .34 + .6 * load;
+    g.fillStyle = `rgba(${113 + Math.floor(random() * 28)},${5 + Math.floor(random() * 5)},${6 + Math.floor(random() * 5)},${opacity * wet * .58})`;
+    g.beginPath(); g.ellipse(sample.x, sample.y, radius * 1.28, radius * .86, sample.direction + .25, 0, Math.PI * 2); g.fill();
+    g.fillStyle = `rgba(${65 + Math.floor(random() * 38)},3,5,${opacity * wet * .83})`;
+    g.beginPath(); g.ellipse(sample.x + .4, sample.y + .35, radius * .91, radius * .67,
+      sample.direction + .12, 0, Math.PI * 2); g.fill();
+  }
+  if (!clean && width > 5 && random() < .64) {
+    g.save(); g.globalCompositeOperation = 'destination-out';
+    g.strokeStyle = `rgba(0,0,0,${.22 + random() * .29})`; g.lineWidth = .55 + random() * 1.1; g.lineCap = 'round';
+    g.beginPath();
+    const side = (random() - .5) * width * .6;
+    samples.slice(Math.floor(samples.length * .24)).forEach((point, index) => {
+      const x = point.x - Math.sin(point.direction) * side, y = point.y + Math.cos(point.direction) * side;
+      if (!index) g.moveTo(x, y); else g.lineTo(x, y);
+    });
+    g.stroke(); g.restore();
   }
 }
 
-function drawRecipe(canvas, recipe, index) {
-  const g = canvas.getContext("2d", { willReadFrequently: true });
-  const random = randomSequence(recipe.seed);
-  const count = recipe.lines.length;
-  const numeric = recipe.lines.every(line => /^[937.]+$/.test(line));
-  const lineHeight = count === 1 ? (numeric ? 246 : 150) : count === 2 ? 131 : 97;
-  const top = count === 1 ? (numeric ? 52 : 113) : 47;
-  recipe.lines.forEach((line, lineIndex) => {
-    const units = [...line].reduce((sum, letter) => sum + (letter === " " ? .53 : letter === "." ? .30 : letter === "'" ? .32 : 1), 0);
-    const advance = Math.min(numeric ? 108 : 49, 434 / units);
-    const height = lineHeight * (.93 + random() * .08);
-    let x = 35 + random() * 10;
-    const baseline = top + lineIndex * lineHeight * 1.15 + (random() - .5) * 8;
-    for (const letter of line) {
-      if (letter === " ") { x += advance * .53; continue; }
-      const paths = glyphs[letter] || glyphs.I;
-      const letterHeight = height * (.86 + random() * .19);
-      const letterWidth = advance * (.69 + random() * .15);
-      const slant = (random() - .46) * .16;
-      const jitter = numeric ? .027 : .042;
-      for (const path of paths) {
-        const points = path.map(([u, v]) => [
-          x + (u + (random() - .5) * jitter + v * slant) * letterWidth,
-          baseline + (v + (random() - .5) * jitter) * letterHeight,
-        ]);
-        traceFinger(g, points, (numeric ? 18 : 7.6) * (.88 + random() * .3), random);
+function wordPlan(text, height, random, readable = false) {
+  let x = 0;
+  const plans = [], capitals = text === text.toUpperCase(), slope = (random() - .5) * (readable ? .16 : .52);
+  for (const [index, character] of [...text].entries()) {
+    if (character === ' ') { x += height * (.24 + random() * .28); continue; }
+    const lower = character.toLowerCase();
+    const uppercase = character === 'I' || (capitals ? random() < .7 : !readable && random() < .08);
+    const shape = uppercase ? hand[character.toUpperCase()] || glyphs[character.toUpperCase()] : hand[lower] || glyphs[character];
+    const narrow = 'ijl'.includes(lower) ? .29 : lower === 'm' ? .74 : lower === 'w' ? .7 : .57;
+    const width = height * narrow * (readable ? .86 + random() * .29 : .65 + random() * .74);
+    plans.push({ shape: shape || hand.i, x,
+      y: height * ((random() - .5) * (readable ? .12 : .28) + Math.sin(index * 1.71) * (readable ? .04 : .12) + index / Math.max(1, text.length - 1) * slope),
+      width, height: height * (readable ? .88 + random() * .24 : .67 + random() * .62), angle: (random() - .5) * (readable ? .16 : .47),
+      shear: (random() - .35) * .2, pressure: height * (.115 + random() * .055) });
+    x += width * (.78 + random() * .32) + height * (random() - .58) * .12;
+  }
+  return { plans, width: x + height * .5 };
+}
+
+function drawWord(g, scrap, random) {
+  const [text, x, y, height, angle, maxWidth, damage] = scrap;
+  const readable = damage === 'readable';
+  const paint = (content, offsetX, offsetY, scale, alpha) => {
+    const plan = wordPlan(content, height * scale, random, readable);
+    const stretch = Math.min(1.13, maxWidth / Math.max(1, plan.width));
+    g.save(); g.translate(x + offsetX, y + offsetY); g.rotate(angle); g.scale(stretch, 1);
+    for (const letter of plan.plans) {
+      g.save(); g.translate(letter.x, letter.y); g.rotate(letter.angle);
+      for (const path of letter.shape) {
+        const points = path.map(([u, v]) => [u * letter.width + (1 - v) * letter.shear * letter.height,
+          v * letter.height]);
+        traceFinger(g, points, letter.pressure, random, { opacity: alpha, clean: readable });
+        if (random() < (readable ? .06 : .24)) traceFinger(g, points.map(([px, py]) => [px + 2 + random() * 4, py - 1 + random() * 5]),
+          letter.pressure * .58, random, { opacity: alpha * .74 });
       }
-      x += advance * (letter === "." ? .30 : letter === "'" ? .32 : .87 + random() * .18);
+      g.restore();
     }
-  });
-  if (recipe.overwrite) {
-    g.strokeStyle = "rgba(47,2,2,.58)"; g.lineWidth = 3.5;
-    g.beginPath(); g.moveTo(35, 347); g.lineTo(460, 319); g.stroke();
-    g.beginPath(); g.moveTo(43, 337); g.lineTo(438, 361); g.stroke();
+    g.restore();
+    return Math.min(maxWidth, plan.width * stretch);
+  };
+  if (damage === 'rewrite') {
+    // The abandoned attempt uses different letter proportions and only gets
+    // partway through the word. It cannot read as a repeated typeset stamp.
+    paint(text.slice(0, Math.max(2, Math.ceil(text.length * .69))), 17, 22, 1.03, .65);
   }
-  // Dry pull-lines run within the paint. They take narrow, unequal pieces
-  // from the stroke, rather than lowering one entire digit to a pink opacity.
-  g.globalCompositeOperation = "destination-out";
-  for (let i = 0; i < 42; i++) {
-    g.fillStyle = `rgba(0,0,0,${.12 + random() * .2})`;
-    g.fillRect(35 + random() * 430, 40 + random() * 335, .4 + random() * 1.1, 8 + random() * 28);
+  const width = paint(text, 0, 0, 1, 1);
+  if (damage === 'cross') {
+    g.save(); g.translate(x, y); g.rotate(angle);
+    traceFinger(g, [[-8,height*.86],[width*.22,height*.45],[width*.61,height*.72],[width+12,height*.13]],
+      Math.max(8,height*.14), random, { loaded:true, opacity:.94 });
+    traceFinger(g, [[-2,height*.28],[width*.42,height*.59],[width+8,height*.9]],
+      Math.max(5,height*.085), random, { opacity:.79 });
+    g.restore();
   }
-  g.globalCompositeOperation = "source-over";
-  const data = g.getImageData(0, 0, 512, 512).data;
-  let drips = 0;
-  for (let attempt = 0; attempt < 80 && drips < (numeric ? 11 : 9); attempt++) {
-    const x = Math.floor(42 + random() * 420);
-    let bottom = 0;
-    for (let y = 42; y < 390; y++) if (data[(y * 512 + x) * 4 + 3] > 180) bottom = y;
-    if (!bottom || bottom > 399) continue;
-    const length = Math.min(490 - bottom, 28 + random() * 125);
-    const drift = (random() - .5) * 5;
-    g.strokeStyle = `rgba(58,3,2,${.55 + random() * .25})`;
-    g.lineWidth = 1.0 + random() * 2.8; g.lineCap = "round";
-    g.beginPath(); g.moveTo(x, bottom - 3);
-    g.bezierCurveTo(x + drift, bottom + length * .36, x + drift * .2, bottom + length * .74, x + drift * .5, bottom + length);
-    g.stroke();
-    g.fillStyle = "rgba(68,3,2,.88)";
-    g.beginPath(); g.ellipse(x + drift * .5, bottom + length, 1.4 + random(), 2.7 + random() * 1.4, 0, 0, Math.PI * 2); g.fill();
-    drips++;
+}
+
+function wetDab(g, x, y, radius, random) {
+  for (let i = 0; i < 6; i++) {
+    g.fillStyle = i < 3 ? 'rgba(119,5,8,.89)' : 'rgba(55,2,4,.94)';
+    g.beginPath();g.ellipse(x + (random()-.5)*radius*.7, y + (random()-.5)*radius*.45,
+      radius*(i<3?1:.67),radius*(i<3?.72:.48),random()*.8,0,Math.PI*2);g.fill();
   }
-  // A few actual finger pull-offs and small palm smears disrupt the spacing.
-  if (index % 3 !== 0) {
-    for (let finger = 0; finger < 4; finger++) {
-      g.strokeStyle = `rgba(64,3,2,${.09 + finger * .025})`; g.lineWidth = 6 + finger;
-      g.beginPath();g.moveTo(388 + finger * 15, 353);g.quadraticCurveTo(400 + finger * 15, 383, 377 + finger * 15, 406 + finger * 3);g.stroke();
-    }
-  }
-  if (index % 4 === 2) {
-    g.save();g.translate(427,435);g.rotate(-.28);
-    g.strokeStyle = "rgba(64,3,2,.23)";g.lineWidth = .7;
-    for (let ridge = 0; ridge < 8; ridge++) {
-      g.beginPath();g.ellipse(0,0,2.7+ridge*1.4,4+ridge*1.8,0,.2,Math.PI*1.86);g.stroke();
+}
+
+function drawNumbers(g, random, { x = 34, y = 55, scale = 1, angle = 0, damaged = false } = {}) {
+  g.save();g.translate(x,y);g.rotate(angle);g.scale(scale,scale);
+  const numbers = [
+    ['9',8,10,112,257,-.09],['3',145,34,105,231,.075],['7',326,-1,124,270,-.075],
+  ];
+  for (const [digit,px,py,width,height,rotation] of numbers) {
+    g.save();g.translate(px,py);g.rotate(rotation);
+    for (const path of glyphs[digit]) {
+      const points = path.map(([u,v])=>[u*width+(random()-.5)*4,v*height+(random()-.5)*8]);
+      traceFinger(g,points,damaged?20:24,random,{clean:!damaged});
+      if(damaged)traceFinger(g,points.map(([u,v])=>[u+7,v+12]),11,random,{opacity:.55});
     }
     g.restore();
   }
-  return { drips, text: recipe.text };
+  // A distinct pooled decimal is essential to the actual radio puzzle. It
+  // stays isolated from the 3 and 7, rather than becoming a thin fourth stroke.
+  wetDab(g,285,267,13,random);
+  traceFinger(g,[[284,268],[288,277],[287,287]],6,random,{loaded:true});
+  g.restore();
+}
+
+function smear(g, random, index) {
+  // A wipe is a particular accident, not an underline beneath every phrase.
+  // Most scraps have none. The few surviving pulls differ in reach and angle.
+  const pulls = {
+    1: [78,352,399,399,2,22],
+    5: [49,267,424,320,3,24],
+    7: [55,341,408,260,2,27],
+    8: [190,203,449,218,1,30],
+    13: [267,177,418,352,4,18],
+    15: [128,379,423,414,1,34],
+  };
+  const pull = pulls[index];
+  if(!pull)return;
+  const [x0,y0,x1,y1,count,width]=pull;
+  for(let finger=0;finger<count;finger++){
+    const spread=finger*(9+random()*6),bow=(random()-.5)*46;
+    traceFinger(g,[[x0+spread*.35,y0+spread],[x0+(x1-x0)*.29+spread,y0+(y1-y0)*.29+bow+spread],
+      [x0+(x1-x0)*.72+spread,y0+(y1-y0)*.72+bow*.4+spread],[x1+spread*.2,y1+spread]],
+      width-finger*2,random,{loaded:true,opacity:.3+random()*.26});
+  }
+}
+
+function gravityRuns(g, random, numeric) {
+  const data=g.getImageData(0,0,512,512).data,candidates=[];
+  const alpha=(x,y)=>data[(y*512+x)*4+3];
+  // Take the lower edge of actual deposits throughout the tile, not one
+  // shared baseline. Pooled starts remain visibly attached to existing blood.
+  for(let y=31;y<427;y+=3)for(let x=27;x<486;x+=3)
+    if(alpha(x,y)>195&&alpha(x,Math.min(499,y+6))<100)candidates.push([x,y]);
+  const used=[],target=numeric?12:14;
+  let drips=0;
+  for(let attempt=0;attempt<400&&drips<target&&candidates.length;attempt++){
+    const [x,y]=candidates[Math.floor(random()*candidates.length)];
+    if(used.some(([px,py])=>Math.abs(px-x)<11&&Math.abs(py-y)<35))continue;
+    const heavy=drips%4===0;
+    const length=Math.min(492-y,(heavy?102:19)+random()*(heavy?112:99));
+    if(length<20)continue;
+    used.push([x,y]);
+    const drift=(random()-.5)*5.5, width=(heavy?4.4:1.6)+random()*(heavy?3.1:2.8);
+    const endX=x+drift,endY=y+length;
+    const phase=random()*7, dryAt=.28+random()*.4, interrupted=drips%3===1;
+    const flow=[];
+    const steps=Math.ceil(length/1.7);
+    for(let step=0;step<=steps;step++){
+      const t=step/steps;
+      const dry = interrupted && t > dryAt && t < dryAt + .05 ? .18 : 1;
+      const radius=Math.max(.42,width*(.53-.41*t)*(.84+.16*Math.sin(t*23+phase)))*dry;
+      flow.push({x:x+drift*t+Math.sin(t*13+phase)*Math.sin(t*Math.PI)*.65,
+        y:y-2+length*t,radius,ink:(numeric ? .98-t*.23 : .94-t*.52)*dry});
+    }
+    if(heavy){
+      // Blood diluted into the wallpaper's grain leaves a broad faint skirt
+      // around a few runs; it is separate from the narrow retained deposit.
+      const wash=g.createLinearGradient(x,y,x,endY);
+      wash.addColorStop(0,'rgba(115,5,8,.23)');wash.addColorStop(1,'rgba(97,3,6,0)');
+      g.strokeStyle=wash;g.lineWidth=width*2.3;g.lineCap='round';g.beginPath();
+      flow.forEach((point,index)=>{if(!index)g.moveTo(point.x,point.y);else g.lineTo(point.x,point.y);});g.stroke();
+    }
+    for(const point of flow){
+      g.fillStyle=`rgba(119,5,8,${point.ink*.73})`;g.beginPath();
+      g.ellipse(point.x,point.y,point.radius*1.3,1.7,0,0,Math.PI*2);g.fill();
+    }
+    for(const point of flow){
+      g.fillStyle=`rgba(57,2,4,${point.ink*.86})`;g.beginPath();
+      g.ellipse(point.x+.2,point.y,point.radius*.68,1.3,0,0,Math.PI*2);g.fill();
+    }
+    wetDab(g,x,y,heavy?6+random()*4:3+random()*3,random);
+    if(drips%3===0)wetDab(g,endX,endY,2.1+random()*2.6,random);
+    else if(drips%3===2){
+      g.fillStyle='rgba(89,3,5,.72)';g.beginPath();g.ellipse(endX,endY-4,1.1+random(),3+random()*4,.1,0,Math.PI*2);g.fill();
+    }
+    if(heavy&&drips%8===0){
+      const point=flow[Math.floor(flow.length*.57)];
+      wetDab(g,point.x,point.y,2+random()*2,random);
+    }
+    drips++;
+  }
+  return drips;
+}
+
+function drawRecipe(canvas, recipe, index) {
+  const g=canvas.getContext('2d',{willReadFrequently:true}),random=randomSequence(recipe.seed);
+  g.save();g.beginPath();g.rect(13,13,486,486);g.clip();
+  const numeric=index===0||index===1||index===8;
+  if(index===0)drawNumbers(g,random);
+  else if(index===1){
+    smear(g,random,index);drawNumbers(g,random,{x:46,y:43,scale:.92,angle:.04,damaged:true});
+    traceFinger(g,[[42,345],[201,302],[344,330],[467,286]],14,random,{loaded:true,opacity:.9});
+  }else if(index===8){
+    smear(g,random,index);drawNumbers(g,random,{x:28,y:43,scale:.8,angle:.07,damaged:true});
+    drawNumbers(g,random,{x:85,y:229,scale:.79,angle:-.08,damaged:true});
+  }else{
+    smear(g,random,index);
+    for(const scrap of scraps[index])drawWord(g,scrap,random);
+  }
+  const drips=gravityRuns(g,random,numeric);
+  // Tiny local spatters belong to the writing, not a uniform noise field.
+  for(let i=0;i<15;i++){
+    const x=38+random()*427,y=75+random()*360;
+    if(g.getImageData(Math.floor(x),Math.floor(y),1,1).data[3]){
+      g.fillStyle='rgba(99,3,6,.76)';g.beginPath();g.ellipse(x+(random()-.5)*17,y+(random()-.5)*13,
+        .6+random()*1.8,.8+random()*2.2,random()*3,0,Math.PI*2);g.fill();
+    }
+  }
+  g.restore();
+  return {drips,text:recipe.text};
 }
 
 let sharedAtlas;

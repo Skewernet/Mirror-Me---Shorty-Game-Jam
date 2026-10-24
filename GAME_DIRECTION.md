@@ -152,7 +152,7 @@ I have written that last line twice.
 
 ### Kitchen station and diary last page
 
-After the chapter-2 clock is solved, 32 original finger-traced blood patches cover kitchen walls, cabinets, worktops and the refrigerator. **93.7** recurs amid rain, radio and Mum ramblings, with connected drips and smears. These persist through the ending and remain inspectable. Five earlier hallway patches and three clock-loop glass replies connect the hands, cold bath and face without stating 03:17 or telling the player the next action. No numeric clock/radio answer appears in the early diary or its bedside card. The optional third phone call points back to the diary; rereading it during the later puzzles opens this focused entry:
+After the chapter-2 clock is solved, 92 overlapping finger-traced attempts crowd kitchen walls, cabinets, worktops and the refrigerator at different heights and scales. Whole phrases run across adjacent cabinet faces, collide with earlier attempts and get crossed out. **93.7** recurs amid rain, radio and Mum ramblings, with connected drips and smears. These persist through the ending and remain inspectable. Twenty-one earlier hallway attempts and three clock-loop glass replies connect the hands, cold bath and face without stating 03:17 or telling the player the next action. No numeric clock/radio answer appears in the early diary or its bedside card. The optional third phone call points back to the diary; rereading it during the later puzzles opens this focused entry:
 
 ```text
 THE LAST PAGE — END HER EVENING
