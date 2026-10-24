@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { Story } from "../src/story.mjs";
+import { Story, WRITINGS, VOICES } from "../src/story.mjs";
 import { KEEPSAKE_ORDER, RADIO_SOLUTION } from "../src/chapters.mjs";
 import { RADIUS } from "../src/physics.mjs";
 import {
@@ -45,6 +45,7 @@ function secondPass(s) {
 function thirdPass(s) {
   s.interact("bath-clue");
   s.setClock(3, 17);
+  s.interact("station-clue");
   s.tuneRadio(RADIO_SOLUTION);
   s.interact("telephone");
   leave(s, 3);
@@ -222,6 +223,107 @@ test("the reflected clock, tuned radio and second telephone call are ordered gat
   assert.deepEqual(s.drainEvents(), ["backdoor-unlocked"]);
   assert.equal(s.ready(), true);
 });
+test("the kitchen station clue appears only after the clock and is absent from the diary", () => {
+  const s = new Story();
+  assert.equal(s.hasStationClue, false);
+  assert.notEqual(s.interact("station-clue"), "station-clue");
+  assert.equal(s.hasStationClue, false);
+  firstPass(s);
+  secondPass(s);
+  assert.notEqual(s.interact("station-clue"), "station-clue");
+  assert.equal(s.hasStationClue, false);
+  s.interact("bath-clue");
+  s.setClock(3, 17);
+  assert.match(s.hint(), /kitchen/i);
+  assert.doesNotMatch(s.hint(), /93\.7/, "The unread clue must direct the player to the kitchen");
+  assert.equal(s.interact("station-clue"), "station-clue");
+  assert.equal(s.hasStationClue, true);
+  assert.equal(s.clockSolved, true);
+  assert.equal(s.radioTuned, false, "Reading blood cannot tune the radio for the player");
+  assert.equal(s.tuneRadio(93.7), "radio-tuned");
+  s.interact("telephone");
+  leave(s, 3);
+  s.hasStationClue = false;
+  assert.notEqual(s.interact("station-clue"), "station-clue");
+  assert.equal(s.hasStationClue, false, "An inactive kitchen mark cannot be read in later chapters");
+  assert.doesNotMatch(WRITINGS.diary, /93[.,]7/);
+  assert.doesNotMatch(VOICES.diary.text, /93[.,]7|ninety[- ]three/i);
+  assert.match(WRITINGS.diary, /close the (?:bedroom )?music box[\s\S]*stop the (?:bathroom )?tap[\s\S]*switch off the (?:kitchen )?radio/i);
+  s.reset();
+  assert.equal(s.hasStationClue, false);
+});
+test("post-key mirror interactions cycle through eight reminders instead of repeating the drawer clue", () => {
+  const s = new Story();
+  assert.equal(s.interact("mirror"), "mirror-first");
+  firstPass(s);
+  encounter(s);
+  assert.equal(s.interact("mirror"), "mirror-held", "The original drawer clue remains until its key is taken");
+  s.interact("drawer");
+  assert.equal(s.interact("drawer"), "key");
+  const events = Array.from({ length: 10 }, () => s.interact("mirror"));
+  assert.deepEqual(events, [...Array.from({ length: 8 }, (_, i) => "mirror" + i), "mirror0", "mirror1"]);
+  assert.equal(new Set(events.slice(0, 8).map(id => VOICES[id].text)).size, 8);
+  assert.ok(events.every(id => VOICES[id].speaker === "THE GLASS"));
+  assert.equal(s.frozen, true, "A taunt must not unfreeze the reflection");
+  assert.equal(s.encounter, true);
+  assert.equal(s.hasKey, true);
+  assert.equal(s.truthFound, false, "A mirror reminder cannot acknowledge the final bedside truth");
+  s.stage = 5;
+  assert.equal(s.interact("mirror"), "mirror-enter");
+  s.stage = 6;
+  assert.equal(s.interact("mirror"), "mirror-inverted");
+  s.reset();
+  assert.equal(s.mirrorTauntCursor, 0);
+  assert.equal(s.interact("mirror"), "mirror-first");
+});
+test("Mum's final routine call is available after the last offering and only once across the return", () => {
+  const s = new Story();
+  toKeepsakes(s);
+  assert.equal(s.heardRoutineCall, false);
+  assert.equal(s.interact("telephone"), "telephone-dead");
+  for (const { item, target } of KEEPSAKE_ORDER) {
+    s.interact("keepsake-" + item);
+    s.placeKeepsake(target, item);
+  }
+  assert.equal(s.interact("telephone"), "routine-call");
+  assert.equal(s.heardRoutineCall, true);
+  assert.equal(s.ritualIndex, 3);
+  assert.equal(s.echoIndex, 0);
+  assert.equal(s.interact("telephone"), "telephone-dead");
+  leave(s, 4);
+  assert.equal(s.interact("telephone"), "telephone-dead");
+  assert.match(VOICES.routineCall.text, /diary[\s\S]*bed/i);
+  assert.match(VOICES.routineCall.text, /music box[\s\S]*bathroom tap[\s\S]*kitchen radio/i);
+  s.reset();
+  assert.equal(s.heardRoutineCall, false);
+});
+test("the routine call remains available in the reverse chapter without becoming a new gate", () => {
+  const s = new Story();
+  toKeepsakes(s);
+  fourthPass(s);
+  assert.equal(s.heardRoutineCall, false);
+  assert.equal(s.interact("telephone"), "routine-call");
+  assert.equal(s.echoIndex, 0);
+  assert.equal(s.interact("diary"), "diary-routine");
+  assert.match(WRITINGS.routine, /music box[\s\S]*tap[\s\S]*kitchen radio/i);
+  fifthPass(s);
+  assert.equal(s.stage, 5);
+  const skipped = new Story();
+  toKeepsakes(skipped);
+  fourthPass(skipped);
+  fifthPass(skipped);
+  assert.equal(skipped.heardRoutineCall, false);
+  assert.equal(skipped.stage, 5, "A player who already knows the routine can finish without answering");
+  assert.equal(skipped.interact("telephone"), "telephone-dead");
+  const quiet = new Story();
+  toKeepsakes(quiet);
+  fourthPass(quiet);
+  for (const id of ["musicbox", "tap", "radio"]) quiet.interact(id);
+  assert.equal(quiet.stage, 4);
+  assert.equal(quiet.silenceComplete, true);
+  assert.equal(quiet.interact("telephone"), "telephone-dead",
+    "An unanswered hint must not replay completed instructions after the house becomes quiet");
+});
 test("invalid clock and radio inputs preserve valid puzzle state", () => {
   const s = new Story();
   firstPass(s);
@@ -335,6 +437,8 @@ test("wrong silence order recovers without undoing keepsakes and checking the ph
   assert.equal(s.interact("musicbox"), "echo-silenced");
   assert.equal(s.interact("musicbox"), "already-quiet");
   assert.equal(s.interact("tap"), "echo-silenced");
+  assert.equal(s.interact("telephone"), "routine-call");
+  assert.equal(s.heardRoutineCall, true);
   assert.equal(s.interact("telephone"), "telephone-dead");
   assert.equal(s.echoIndex, 2);
   assert.equal(s.doorOpen, false);

@@ -15,6 +15,7 @@ const base = process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000';
     await page.addInitScript(() => localStorage.setItem('mirror-me.settings.v1', JSON.stringify({
       version: 1, values: { quality: '720', 'auto-quality': false },
     })));
+    await page.addInitScript(() => sessionStorage.setItem('mirror-me.intro.v1', 'acknowledged'));
     console.log('Polish: loading prepared game');
     await page.goto(base + '/?test=1');
     await page.waitForFunction(() => !!window.__mirror);

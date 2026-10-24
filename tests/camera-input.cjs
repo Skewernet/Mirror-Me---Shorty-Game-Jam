@@ -20,6 +20,7 @@ const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-8, `${a} ≈ ${b}`);
     page.on("pageerror", error => errors.push(error.message));
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("requestfailed", request => failed.push(request.url()));
+    await page.addInitScript(() => sessionStorage.setItem('mirror-me.intro.v1', 'acknowledged'));
     await page.goto(url + "/?test=1");
     await page.waitForFunction(() => !!window.__mirror);
     const playing = async () => {

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CRAWLER_FLICKER, crawlerFlickerAt } from "../src/crawler-flicker.mjs";
+import { BLACKOUT_ENVIRONMENT, CRAWLER_FLICKER, FUNERAL_BLACKOUT, crawlerFlickerAt, funeralBlackoutAt } from "../src/crawler-flicker.mjs";
 
 const durations = {
   "bathroom-ceiling": 4.4,
@@ -20,11 +20,30 @@ test("every authored floor and ceiling crawler has a distinct irregular electric
     const gaps = windows.slice(1).map((window, index) => window.from - windows[index].to);
     assert.ok(Math.max(...lengths) - Math.min(...lengths) > .1, "Outages must have unequal lengths");
     assert.ok(Math.max(...gaps) - Math.min(...gaps) > .1, "Returns must have unequal gaps");
-    assert.ok(Math.min(...lengths) >= .17 && Math.min(...gaps) >= .45);
-    assert.ok(lengths.reduce((sum, value) => sum + value, 0) / durations[id] < .4);
+    assert.ok(Math.min(...lengths) >= .3 && Math.min(...gaps) >= .25);
+    const darkFraction = lengths.reduce((sum, value) => sum + value, 0) / durations[id];
+    assert.ok(darkFraction > .4 && darkFraction < .55, "Mains failures need substantial darkness without a sustained strobe");
     patterns.add(JSON.stringify(windows.map(({ from, to }) => [from, to])));
   }
   assert.equal(patterns.size, Object.keys(durations).length);
+});
+
+test("whole-house blackouts suppress all indirect fills without changing program light counts", () => {
+  for (const value of Object.values(BLACKOUT_ENVIRONMENT)) assert.ok(value > 0 && value < .05);
+});
+
+test("the finite funeral outage sequence carries through the final accusation then restores", () => {
+  assert.equal(FUNERAL_BLACKOUT.windows.length, 5);
+  assert.ok(FUNERAL_BLACKOUT.duration < 5.5);
+  assert.equal(funeralBlackoutAt(3.1).lightMultiplier, 0);
+  assert.equal(funeralBlackoutAt(4.1).lightMultiplier, 0);
+  assert.equal(funeralBlackoutAt(0).lightMultiplier, 1);
+  for (const window of FUNERAL_BLACKOUT.windows) {
+    assert.equal(funeralBlackoutAt(window.from).lightMultiplier, 0);
+    assert.equal(funeralBlackoutAt(window.to).lightMultiplier, 1);
+  }
+  for (const time of [-1, NaN, Infinity, FUNERAL_BLACKOUT.duration, 90])
+    assert.equal(funeralBlackoutAt(time).lightMultiplier, 1);
 });
 
 test("crawler lights really turn off, return fully on, and stop with their finite schedule", () => {

@@ -21,7 +21,7 @@ test("shipped speech matches subtitles, synthesis records, hashes and decoded he
 });
 
 test("Mum's call, accusation and attack Goodnight retain the same supplied voice", () => {
-  for (const id of ["recording", "call", "ending", "goodnight"]) {
+  for (const id of ["recording", "call", "routineCall", "ending", "goodnight"]) {
     assert.equal(lines[id].voice, "bf_isabella", id);
     assert.equal(lines[id].speaker_id, 22, id);
     assert.equal(clips[id].speaker_id, 22, `${id} actual render`);
@@ -30,6 +30,34 @@ test("Mum's call, accusation and attack Goodnight retain the same supplied voice
   assert.equal(VOICES.goodnight.text, "Goodnight.");
   assert.match(VOICES.recording.text, /fuse went out again/);
   assert.match(VOICES.recording.text, /Please don't leave before saying goodnight/);
+});
+
+test("post-key mirror takes have eight indirect lines and original layered glass processing", () => {
+  const voices = Array.from({ length: 8 }, (_, index) => VOICES[`mirror${index}`]);
+  assert.equal(new Set(voices.map(voice => voice.text)).size, 8);
+  for (let index = 0; index < voices.length; index++) {
+    const id = `mirror${index}`;
+    assert.equal(voices[index].speaker, "THE GLASS");
+    assert.doesNotMatch(voices[index].text, /killed|murdered|stabbed|console|key/i);
+    assert.equal(lines[id].voice, "bf_emma");
+    assert.equal(lines[id].role, "glass");
+  }
+  for (const [id, line] of Object.entries(lines).filter(([, line]) => line.role === "glass")) {
+    assert.match(clips[id].effects, /asplit=3/);
+    assert.match(clips[id].effects, /tremolo=f=31/);
+    assert.match(clips[id].original_rattle, /no external recording/);
+  }
+});
+
+test("Mum's routine call directs the diary and states the reverse-sound sequence", () => {
+  const voice = VOICES.routineCall, line = lines.routineCall, clip = clips.routineCall;
+  assert.match(voice.text, /diary.*beside the bed/i);
+  assert.match(voice.text, /music box.*bathroom tap.*kitchen radio/i);
+  assert.equal(voice.duration, clip.file_seconds);
+  assert.equal(voice.captionCues.length, line.segments.length);
+  assert.deepEqual(voice.captionCues.map(cue => cue.at), clip.phrase_starts_seconds);
+  assert.ok(voice.duration > 15 && voice.duration < 30);
+  assert.ok(voice.captionCues.at(-1).at < voice.duration);
 });
 
 test("Mum's second call has measured phrase captions and uneven pleading pauses", () => {

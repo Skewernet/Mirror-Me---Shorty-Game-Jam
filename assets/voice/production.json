@@ -76,11 +76,12 @@
       "role": "glass",
       "speed": 0.96,
       "text": "You always look away before the difficult part.",
-      "speech_seconds": 2.464,
-      "file_seconds": 2.496,
-      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "84d337a5cdd6b543845cc2379982810e6e14ca95b8151b2ce4805e0d11212a81",
-      "decoded_true_peak_dbfs": -6.6
+      "speech_seconds": 2.826,
+      "file_seconds": 2.869,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "4cece7b36a3dfc4049616b793a4f39a7a980d1c4669714d8c571d35c8d25be7d",
+      "decoded_true_peak_dbfs": -5.5,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
     },
     "key": {
       "voice": "bf_emma",
@@ -174,11 +175,12 @@
       "role": "glass",
       "speed": 0.96,
       "text": "You keep putting yourself on the wrong side.",
-      "speech_seconds": 2.287,
-      "file_seconds": 2.319,
-      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "bda4abe89661323550aa93b46de6d5ed21364333d9de68df57695b06e2a764dd",
-      "decoded_true_peak_dbfs": -5.4
+      "speech_seconds": 2.646,
+      "file_seconds": 2.689,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "83236d7dadafb22c6c43e0831667b36364735c97f1f31448aae0fb30ca092d45",
+      "decoded_true_peak_dbfs": -4.8,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
     },
     "released": {
       "voice": "bf_emma",
@@ -198,11 +200,12 @@
       "role": "glass",
       "speed": 0.96,
       "text": "Now tell it the right way round.",
-      "speech_seconds": 1.877,
-      "file_seconds": 1.909,
-      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "61a7c86b9453abd3c40469ddfc130d8482abaf0336cf4e939c2a4e75d818ac43",
-      "decoded_true_peak_dbfs": -6.4
+      "speech_seconds": 2.231,
+      "file_seconds": 2.274,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "b6b87254a13d3255f335140b55bb842499cb1901e67caa7396342fa6161aa06e",
+      "decoded_true_peak_dbfs": -5.1,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
     },
     "ending": {
       "voice": "bf_isabella",
@@ -282,11 +285,12 @@
       "role": "glass",
       "speed": 0.96,
       "text": "There. Every little thing put back. That's how you told it.",
-      "speech_seconds": 3.905,
-      "file_seconds": 4.0,
-      "effects": "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8",
-      "sha256": "79a3ced0ae2a2d2f8fe76b3d55275d3379f92065377320cd5075ea9d639ef561",
-      "decoded_true_peak_dbfs": -5.0
+      "speech_seconds": 4.261,
+      "file_seconds": 4.4,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "9ac5f9d0606f2f9c0445c18e2e726fda9b50e15ba3862d9a1d49cd56ec997c4b",
+      "decoded_true_peak_dbfs": -3.8,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
     },
     "empty": {
       "voice": "bf_emma",
@@ -406,6 +410,151 @@
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
       "sha256": "0964ef2015413cf4f521287baee79e004b88758d09f78529274048e3b362e2ab",
       "decoded_true_peak_dbfs": -6.1
+    },
+    "mirror0": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "Those hands remember what you won't.",
+      "speech_seconds": 2.563,
+      "file_seconds": 2.606,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "c47db3931bbc66ca1e384aeabf1abd8cbda844d3431c4f429b71634e7e51f87b",
+      "decoded_true_peak_dbfs": -5.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror1": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "She heard you coming down the hall.",
+      "speech_seconds": 2.322,
+      "file_seconds": 2.365,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "1e60d1262a365ec65c9681ce13d154cae85295fef31ac95b3774f3b42e22cc16",
+      "decoded_true_peak_dbfs": -5.1,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror2": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "You made everything quiet. Almost everything.",
+      "speech_seconds": 3.707,
+      "file_seconds": 3.761,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "62929c9e6cdbbd45d3ca83595aaa6ca328d94021489df826d2639d72b9013b49",
+      "decoded_true_peak_dbfs": -3.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror3": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "You keep remembering the door. Never what was behind you.",
+      "speech_seconds": 4.011,
+      "file_seconds": 4.1,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "0b8eeb23d01ed1292a60d8a3df29a0c47edfdafc296a6d2411f40a5d0061a3ac",
+      "decoded_true_peak_dbfs": -5.0,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror4": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "The water stopped. She was still listening.",
+      "speech_seconds": 3.182,
+      "file_seconds": 3.236,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "dccf48bfb4839c44ccfc5cd48ec38495faac4a3bb93baeabbe4243df9d1e34a9",
+      "decoded_true_peak_dbfs": -3.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror5": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "You washed your hands before you answered.",
+      "speech_seconds": 2.621,
+      "file_seconds": 2.664,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "0ca5d5087bc2e104c1928b61a27ae82db42a218ecbd0108075afc919ac879957",
+      "decoded_true_peak_dbfs": -4.1,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror6": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "Look at me. You knew how to look at her.",
+      "speech_seconds": 3.06,
+      "file_seconds": 3.114,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "02ee00690d508d2ca501cf729d8dbbd998f39221154caafe1e3ab61816c24de4",
+      "decoded_true_peak_dbfs": -3.9,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "mirror7": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "glass",
+      "speed": 0.87,
+      "text": "Tell it again. Leave yourself in this time.",
+      "speech_seconds": 3.398,
+      "file_seconds": 3.451,
+      "effects": "asplit=3[clear][low][rough];[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];[low]asetrate=19680,aresample=24000,atempo=1.219512,highpass=f=75,lowpass=f=1900,volume=0.27[l];[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];[c][l][r]amix=inputs=3:duration=longest:normalize=0,aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]",
+      "sha256": "87d1a07bf3d526bf0a57f0edbe783c33ee13ab93668b28ee7b51f73e269d29e4",
+      "decoded_true_peak_dbfs": -4.7,
+      "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "routineCall": {
+      "voice": "bf_isabella",
+      "speaker_id": 22,
+      "role": "phone",
+      "speed": 0.86,
+      "text": "Mara... my diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
+      "speech_seconds": 20.639,
+      "file_seconds": 20.7,
+      "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
+      "sha256": "d1a72ff20b6060aaa4bd7c4e1c033c34e2c457ae7ae2ac60d7a0aad8e16873c8",
+      "decoded_true_peak_dbfs": -3.7,
+      "segments": [
+        "Mara.",
+        "My diary. Beside the bed.",
+        "Read the last page.",
+        "End the evening backwards.",
+        "The music box.",
+        "Then the bathroom tap.",
+        "Then the kitchen radio.",
+        "Please. Don't get it wrong again."
+      ],
+      "pauses_after_seconds": [
+        0.8,
+        0.67,
+        0.84,
+        1.04,
+        0.72,
+        0.88,
+        0.95
+      ],
+      "phrase_starts_seconds": [
+        0.0,
+        1.81,
+        5.192,
+        7.696,
+        10.524,
+        12.599,
+        15.161,
+        17.919
+      ]
     }
   }
 }

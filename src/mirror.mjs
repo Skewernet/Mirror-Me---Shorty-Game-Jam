@@ -3,6 +3,46 @@ import { Reflector } from "../vendor/Reflector.js";
 import { MIRROR, SPAWN, CEILING_HEIGHT } from "./layout.mjs";
 import { createFigure } from "./figure.mjs";
 import { singleBounce } from "./reflection.mjs";
+import { attachFlashlight } from "./first-person.mjs";
+import { applyReflectionPose, interpolateReflectionPose } from "./reflection-pose.mjs";
+
+function ownEyeBleeding(figure, uniform) {
+  const skin = figure.body.getObjectByName("Mara_Skin");
+  const material = skin.material;
+  const original = material.onBeforeCompile, key = material.customProgramCacheKey();
+  material.onBeforeCompile = (shader, renderer) => {
+    original.call(material, shader, renderer);
+    shader.uniforms.reflectionEyeBleed = uniform;
+    shader.fragmentShader = `uniform float reflectionEyeBleed;
+      float mirrorTear(vec2 uv,float eye,float seed){
+        float down=uv.x-.849;
+        float extent=.085*reflectionEyeBleed;
+        float path=eye+sin(down*137.+seed)*.0017+sin(down*371.-seed)*.0006;
+        float width=.0015+.0012*(1.-clamp(down/.09,0.,1.));
+        float across=(uv.y-path)/width;
+        float track=exp(-across*across);
+        float edge=smoothstep(-.003,.002,down)*(1.-smoothstep(max(.001,extent-.009),max(.002,extent),down));
+        vec2 orbit=vec2((uv.x-.847)/.009,(uv.y-eye)/.016);
+        vec2 droplet=vec2((uv.x-(.849+extent))/.003,(uv.y-path)/.0037);
+        float socket=exp(-dot(orbit,orbit));
+        float bead=exp(-dot(droplet,droplet));
+        return clamp((track*edge+socket*.45+bead*.65)*smoothstep(0.,.08,reflectionEyeBleed),0.,1.);
+      }\n` + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <alphamap_fragment>",
+      `float mirrorBleeding=max(mirrorTear(vMapUv,.478,1.7),mirrorTear(vMapUv,.564,4.2));
+       diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.105,.0022,.0012),mirrorBleeding*.94);
+       #include <alphamap_fragment>`,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <roughnessmap_fragment>",
+      "#include <roughnessmap_fragment>\nroughnessFactor=mix(roughnessFactor,.19,mirrorBleeding*.8);",
+    );
+  };
+  material.customProgramCacheKey = () => key + "|mirror-eye-bleeding-v1";
+  material.needsUpdate = true;
+  return skin;
+}
 
 // The optical image and Mara use the same room coordinates. The body is visible
 // only to the reflector camera; lag and a held pose create the disobedience.
@@ -143,6 +183,10 @@ export class Mirror {
       range: 2.8,
     });
     this.figure = createFigure(house, 1);
+    this.flashlight = attachFlashlight(this.figure, 1);
+    this.flashlight.root.name = "Held reflection's flashlight";
+    this.eyeBleed = { value: 0 };
+    this.skin = ownEyeBleeding(this.figure, this.eyeBleed);
     this.body = this.figure.body;
     this.head = this.figure.head;
     scene.add(this.body);
@@ -160,6 +204,7 @@ export class Mirror {
   clearHistory() {
     this.history = [];
     this.lastLooking = null;
+    this.lastShownPose = null;
     // A doorway can erase the player's route. It cannot release the held copy.
   }
   triggerShock(time) {
@@ -173,6 +218,15 @@ export class Mirror {
     this.heldPose = null;
     this.shockAt = -Infinity;
     this.shockPlayed = false;
+    this.reactionAt = -Infinity;
+    this.reactionIndex = 0;
+    this.lastUpdateTime = 0;
+    this.bleedStartedAt = null;
+    this.bleedTarget = 0;
+    this.eyeBleed.value = 0;
+    this.embodiment = null;
+    this.isHeld = false;
+    this.flashlight.root.visible = false;
     this.body.visible = true;
     this.body.position.set(SPAWN.x, 0, SPAWN.z);
     this.figure.setUnease(0);
@@ -188,6 +242,14 @@ export class Mirror {
     this.head.rotation.set(0, 0, 0);
     this.surface.visible = true;
     for (const uniform of Object.values(this.uniforms)) uniform.value = 0;
+  }
+  react(time, index = 0, { enabled = true } = {}) {
+    if (!enabled || !Number.isFinite(time) || time - this.reactionAt < 1.05) return false;
+    this.reactionAt = time;
+    this.reactionIndex = Math.abs(Math.trunc(index)) % 8;
+    this.bleedStartedAt ??= time;
+    this.bleedTarget = Math.min(.94, Math.max(.42, this.bleedTarget + .13));
+    return true;
   }
   looking(player, camera) {
     const dx = player.x - MIRROR.x,
@@ -218,8 +280,9 @@ export class Mirror {
     });
     return this.occlusionRay.intersectObjects(occluders, false).length === 0;
   }
-  update(time, player, story, looking) {
-    const pose = player.pose();
+  update(time, player, story, looking, embodiment = null) {
+    const pose = { ...player.pose(), embodiment };
+    this.lastUpdateTime = time;
     if (
       this.history.length &&
       this.history[this.history.length - 1].time > time
@@ -229,16 +292,21 @@ export class Mirror {
     while (this.history.length > 2 && this.history[1].time < time - 1.7)
       this.history.shift();
     if (looking && !story.frozen) this.lastLooking = { ...pose };
-    if (story.frozen && !story.inverted && !this.heldPose)
+    if (story.frozen && !story.inverted && !this.heldPose) {
+      const capture = this.lastShownPose || this.lastLooking || pose;
+      // The old unarmed copy could stand 42cm from the glass. A captured
+      // outstretched torch needs its complete barrel to remain this side.
+      const clearance = capture.embodiment ? .70 : .42;
       this.heldPose = {
-        ...(this.lastLooking || pose),
-        x: MIRROR.x + this.normal.x * 0.42,
-        z: MIRROR.z + this.normal.z * 0.42,
+        ...capture,
+        x: MIRROR.x + this.normal.x * clearance,
+        z: MIRROR.z + this.normal.z * clearance,
         yaw: MIRROR.rotation,
         speed: 0,
         vx: 0,
         vz: 0,
       };
+    }
     let shown = pose;
     if (story.frozen && !story.inverted) shown = this.heldPose;
     else if (story.stage >= 1 && !story.inverted) {
@@ -275,13 +343,20 @@ export class Mirror {
         speed: T.MathUtils.lerp(before.speed ?? 0, after.speed ?? 0, t),
         vx: T.MathUtils.lerp(before.vx ?? 0, after.vx ?? 0, t),
         vz: T.MathUtils.lerp(before.vz ?? 0, after.vz ?? 0, t),
+        embodiment: interpolateReflectionPose(before.embodiment, after.embodiment, t),
       };
     }
     const held = story.frozen && !story.inverted;
+    this.isHeld = held;
     this.body.visible = story.stage < 5 || story.inverted;
     this.body.position.set(shown.x, 0, shown.z);
     // The last reflection turns its body away while its twisted neck keeps looking back.
     this.body.rotation.y = shown.yaw + (story.stage === 4 ? Math.PI : 0);
+    if (shown.embodiment?.bodyOffset) {
+      const offset = new T.Vector3().fromArray(shown.embodiment.bodyOffset);
+      offset.applyAxisAngle(new T.Vector3(0, 1, 0), this.body.rotation.y);
+      this.body.position.add(offset);
+    }
     const dread =
       story.inverted || story.stage === 0
         ? 0
@@ -305,6 +380,8 @@ export class Mirror {
     this.figure.setEvidenceBlood?.(
       story.inverted ? 1 : story.stage >= 3 ? 0.34 : 0,
     );
+    applyReflectionPose(this.figure, this.flashlight, shown.embodiment);
+    this.embodiment = shown.embodiment;
     if (story.stage === 4)
       this.figure.setCreaturePose?.(time, 0.5, {
         mode: "twisted",
@@ -347,11 +424,46 @@ export class Mirror {
     }
     if (story.stage === 3 && this.figure.arms[0])
       this.figure.arms[0].rotation.x -= 0.6;
+    // Three bounded, unequal catches disturb the held copy without resuming
+    // the player's animation stream. The motion is silent unless the
+    // controller separately schedules its original voice/contact performance.
+    const age = time - this.reactionAt;
+    if (age >= 0 && age < 1.05 && story.hasKey && !story.inverted) {
+      const beat = Math.exp(-(((age - .052) / .027) ** 2))
+        - .58 * Math.exp(-(((age - .245) / .039) ** 2))
+        + .31 * Math.exp(-(((age - .613) / .052) ** 2));
+      const sign = this.reactionIndex % 2 ? -1 : 1;
+      this.head.rotation.x += beat * .17;
+      this.head.rotation.z += beat * .23 * sign;
+      this.figure.anatomy.rotate("spine_03", beat * .025, -beat * .018 * sign, beat * .032 * sign);
+      for (const side of ["l", "r"])
+        this.figure.anatomy.rotate(`lowerarm_${side}`, -beat * .12, 0, beat * .05 * sign);
+      const jaw = this.skin.morphTargetDictionary?.Mara_Jaw_Open;
+      if (jaw !== undefined)
+        this.skin.morphTargetInfluences[jaw] = T.MathUtils.clamp(this.skin.morphTargetInfluences[jaw] + Math.abs(beat) * .14, 0, 1);
+      this.figure.anatomy.update();
+    }
+    this.eyeBleed.value = this.bleedStartedAt !== null && story.hasKey && !story.inverted
+      ? this.bleedTarget * T.MathUtils.smoothstep(time - this.bleedStartedAt, 0, 1.8) : 0;
+    if (looking && !held) this.lastShownPose = shown;
     const planeDistance =
       (player.x - MIRROR.x) * this.normal.x +
       (player.z - MIRROR.z) * this.normal.z;
     this.surface.visible =
       planeDistance > 0.025 &&
       Math.hypot(player.x - MIRROR.x, player.z - MIRROR.z) < 24;
+  }
+  snapshot() {
+    return {
+      flashlightVisible: this.flashlight.root.visible,
+      flashlightLayer: this.flashlight.root.layers.isEnabled(1) ? 1 : null,
+      draw: this.embodiment?.draw ?? 0,
+      sourceTime: this.embodiment?.time ?? null,
+      held: this.isHeld,
+      hand: this.figure.anatomy.point("hand_r").toArray(),
+      flashlight: this.flashlight.root.getWorldPosition(new T.Vector3()).toArray(),
+      reaction: this.lastUpdateTime - this.reactionAt >= 0 && this.lastUpdateTime - this.reactionAt < 1.05,
+      eyeBleed: this.eyeBleed.value,
+    };
   }
 }

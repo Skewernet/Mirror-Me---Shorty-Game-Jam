@@ -208,7 +208,9 @@ fs.mkdirSync(out, { recursive: true });
             check(environment.lightMultiplier === 0 || environment.lightMultiplier === 1,
               encounter.id + " used a smooth dim instead of a circuit interruption");
             if (environment.lightMultiplier === 0) {
-              check(environment.lightSource === encounter.source, encounter.id + " affected the wrong circuit");
+              check(environment.lightSource === "all" && environment.ambientMultiplier < .05 &&
+                environment.exteriorMultiplier < .05 && environment.environmentMultiplier < .05,
+                encounter.id + " did not fail the whole house supply");
               if (previous === 1) { offs++; firstOff ??= time - began; }
             }
             previous = environment.lightMultiplier;
@@ -218,10 +220,13 @@ fs.mkdirSync(out, { recursive: true });
           check(director.snapshot().lightMultiplier === 1 && !director.snapshot().lightSource,
             encounter.id + " left a circuit dark after withdrawal");
           const relays = director.drainEvents().filter(event => event.id === "light-relay");
-          check(relays.length === offs, encounter.id + " repeated or missed its circuit relay");
+          check(relays.filter(event => event.edge === "off").length === offs,
+            encounter.id + " repeated or missed its off relay");
+          check(relays.some(event => event.edge === "on") && relays.length >= offs * 2 - 1,
+            encounter.id + " did not sound its returning supply");
           circuits.push({ id: encounter.id, interruptions: offs, firstOff });
         }
-        checks.push("all four crawling/ceiling sightings interrupt their own circuit irregularly after a readable reveal and restore it");
+        checks.push("all four crawling/ceiling sightings interrupt the whole house irregularly after a readable reveal, with off/on relays and restoration");
 
         fresh();
         face(5.75, .44, 0);

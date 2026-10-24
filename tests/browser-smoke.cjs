@@ -28,6 +28,7 @@ require("node:fs").mkdirSync(
       if (m.type() === "error") errors.push(m.text());
     });
     p.on("requestfailed", (r) => failed.push(r.url()));
+    await p.addInitScript(() => sessionStorage.setItem('mirror-me.intro.v1', 'acknowledged'));
     console.log("Normal mode: loading");
     await p.goto(
       (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000") + "/",

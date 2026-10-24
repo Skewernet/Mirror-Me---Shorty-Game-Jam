@@ -236,5 +236,87 @@
     "speed": 1.1,
     "voice": "bf_isabella",
     "speaker_id": 22
+  },
+  "mirror0": {
+    "text": "Those hands remember what you won't.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror1": {
+    "text": "She heard you coming down the hall.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror2": {
+    "text": "You made everything quiet. Almost everything.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror3": {
+    "text": "You keep remembering the door. Never what was behind you.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror4": {
+    "text": "The water stopped. She was still listening.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror5": {
+    "text": "You washed your hands before you answered.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror6": {
+    "text": "Look at me. You knew how to look at her.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "mirror7": {
+    "text": "Tell it again. Leave yourself in this time.",
+    "role": "glass",
+    "speed": 0.87,
+    "voice": "bf_emma",
+    "speaker_id": 21
+  },
+  "routineCall": {
+    "text": "Mara... my diary... beside the bed. Read the last page. End the evening backwards. The music box... then the bathroom tap... then the kitchen radio. Please... don't get it wrong again.",
+    "role": "phone",
+    "speed": 0.86,
+    "voice": "bf_isabella",
+    "speaker_id": 22,
+    "segments": [
+      "Mara.",
+      "My diary. Beside the bed.",
+      "Read the last page.",
+      "End the evening backwards.",
+      "The music box.",
+      "Then the bathroom tap.",
+      "Then the kitchen radio.",
+      "Please. Don't get it wrong again."
+    ],
+    "pauses_after_seconds": [
+      0.8,
+      0.67,
+      0.84,
+      1.04,
+      0.72,
+      0.88,
+      0.95
+    ]
   }
 }

@@ -4,6 +4,7 @@ import { FigureRig } from "./figure-motion.mjs";
 import { createFuneralScare } from "./funeral-scare.mjs";
 import { createEvelyn } from "./evelyn.mjs";
 import { alignArchitectureUV } from "./architecture-uv.mjs";
+import { BLACKOUT_ENVIRONMENT, FUNERAL_BLACKOUT, funeralBlackoutAt } from "./crawler-flicker.mjs";
 
 export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
 
@@ -733,10 +734,81 @@ export function buildWake(b, m, surfaces, photos) {
     sphere(.06, .085, .06, x - side * .10, 1.95, z, plain(0xd3b789));
     point(0xe7bc7c, 5.8, 4.6, x - side * .16, 1.95, z);
   }
+  const fixtureMaterials = new Map();
+  wake.traverse(object => {
+    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+      if (!material || fixtureMaterials.has(material)) continue;
+      if (material.isMeshBasicMaterial && material.opacity > 0 ||
+          material.emissive?.getHex() > 0 && material.emissiveIntensity > 0) {
+        material.userData.wakeElectricalFixture = true;
+        fixtureMaterials.set(material, {
+          color: material.color.clone(), emissive: material.emissiveIntensity,
+          selfLit: material.isMeshBasicMaterial,
+        });
+      }
+    }
+  });
   let active = false,
     startedAt = null,
     reportAt = null,
-    sequenceTime = 0;
+    sequenceTime = 0,
+    blackoutStartedAt = null,
+    blackoutEnabled = true,
+    blackoutStopped = false,
+    blackoutAge = 0,
+    blackoutIndex = -1,
+    blackoutMultiplier = 1;
+  const blackoutEvents = [], blackoutRelays = new Set();
+  function applyBlackout(multiplier) {
+    blackoutMultiplier = multiplier;
+    for (const light of lights) light.intensity = light.userData.base * multiplier;
+    for (const [material, original] of fixtureMaterials) {
+      material.color.copy(original.color);
+      if (original.selfLit) material.color.multiplyScalar(multiplier);
+      if (original.emissive !== undefined) material.emissiveIntensity = original.emissive * multiplier;
+    }
+  }
+  function blackoutLighting() {
+    return blackoutMultiplier === 0
+      ? { lightSource: "all", lightMultiplier: 0, ...BLACKOUT_ENVIRONMENT }
+      : { lightSource: null, lightMultiplier: 1 };
+  }
+  function setBlackoutEnabled(enabled) {
+    blackoutEnabled = Boolean(enabled);
+    if (!blackoutEnabled) {
+      blackoutEvents.length = 0;
+      blackoutIndex = -1;
+      applyBlackout(1);
+    }
+  }
+  function beginBlackout(time, { flashes = true } = {}) {
+    if (blackoutStartedAt !== null || !Number.isFinite(time)) return false;
+    blackoutStartedAt = time;
+    blackoutAge = 0;
+    blackoutStopped = false;
+    setBlackoutEnabled(flashes);
+    return true;
+  }
+  function updateBlackout(time) {
+    blackoutAge = blackoutStartedAt === null ? 0 : Math.max(0, time - blackoutStartedAt);
+    if (blackoutStartedAt === null || blackoutStopped || !blackoutEnabled) {
+      applyBlackout(1);
+      return;
+    }
+    const sample = funeralBlackoutAt(blackoutAge);
+    const relay = (index, edge) => {
+      const key = edge + ":" + index;
+      if (blackoutRelays.has(key)) return;
+      blackoutRelays.add(key);
+      blackoutEvents.push({ id: "light-relay", edge,
+        x: index % 2 ? 3.65 : -3.65, y: 1.5, z: index === 2 ? 14 : 9.65,
+        encounter: "funeral-blackout" });
+    };
+    if (sample.index >= 0 && sample.index !== blackoutIndex) relay(sample.index, "off");
+    else if (sample.index < 0 && blackoutIndex >= 0) relay(blackoutIndex, "on");
+    blackoutIndex = sample.index;
+    applyBlackout(sample.lightMultiplier);
+  }
   function animate(_time, state) {
     const next = !!(
       state.frontOpen ||
@@ -766,6 +838,7 @@ export function buildWake(b, m, surfaces, photos) {
   }
   function update(time, dt, state, player) {
     animate(time, state);
+    updateBlackout(time);
     if (startedAt === null) return { elapsed: 0, done: false };
     sequenceTime = Math.max(0, time - startedAt);
     const reportTime = reportAt === null ? 0 : Math.max(0, time - reportAt);
@@ -807,6 +880,14 @@ export function buildWake(b, m, surfaces, photos) {
     startedAt = null;
     reportAt = null;
     sequenceTime = 0;
+    blackoutStartedAt = null;
+    blackoutStopped = false;
+    blackoutEnabled = true;
+    blackoutAge = 0;
+    blackoutIndex = -1;
+    blackoutEvents.length = 0;
+    blackoutRelays.clear();
+    applyBlackout(1);
     wake.visible = false;
     funeralScare?.reset();
     for (const mourner of mourners) {
@@ -838,7 +919,18 @@ export function buildWake(b, m, surfaces, photos) {
     prepare,
     begin,
     beginReport,
-    beginAttack(time, player, options) { prepare(); return funeralScare.begin(time, player, options); },
+    beginBlackout,
+    setBlackoutEnabled,
+    blackoutLighting,
+    drainEvents: () => blackoutEvents.splice(0),
+    beginAttack(time, player, options) {
+      prepare();
+      blackoutStopped = true;
+      blackoutIndex = -1;
+      blackoutEvents.length = 0;
+      applyBlackout(1);
+      return funeralScare.begin(time, player, options);
+    },
     attackCamera: time => funeralScare?.camera(time) || { active: false, done: false, fade: 0 },
     reduceAttack: time => funeralScare?.reduce(time) || false,
     get attackBody() { return funeralScare?.body; },
@@ -848,6 +940,9 @@ export function buildWake(b, m, surfaces, photos) {
       startedAt,
       reportAt,
       elapsed: sequenceTime,
+      blackout: { startedAt: blackoutStartedAt, enabled: blackoutEnabled, age: blackoutAge,
+        active: blackoutStartedAt !== null && !blackoutStopped && blackoutEnabled && blackoutAge < FUNERAL_BLACKOUT.duration,
+        lightMultiplier: blackoutMultiplier, duration: FUNERAL_BLACKOUT.duration },
       mourners: prepared ? mourners.length : mournerSeats.length,
       prepared,
       turned: mourners.filter((mourner) => mourner.turned).length,

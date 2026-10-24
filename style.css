@@ -187,6 +187,45 @@ footer { border-top: 1px solid var(--line); padding-top: 15px; color: var(--mute
 .content-note { text-align: right; flex-shrink: 0; line-height: 1.8; }
 #error { color: #edb599; max-width: 480px; font: 12px/1.6 monospace; }
 #error:empty { display: none; }
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 65px 24px 70px;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 44%, #15201c, #070d0d 62%, #030707);
+  color: var(--paper);
+}
+.intro-card { width: min(100%, 740px); text-align: center; margin: auto; }
+#intro-kicker { margin: 0 0 22px; letter-spacing: 5px; }
+#intro-title {
+  font: 400 clamp(40px, 7vw, 88px)/1.05 Georgia, serif;
+  letter-spacing: 3px;
+  margin: 0;
+  text-wrap: balance;
+}
+#intro-caption { color: #aaa99d; font: italic 16px/1.8 Georgia, serif; margin: 22px 0; }
+#intro-skip { position: absolute; top: 24px; right: max(24px, 5.5vw); font-size: 9px; }
+#intro-warning { margin-top: 27px; }
+#intro-warning h3 { color: var(--rust); font: 10px/1.8 monospace; letter-spacing: 3px; margin: 0 0 12px; }
+#intro-warning > p { max-width: 610px; margin: 0 auto 13px; font: 17px/1.7 Georgia, serif; text-wrap: balance; }
+#intro-warning .intro-comfort { max-width: 560px; color: #b8bcaf; font: 12px/1.8 monospace; }
+.intro-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 25px; }
+#intro-warning .intro-audio-note { color: #aaa99d; font: 10px/1.8 monospace; margin-top: 16px; }
+#intro-load-status { color: #8f9d92; font: 10px/1.8 monospace; margin: 27px 0 17px; }
+.intro-rule { height: 1px; width: min(76%, 340px); background: #c3c7b929; margin: 0 auto; }
+.intro-footer { position: absolute; bottom: 22px; left: 24px; right: 24px; margin: 0; text-align: center; color: #7e8e82; font: 8px/1.8 monospace; letter-spacing: 2px; }
+@media (max-height: 620px) {
+  #intro { padding: 50px 20px; }
+  #intro-title { font-size: clamp(32px, 7vw, 56px); }
+  #intro-kicker { margin-bottom: 12px; }
+  #intro-warning { margin-top: 15px; }
+  #intro-warning > p { font-size: 15px; margin-bottom: 8px; }
+  .intro-actions { margin-top: 14px; }
+  #intro-load-status { margin: 15px 0 10px; }
+}
 .settings-panel {
   --panel-top: 26px;
   --panel-side: 28px;

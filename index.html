@@ -16,9 +16,30 @@
     </script>
   </head>
   <body>
+    <section id="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+      <button id="intro-skip" class="text-button" type="button">SKIP TO CONTENT WARNING</button>
+      <div class="intro-card">
+        <p id="intro-kicker" class="eyebrow">PRODUCED BY</p>
+        <h2 id="intro-title">SKEWER GAMES</h2>
+        <p id="intro-caption">A familiar house. An evening that will not end.</p>
+        <div id="intro-warning" hidden>
+          <h3>CONTENT WARNING</h3>
+          <p>This game contains flashing lights, graphic gore, blood, and violence.</p>
+          <p class="intro-comfort">Flickering lights and sudden scares can be disabled in Settings &amp; controls before you enter.</p>
+          <div class="intro-actions">
+            <button id="intro-sound" type="button">CONTINUE WITH MENU SOUND</button>
+            <button id="intro-silent" class="secondary" type="button">CONTINUE WITHOUT MENU SOUND</button>
+          </div>
+          <p class="intro-audio-note">Menu ambience is optional. Game audio follows your sound settings. Headphones recommended.</p>
+        </div>
+        <p id="intro-load-status" role="status">The house is preparing in the background.</p>
+        <div class="intro-rule" aria-hidden="true"></div>
+      </div>
+      <p class="intro-footer">SKEWER GAMES · SHORTY JAM 2026 · INVERTED</p>
+    </section>
     <div id="veil" class="clean" aria-hidden="true"></div>
     <div id="transition" aria-hidden="true"></div>
-    <main id="menu" aria-label="MIRROR ME main menu">
+    <main id="menu" aria-label="MIRROR ME main menu" inert>
       <div class="menu-top">
         <span class="wordmark">SKEWERNET</span>
         <span>A SHORTY JAM STORY · INVERTED</span>
@@ -132,6 +153,7 @@
               </section>
             </details>
             <button id="credits-open" class="text-button">CREDITS & ASSETS</button>
+            <button id="menu-sound" class="text-button" type="button" aria-pressed="false">MENU SOUND: OFF</button>
           </div>
           <aside id="ending-credits" hidden>
             <p class="eyebrow">MIRROR ME · MADE BY SKEWERNET</p>
@@ -148,7 +170,7 @@
       </div>
       <footer>
         <div class="quick-controls"><span><kbd>WASD</kbd> Walk</span><span><kbd>E</kbd> Interact</span><span><kbd>F</kbd> Flashlight</span><span><kbd>Tab</kbd> Journal</span><span><kbd>Esc</kbd> Pause</span></div>
-        <span class="content-note">GRAPHIC BLOOD & FAMILY VIOLENCE<br />HEADPHONES RECOMMENDED · DESKTOP · 0.8</span>
+        <span class="content-note">FLASHING LIGHTS · GORE · BLOOD · VIOLENCE<br />HEADPHONES RECOMMENDED · DESKTOP · 0.8</span>
       </footer>
     </main>
     <div id="hud" hidden>
@@ -201,7 +223,7 @@
       <p class="eyebrow">A VOICE BETWEEN STATIONS</p>
       <h2>The kitchen radio</h2>
       <p>
-        The bedside diary kept the station number. The hands of the clock have
+        The kitchen walls remember the station. The hands of the clock have
         to agree first.
       </p>
       <form id="radio-form">
@@ -260,6 +282,7 @@
     <noscript
       >This house needs JavaScript and a desktop browser with WebGL.</noscript
     >
+    <script type="module" src="src/intro.mjs"></script>
     <script type="module" src="src/main.mjs"></script>
   </body>
 </html>

@@ -233,8 +233,8 @@ export function addPuzzleProps(b, m, rooms, { diary, bedsideLamp }) {
     offerings[d.item] = offered;
   }
 
-  // The frequency is a physical clue on the diary, so looking at a rendered
-  // bedside prop agrees with reading the memory in the inventory.
+  // The diary explains the care/silence order. The radio frequency is now a
+  // separate kitchen-wall anomaly and must never leak from this bedside card.
   const tuningCard = box(
     0.225,
     0.002,
@@ -243,8 +243,8 @@ export function addPuzzleProps(b, m, rooms, { diary, bedsideLamp }) {
     0.013,
     0,
     paper([
-      "HER EVENING · HER STATION",
-      WRITINGS.diary.match(/\d+\.\d+ FM/)?.[0] || "93.7 FM",
+      "HER EVENING",
+      "READ THE LAST PAGE",
     ]),
     false,
     diary,

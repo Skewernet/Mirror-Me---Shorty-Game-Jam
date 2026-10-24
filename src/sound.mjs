@@ -118,6 +118,30 @@ function makeFoleyNoise(context) {
   return buffer;
 }
 
+// Original finite mechanical and throat textures. They are prepared with the
+// other PCM while loading; no audio buffer is created by a lighting/twitch cue.
+function makeHauntTexture(context, kind) {
+  const rate = context.sampleRate, duration = kind === "switches" ? .24 : .72;
+  const buffer = context.createBuffer(1, Math.ceil(rate * duration), rate);
+  const samples = buffer.getChannelData(0);
+  const onsets = kind === "switches" ? [0, .047, .138] : [.015, .071, .143, .312, .483];
+  let seed = kind === "switches" ? 51017 : 73939;
+  for (let event = 0; event < onsets.length; event++) {
+    const begin = Math.round(onsets[event] * rate);
+    const length = Math.round(rate * (kind === "switches" ? .065 : .075));
+    for (let index = 0; index < length && begin + index < samples.length; index++) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      const white = seed / 2147483648 - 1, time = index / rate;
+      const envelope = Math.exp(-time * (kind === "switches" ? 112 : 79)) * (1 - Math.exp(-time * 2500));
+      const tone = kind === "switches"
+        ? Math.sin(time * Math.PI * 2 * (2050 - event * 173)) * .20 + Math.sin(time * Math.PI * 2 * 186) * .35
+        : Math.sin(time * Math.PI * 2 * (690 + event * 37)) * .31 + Math.sin(time * Math.PI * 2 * 1190) * .24;
+      samples[begin + index] += (white * .43 + tone) * envelope * (event % 2 ? .70 : .90);
+    }
+  }
+  return buffer;
+}
+
 export class Sound {
   constructor(onSubtitle) {
     this.onSubtitle = onSubtitle;
@@ -172,6 +196,9 @@ export class Sound {
       this.foleyNoise ||= makeFoleyNoise(storage);
       await yieldTask();
       this.phoneRingBuffer ||= makeTelephoneRing(storage);
+      this.switchBankBuffer ||= makeHauntTexture(storage, "switches");
+      await yieldTask();
+      this.reflectionRattleBuffer ||= makeHauntTexture(storage, "reflection");
     })();
     return this.preparing;
   }
@@ -184,6 +211,8 @@ export class Sound {
       for (const kind of Object.keys(DEMON_TEXTURES))
         if (!this.creatureBuffers.has(kind))
           this.creatureBuffers.set(kind, makeDemonTexture(c, kind));
+      this.switchBankBuffer ||= makeHauntTexture(c, "switches");
+      this.reflectionRattleBuffer ||= makeHauntTexture(c, "reflection");
       this.master = c.createGain();
       this.master.gain.value = this.volume * 0.55;
       const compressor = c.createDynamicsCompressor();
@@ -481,9 +510,14 @@ export class Sound {
     const context = this.context;
     if (!this.creatureBuffers.has(kind))
       this.creatureBuffers.set(kind, makeDemonTexture(context, kind));
+    return this.preparedTexture(this.creatureBuffers.get(kind), gain, destination);
+  }
+  preparedTexture(buffer, gain, destination) {
+    if (!this.context || this.paused || !buffer) return;
+    const context = this.context;
     const source = context.createBufferSource(),
       envelope = context.createGain();
-    source.buffer = this.creatureBuffers.get(kind);
+    source.buffer = buffer;
     envelope.gain.value = gain;
     source.connect(envelope);
     envelope.connect(destination || this.effects || this.master);
@@ -592,9 +626,10 @@ export class Sound {
       noise(0.16, 0.025, 980);
       noise(0.31, 0.013, 1750);
       impulse(184, 0.008, 0.23);
-    } else if (id === "light-relay") {
-      noise(0.045, 0.034, 2300);
-      impulse(104, 0.025, 0.09);
+    } else if (id === "light-relay" || id === "light-switch-bank") {
+      track(this.preparedTexture(this.switchBankBuffer, .105, destination));
+    } else if (id === "reflection-twitch") {
+      track(this.preparedTexture(this.reflectionRattleBuffer, .13, destination));
     } else if (id === "mirror-crossed" || id === "mirror-enter") {
       for (const frequency of [417, 629, 947]) impulse(frequency, 0.025, 1.65);
       noise(1.15, 0.055, 1600);
@@ -662,6 +697,8 @@ export class Sound {
         "witness-breath",
         "broken-breath",
         "light-relay",
+        "light-switch-bank",
+        "reflection-twitch",
         "mirror-crossed",
         "mirror-enter",
         "backdoor-unlocked",
@@ -855,7 +892,8 @@ export class Sound {
     }
     this.phoneRinger?.update(!quiet && !this.busy &&
       ((!state.heardArrival && state.stage === 0) ||
-        (state.stage === 2 && state.clockSolved && state.radioTuned && !state.heardCall)));
+        (state.stage === 2 && state.clockSolved && state.radioTuned && !state.heardCall) ||
+        (((state.stage === 3 && state.ritualIndex === 3) || state.stage === 4) && !state.heardRoutineCall)));
     if (
       t > this.musicNext &&
       !quiet &&

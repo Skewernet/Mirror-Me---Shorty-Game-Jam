@@ -1,6 +1,7 @@
 import * as T from "three";
 import { mergeGeometries } from "../vendor/BufferGeometryUtils.js";
 import { createFigure } from "./figure.mjs";
+import { createPoseCapture } from "./reflection-pose.mjs";
 
 export const FIRST_PERSON_LAYER = 2;
 export const FLASHLIGHT_DRAW_SECONDS = .36;
@@ -8,7 +9,7 @@ export const INTERACTION_SECONDS = .58;
 const FORWARD = new T.Vector3(0, 0, -1);
 const smooth = value => T.MathUtils.smoothstep(value, 0, 1);
 
-function flashlightModel() {
+export function createFlashlightModel(layer = FIRST_PERSON_LAYER) {
   const root = new T.Group();
   root.name = "Mara's handheld flashlight";
   const metal = new T.MeshStandardMaterial({ color: 0x343c35, roughness: .34, metalness: .78 });
@@ -58,13 +59,25 @@ function flashlightModel() {
   beam.position.z = -.19;
   root.add(beam);
   root.traverse(object => {
-    object.layers.set(FIRST_PERSON_LAYER);
+    object.layers.set(layer);
     if (object.isMesh) {
       object.castShadow = object.receiveShadow = false;
-      object.userData.firstPerson = true;
+      object.userData.firstPerson = layer === FIRST_PERSON_LAYER;
     }
   });
   return { root, beam, lens };
+}
+
+export function attachFlashlight(figure, layer = FIRST_PERSON_LAYER) {
+  const { body, anatomy: rig } = figure;
+  const torch = createFlashlightModel(layer);
+  const hand = rig.joint("hand_r").bone;
+  const restWrist = rig.restPoint("hand_r");
+  const gripAnchor = hand.worldToLocal(body.localToWorld(restWrist.add(new T.Vector3(-.010, -.090, -.006))));
+  hand.add(torch.root);
+  torch.root.position.copy(gripAnchor);
+  torch.root.visible = false;
+  return { ...torch, hand };
 }
 
 // Keep the existing model's torso, legs and articulated hands. Only this
@@ -118,13 +131,9 @@ export function createFirstPerson(scene, camera) {
     mesh.material.needsUpdate = true;
     triangles += mesh.geometry.index.count / 3;
   });
-  const torch = flashlightModel();
-  const hand = rig.joint("hand_r").bone;
-  const restWrist = rig.restPoint("hand_r");
-  const gripAnchor = hand.worldToLocal(body.localToWorld(restWrist.add(new T.Vector3(-.010, -.090, -.006))));
-  hand.add(torch.root);
-  torch.root.position.copy(gripAnchor);
-  torch.root.visible = false;
+  const torch = attachFlashlight(figure);
+  const hand = torch.hand;
+  const capture = createPoseCapture(figure, torch);
   const rightSide = rig.sides.find(side => side.side === "r");
   const leftSide = rig.sides.find(side => side.side === "l");
   const currentHand = new T.Vector3(), currentLeft = new T.Vector3();
@@ -132,7 +141,7 @@ export function createFirstPerson(scene, camera) {
   const handQuaternion = new T.Quaternion(), parentQuaternion = new T.Quaternion();
   const gripRotation = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), .08);
   const beamPosition = new T.Vector3(), beamDirection = new T.Vector3();
-  let draw = 0, time = 0, interactionAge = INTERACTION_SECONDS;
+  let draw = 0, time = 0, interactionAge = INTERACTION_SECONDS, bodyLean = .14;
   let interactionTarget = null, interactionSide = "l", evidence = -1;
   const beamState = { position: beamPosition, direction: beamDirection, visibility: 0 };
 
@@ -154,6 +163,7 @@ export function createFirstPerson(scene, camera) {
     // Keeping the torso under the eye puts the camera inside the shirt collar
     // when looking down; a small rear offset keeps its complete neckline intact.
     const lean = .14 + T.MathUtils.smoothstep(-(player.pitch || 0), .45, 1.25) * .10;
+    bodyLean = lean;
     body.position.set(player.x + Math.sin(player.yaw) * lean, 0, player.z + Math.cos(player.yaw) * lean);
     body.rotation.y = player.yaw;
     figure.animate(time, player.speed || 0, false, {
@@ -224,6 +234,7 @@ export function createFirstPerson(scene, camera) {
 
   return {
     body, rig, figure, flashlight: torch.root,
+    capturePose: () => capture({ draw, visibility: beamState.visibility, time, bodyOffset: [0, 0, bodyLean] }),
     update,
     prepare(player) { draw = 1; update(0, player, { flashlightOn: true }); },
     interact(point, kind = "use") {

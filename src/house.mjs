@@ -780,6 +780,7 @@ export async function buildHouse(scene) {
   for (const light of lights)
     light.userData.powerCircuit = windowLights.has(light) ? "window" : "mains";
   const ambient = new T.HemisphereLight(0xa7bac0, 0x30271e, 0.19);
+  ambient.userData.currentBase = ambient.intensity;
   scene.add(ambient);
   const exitLight = point(0xb9d1db, 0, 3.8, 7.4, 2.04, 2.4);
   // Small material accents created by the furnishing helpers should share the
@@ -880,6 +881,12 @@ export async function buildHouse(scene) {
     });
     object.userData.lightCircuit = 'bedroom';
   });
+  const environmentMaterials = new Map();
+  scene.traverse(object => {
+    for (const material of Array.isArray(object.material) ? object.material : [object.material])
+      if (material && typeof material.envMapIntensity === "number" && !environmentMaterials.has(material))
+        environmentMaterials.set(material, material.envMapIntensity);
+  });
   function flushShadowUpdates(time) {
     for (const light of shadowPending) {
       const last = shadowUpdatedAt.get(light) ?? -Infinity;
@@ -910,6 +917,17 @@ export async function buildHouse(scene) {
     for (const light of affected)
       if (light.userData.powerCircuit !== "window")
         light.intensity = light.userData.currentBase * multiplier;
+    // A mains failure previously left full moonlight and hemispheric fill,
+    // making only one bulb's dimming visible. Whole-house encounters suppress
+    // those secondary fills as well, without changing visible/light counts.
+    const exterior = T.MathUtils.clamp(envelope.exteriorMultiplier ?? 1, 0, 1);
+    for (const light of windowLights)
+      light.intensity = light.userData.currentBase * exterior;
+    ambient.intensity = (ambient.userData.currentBase ?? ambient.intensity) *
+      T.MathUtils.clamp(envelope.ambientMultiplier ?? 1, 0, 1);
+    const environment = T.MathUtils.clamp(envelope.environmentMultiplier ?? 1, 0, 1);
+    for (const [material, base] of environmentMaterials)
+      material.envMapIntensity = base * environment;
     for (const fixture of circuitMaterials.values()) {
       const factor = envelope.lightSource === "all" || envelope.lightSource === fixture.zone ? multiplier : 1;
       // A basic bulb is self-lit; an ordinary fabric shade keeps its diffuse
@@ -1068,6 +1086,8 @@ export async function buildHouse(scene) {
       light.userData.currentBase = light.intensity;
       light.userData.currentColor.copy(light.color);
     }
+    ambient.userData.currentBase = ambient.intensity;
+    if (state.wakeEntered) applyHorrorLighting(wake.blackoutLighting());
   }
   function reset(state) {
     shadowPending.clear();
@@ -1093,6 +1113,7 @@ export async function buildHouse(scene) {
     note.visible = true;
     setStage(0);
     animate(0, 0, state);
+    applyHorrorLighting();
     hallHero.shadow.needsUpdate = mirrorHero.shadow.needsUpdate = true;
   }
   return {
@@ -1120,6 +1141,7 @@ export async function buildHouse(scene) {
     note,
     clock,
     lights,
+    ambientLight: ambient,
     mirrorLight,
     exitLight,
     props: furnishings,

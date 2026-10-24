@@ -15,6 +15,7 @@ fs.mkdirSync(out, { recursive: true });
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("requestfailed", request => failed.push(request.url()));
     await page.addInitScript(() => {
+      sessionStorage.setItem("mirror-me.intro.v1", "acknowledged");
       if (sessionStorage.getItem("menu-fixture-seeded")) return;
       sessionStorage.setItem("menu-fixture-seeded", "true");
       localStorage.setItem("mirror-me.settings.v1", JSON.stringify({ version: 1, values: {

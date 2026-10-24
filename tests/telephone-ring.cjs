@@ -81,6 +81,22 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       state.heardCall = true;
       sound.update(state, player);
       check(!sound.phoneRinger.source, "Answered second telephone restarts ringing");
+      Object.assign(state, { stage: 3, ritualIndex: 2, heardRoutineCall: false });
+      sound.update(state, player);
+      check(!sound.phoneRinger.source, "Routine call rings before the keepsakes are all returned");
+      state.ritualIndex = 3;
+      sound.update(state, player);
+      check(sound.phoneRinger.source, "Last returned keepsake does not start Mum's routine reminder");
+      state.heardRoutineCall = true;
+      sound.update(state, player);
+      check(!sound.phoneRinger.source, "Answering the routine call leaves its bell ringing");
+      Object.assign(state, { stage: 4, heardRoutineCall: false });
+      sound.update(state, player);
+      check(sound.phoneRinger.source, "Pending routine call is lost at the next chapter");
+      state.heardRoutineCall = true;
+      sound.update(state, player);
+      check(!sound.phoneRinger.source, "Answered routine call rings again after the return");
+      Object.assign(state, { stage: 2, heardCall: false });
       state.heardCall = false;
       sound.update(state, player);
       check(sound.phoneRinger.source, "Fixture failed to restart pending phone");
@@ -121,7 +137,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
         bellSeconds: prepared.duration, bell: normal, checks: [
           "context-free yielding PCM preparation", "first switch uses cached noise", "opening phone ring",
           "clock/station second-call gates", "single spatial ring with quiet cadence", "answer and dialogue stop",
-          "pause/resume", "actual mother Ogg duration", "restart cleanup", "finite Web Audio render and interrupted tail",
+          "pause/resume", "actual mother Ogg duration", "post-keepsake routine reminder gates", "restart cleanup", "finite Web Audio render and interrupted tail",
         ] };
     });
     assert.deepEqual(errors, []);

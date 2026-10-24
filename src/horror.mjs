@@ -2,7 +2,7 @@ import * as T from "three";
 import { createDemon } from "./demon.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
 import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
-import { CRAWLER_FLICKER, crawlerFlickerAt } from "./crawler-flicker.mjs";
+import { BLACKOUT_ENVIRONMENT, CRAWLER_FLICKER, crawlerFlickerAt } from "./crawler-flicker.mjs";
 
 // One body, six authored sightings. Every encounter starts from a visible,
 // unobstructed sightline and withdraws into a real room or behind its dressing.
@@ -344,6 +344,7 @@ export class HorrorDirector {
       travelled: 0,
       nextStepDistance: 0.18,
       relays: new Set(),
+      electricalIndex: -1,
       closeRetreat: false,
       retreatStarted: null,
       retreatOrigin: null,
@@ -660,25 +661,32 @@ export class HorrorDirector {
           encounter: definition.id,
         });
     }
+    if (!flashes || dialogueBusy) active.electricalIndex = -1;
     if (flashes && !dialogueBusy) {
       const flicker = crawlerFlickerAt(definition.id, age);
       let multiplier = flicker.lightMultiplier;
-      const relay = (index) => {
+      const relay = (index, edge = "off") => {
         if (active.relays.has(index)) return;
         active.relays.add(index);
         this.events.push({
           id: "light-relay",
-          x: body.position.x,
+          x: body.position.x + (edge === "off" ? -.38 : .42),
           y: 2,
-          z: body.position.z,
+          z: body.position.z + (edge === "off" ? .24 : -.28),
+          edge,
           encounter: definition.id,
         });
       };
-      if (flicker.index >= 0) relay(flicker.index);
+      const wholeHouse = Object.hasOwn(CRAWLER_FLICKER, definition.id);
+      if (wholeHouse) {
+        if (flicker.index >= 0) relay("off:" + flicker.index);
+        else if (active.electricalIndex >= 0) relay("on:" + active.electricalIndex, "on");
+        active.electricalIndex = flicker.index;
+      }
       // Floor/ceiling encounters have finite, irregular full power failures,
       // beginning after their first readable glimpse and continuing through
       // stillness/withdrawal. Keep the separate twisted sighting's old dim.
-      if (!Object.hasOwn(CRAWLER_FLICKER, definition.id)) {
+      if (!wholeHouse) {
         for (let index = 0; index < definition.pulses.length; index++) {
           const [from, to, amount] = definition.pulses[index];
           if (age >= withdrawalAt + from && age < withdrawalAt + to) {
@@ -689,7 +697,8 @@ export class HorrorDirector {
       }
       this.light = {
         lightMultiplier: multiplier,
-        lightSource: definition.lightSource,
+        lightSource: wholeHouse ? "all" : definition.lightSource,
+        ...(wholeHouse && multiplier === 0 ? BLACKOUT_ENVIRONMENT : {}),
       };
     }
     if (

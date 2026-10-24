@@ -20,6 +20,7 @@ fs.mkdirSync(out, { recursive: true });
     const p = (currentPage = await browser.newPage({
       viewport: { width: 1280, height: 800 },
     }));
+    await p.addInitScript(() => sessionStorage.setItem("mirror-me.intro.v1", "acknowledged"));
     const errors = [],
       failed = [],
       assets = [];
@@ -51,7 +52,8 @@ fs.mkdirSync(out, { recursive: true });
       p.waitForFunction(
         () =>
           !!document.pointerLockElement &&
-          !document.querySelector("#hud").hidden,
+          !document.querySelector("#hud").hidden &&
+          window.__mirror.snapshot().active,
       );
     const close = (a, b, tolerance = 1e-8) =>
       assert.ok(Math.abs(a - b) < tolerance, `${a} ≈ ${b}`);
@@ -452,6 +454,12 @@ fs.mkdirSync(out, { recursive: true });
     await advance(0.7);
     await use("drawer");
     assert.equal((await snap()).story.hasKey, true);
+    await walk(6.7, 0);
+    await waitDialogue();
+    await use("mirror");
+    assert.equal((await snap()).story.mirrorTauntCursor, 1,
+      "The post-key mirror changes to a reminder instead of repeating the drawer clue");
+    assert.ok((await snap()).dialogue.queued.includes("mirror0") || (await snap()).dialogue.id === "mirror0");
     await enterBedroom();
     await walk(8.7, -1.65);
     await walk(8.7, -2.55);
@@ -461,7 +469,8 @@ fs.mkdirSync(out, { recursive: true });
     await p.keyboard.press("Tab");
     await p.waitForFunction(() => !document.querySelector("#pocket").hidden);
     await frozenModal("pocket");
-    assert.ok((await p.locator("#items").innerText()).includes("93.7"));
+    assert.ok(!(await p.locator("#items").innerText()).includes("93.7"),
+      "The radio station must be found in the kitchen, not leaked by the early diary");
     await p.keyboard.press("Tab");
     await playing();
     await walk(8.7, -1.65);
@@ -498,6 +507,12 @@ fs.mkdirSync(out, { recursive: true });
     await advance(0.2);
     assert.equal((await snap()).story.clockSolved, true);
     await enterKitchen();
+    await walk(2.1, -2.15);
+    const stationClue = await p.evaluate(() => window.__mirror.targets.find(target => target.id === "station-clue"));
+    assert.ok(stationClue, "The kitchen has a real blood-written station inspection target");
+    await useAt("station-clue", ...stationClue.position);
+    assert.equal((await snap()).story.hasStationClue, true);
+    await photo("kitchen-blood-station");
     await kitchenRadio();
     await frozenModal("radio");
     await p.keyboard.press("Escape");
@@ -544,7 +559,7 @@ fs.mkdirSync(out, { recursive: true });
     await playing();
     await crossRear(3);
     console.log(
-      "PASS 3: ceiling creature, comfort switch, reflected clock, tuning UI and separate telephone call",
+      "PASS 3: ceiling creature, comfort switch, reflected clock, kitchen blood station, tuning UI and separate telephone call",
     );
 
     await hallCorner();
@@ -618,6 +633,27 @@ fs.mkdirSync(out, { recursive: true });
       "PASS 4: floor crawler, three physical pickups and ordered offerings with wrong-choice recovery",
     );
 
+    await enterLounge();
+    await phone();
+    assert.equal((await snap()).story.heardRoutineCall, true);
+    await leaveLounge();
+    let heardRoutineVoice = false;
+    await waitDialogue(id => { heardRoutineVoice ||= id === "routineCall"; });
+    assert.equal(heardRoutineVoice, true, "Mum's new call actually directs the player back to the diary");
+    await enterBedroom();
+    await walk(8.7, -1.65);
+    await walk(8.7, -2.55);
+    await use("diary");
+    await p.waitForFunction(() => !document.querySelector("#pocket").hidden);
+    assert.equal((await snap()).mode, "pocket", "The revisited diary opens the readable last page directly");
+    await frozenModal("pocket");
+    const reverseDiary = await p.locator("#items").innerText();
+    assert.match(reverseDiary, /THE LAST PAGE/);
+    assert.match(reverseDiary, /close the (?:bedroom )?music box[\s\S]*stop the (?:bathroom )?tap[\s\S]*switch off the (?:kitchen )?radio/i);
+    await p.keyboard.press("Tab");
+    await playing();
+    await walk(8.7, -1.65);
+    await leaveBedroom();
     await enterKitchen();
     await kitchenRadio();
     assert.equal((await snap()).story.echoIndex, 0);
@@ -937,6 +973,9 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(reset.story.power, false);
     assert.equal(reset.story.hasKey, false);
     assert.equal(reset.story.hasLetter, false);
+    assert.equal(reset.story.hasStationClue, false);
+    assert.equal(reset.story.heardRoutineCall, false);
+    assert.equal(reset.story.mirrorTauntCursor, 0);
     assert.equal(reset.story.echoIndex, 0);
     assert.deepEqual(reset.story.keepsakes, {
       watch: false,
@@ -986,9 +1025,11 @@ fs.mkdirSync(out, { recursive: true });
       return result;
     });
     assert.equal(Object.keys(voices).length, Object.keys(VOICES).length);
-    assert.equal(Object.keys(voices).length, 30);
+    assert.equal(Object.keys(voices).length, 39);
     assert.ok(voices.news > 10, "The funeral news is a complete voiced report");
     assert.ok(voices.sob > 0, "Mara's broken confession has audible content");
+    assert.ok(voices.routineCall > 0, "Mum's reverse-routine hint has an audible local take");
+    assert.equal(Array.from({ length: 8 }, (_, i) => voices["mirror" + i]).filter(duration => duration > 0).length, 8);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
     console.log(
@@ -1010,9 +1051,12 @@ fs.mkdirSync(out, { recursive: true });
             "instant rear/mirror transforms and held movement",
             "five furnished rooms",
             "faithful/delayed/held/empty reflection",
+            "post-key mirror reminder replaces the stale drawer clue",
             "readable script journal",
             "clock and tuning UI pause",
             "separate telephone/radio",
+            "blood-written kitchen station clue",
+            "Mum's routine call and explicit diary revisit",
             "ceiling and floor creatures",
             "flicker comfort control",
             "keepsake UI and wrong-choice recovery",

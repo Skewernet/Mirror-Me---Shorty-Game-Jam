@@ -4,6 +4,7 @@ import { TARGETS } from "./layout.mjs";
 import { addPuzzleProps } from "./puzzle-props.mjs";
 import { WRITINGS } from "./story.mjs";
 import { createBathroomMirror } from "./bathroom-mirror.mjs";
+import { createKitchenFrequency } from "./kitchen-frequency.mjs";
 
 // Furnishings use measured human dimensions and the same coordinates as story
 // targeting/audio. The tight floor plan is furnished deliberately, not scaled
@@ -614,6 +615,7 @@ export function furnish(b, m) {
   const invertedChair = chair(3.0, -2.95, -Math.PI / 2, kitchen);
   cylinder(0.15, 0.15, 0.013, 0, 0.78, 0, m.ceramic, dining);
   mug(3.85, 0.78, -3.23, kitchen);
+  const kitchenFrequency = createKitchenFrequency(kitchen, b);
 
   // BATHROOM: sanitary fittings constrain movement naturally while the target
   // side of the sink and the mirror remain reachable from the room's centre.
@@ -1015,6 +1017,7 @@ export function furnish(b, m) {
   const televisionNoise = screenCtx.createImageData(192, 144);
   function reset() {
     puzzle.reset();
+    kitchenFrequency.reset();
     receiver.position.set(0, 0, 0);
     receiver.rotation.set(0, 0, 0);
     radioKnob.rotation.z = 0;
@@ -1115,6 +1118,7 @@ export function furnish(b, m) {
     tvScreen.material.color.set(state.power ? 0x728487 : 0x030504);
     tvScreen.material.map = state.stage >= 4 ? m.photos[1] : screenMap;
     bathroomMirror.setClueVisible(state.stage >= 2);
+    kitchenFrequency.animate(state);
     fuseGroup.visible = !state.hasFuse && !state.power;
     fuseGlow.material = state.power ? m.greenBulb : m.redBulb;
     const musicClosed = state.stage >= 4 && state.echoIndex >= 1;
@@ -1139,6 +1143,7 @@ export function furnish(b, m) {
     telephone: phone,
     receiver,
     radio,
+    kitchenFrequency,
     letter,
     family,
     diary,

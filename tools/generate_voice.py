@@ -30,10 +30,19 @@ def digest(path: Path) -> str:
 
 
 def effects_for(role: str) -> str:
-    # Preserve recognizable speech and the woman's actual pitch. Character contrast
-    # comes from distinct Kokoro presets and pace, not a low-pitched monster effect.
+    # Keep the original identity readable above an original, rough lower layer.
+    # No film performance or external vocal/click sample enters this treatment.
     if role == "glass":
-        return "highpass=f=85,lowpass=f=7500,aecho=0.8:0.15:32:0.055,loudnorm=I=-21:TP=-4:LRA=8"
+        return (
+            "asplit=3[clear][low][rough];"
+            "[clear]highpass=f=100,lowpass=f=5600,volume=0.70[c];"
+            "[low]asetrate=19680,aresample=24000,atempo=1.219512,"
+            "highpass=f=75,lowpass=f=1900,volume=0.27[l];"
+            "[rough]highpass=f=260,lowpass=f=2300,tremolo=f=31:d=0.78,"
+            "acompressor=threshold=0.075:ratio=5:attack=2:release=35,volume=0.19[r];"
+            "[c][l][r]amix=inputs=3:duration=longest:normalize=0,"
+            "aecho=0.8:0.18:43:0.08,loudnorm=I=-21:TP=-4:LRA=8[glass]"
+        )
     if role == "phone":
         return "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8"
     if role == "radio":
@@ -62,6 +71,33 @@ def decoded_true_peak(path: Path) -> float:
     if peak > -3:
         raise RuntimeError(f"Decoded take exceeds -3 dBFS headroom: {path.name} ({peak} dBFS)")
     return peak
+
+
+def add_glass_rattle(samples: list[float], rate: int, name: str) -> list[float]:
+    """Original deterministic glottal closures, never a borrowed sound clip."""
+    import math
+    lead = round(rate * .14)
+    out = [0.] * lead + samples + [0.] * round(rate * .22)
+    seed = int.from_bytes(hashlib.sha256(name.encode()).digest()[:4], 'little')
+    onsets = [.015, .066, .142]
+    position = .64
+    while position < len(out) / rate - .2:
+        onsets.append(position)
+        position += .58 + ((seed >> 8) & 255) / 255 * .37
+        seed = (1664525 * seed + 1013904223) & 0xffffffff
+    for onset in onsets:
+        begin = round(onset * rate)
+        for index in range(round(rate * .037)):
+            if begin + index >= len(out):
+                break
+            seed = (1664525 * seed + 1013904223) & 0xffffffff
+            white = seed / 2147483648 - 1
+            t = index / rate
+            closure = math.exp(-t * 165) * (1 - math.exp(-t * 1800))
+            resonance = (math.sin(t * math.tau * 770) * .44 +
+                         math.sin(t * math.tau * 1390) * .27 + white * .29)
+            out[begin + index] += closure * resonance * .075
+    return out
 
 
 def main() -> None:
@@ -137,6 +173,8 @@ def main() -> None:
                 samples.extend([0.] * round(float(pauses[index]) * sample_rate))
         if not any(abs(float(s)) > 0.005 for s in samples):
             raise RuntimeError("Kokoro produced a silent take for " + name)
+        if line["role"] == "glass":
+            samples = add_glass_rattle(samples, sample_rate, name)
         pcm = array.array("h", (round(max(-1, min(1, float(s))) * 32767) for s in samples))
         target = args.output_dir / (name + ".ogg")
         effects = effects_for(line["role"])
@@ -147,9 +185,10 @@ def main() -> None:
                 wav.setsampwidth(2)
                 wav.setframerate(sample_rate)
                 wav.writeframes(pcm.tobytes())
+            processing = ["-filter_complex", effects, "-map", "[glass]"] if line["role"] == "glass" else ["-af", effects]
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(raw),
-                "-af", effects, "-ar", "24000", "-c:a", "libvorbis", "-q:a", "5", str(target),
+                *processing, "-ar", "24000", "-c:a", "libvorbis", "-q:a", "5", str(target),
             ], check=True)
         duration = float(subprocess.check_output([
             "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(target),
@@ -166,6 +205,8 @@ def main() -> None:
             report["clips"][name]["segments"] = segments
             report["clips"][name]["pauses_after_seconds"] = pauses
             report["clips"][name]["phrase_starts_seconds"] = phrase_starts
+        if line["role"] == "glass":
+            report["clips"][name]["original_rattle"] = "deterministic glottal closure PCM; no external recording"
         report_path.write_text(json.dumps(report, indent=2) + "\n")
         print(f"{name}: {line['voice']}, {duration:.2f}s, rendered in {time.monotonic()-started:.2f}s", flush=True)
 

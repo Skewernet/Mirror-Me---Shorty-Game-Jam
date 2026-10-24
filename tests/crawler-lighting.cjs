@@ -25,7 +25,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       const { buildHouse } = await import("/src/house.mjs");
       const { Story } = await import("/src/story.mjs");
       const { HorrorDirector } = await import("/src/horror.mjs");
-      const { CRAWLER_FLICKER, crawlerFlickerAt } = await import("/src/crawler-flicker.mjs");
+      const { BLACKOUT_ENVIRONMENT, CRAWLER_FLICKER, crawlerFlickerAt } = await import("/src/crawler-flicker.mjs");
       const check = (value, message) => { if (!value) throw new Error(message); };
       const scene = new T.Scene(), state = new Story(), house = await buildHouse(scene);
       const player = { x: 2, z: 0, yaw: -Math.PI / 2 };
@@ -34,6 +34,9 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       house.reset(state);
       house.animate(2, 2, state, player);
       const baseline = new Map(house.lights.map(light => [light, light.intensity]));
+      const ambientBase = house.ambientLight.intensity;
+      const environmentBase = house.materials.wood.envMapIntensity;
+      const visibility = new Map(house.lights.map(light => [light, light.visible]));
       const windowLights = house.lights.filter(light => light.userData.powerCircuit === "window");
       check(windowLights.length === 4, "House moonlight fixtures changed unexpectedly");
       const fixtures = [];
@@ -50,6 +53,8 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
           check(fixture.mesh.material.color.equals(fixture.color), "A circuit failed to restore its bulb color");
           check(fixture.mesh.material.emissiveIntensity === fixture.emissive, "A circuit failed to restore its shade emission");
         }
+        check(house.ambientLight.intensity === ambientBase && house.materials.wood.envMapIntensity === environmentBase,
+          "Electrical restoration retained dim indirect light");
       };
       const circuits = [];
       for (const [zone, lights] of Object.entries(house.lightingGroups)) {
@@ -85,10 +90,17 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       };
       for (const [id, source] of Object.entries(encounterSources)) {
         const first = CRAWLER_FLICKER[id][0];
-        house.applyHorrorLighting({ ...crawlerFlickerAt(id, (first.from + first.to) / 2), lightSource: source });
-        check(house.lightingGroups[source].filter(light => light.userData.powerCircuit !== "window").every(light => light.intensity === 0),
-          id + " did not darken its actual house circuit");
-        for (const light of windowLights) check(light.intensity === baseline.get(light), id + " removed moonlight");
+        house.applyHorrorLighting({ ...crawlerFlickerAt(id, (first.from + first.to) / 2),
+          lightSource: "all", ...BLACKOUT_ENVIRONMENT });
+        check(house.lights.filter(light => light.userData.powerCircuit !== "window").every(light => light.intensity === 0),
+          id + " did not turn off every practical in the house");
+        for (const light of windowLights) check(light.intensity === baseline.get(light) * BLACKOUT_ENVIRONMENT.exteriorMultiplier,
+          id + " left full exterior fill during the blackout");
+        check(house.ambientLight.intensity === ambientBase * BLACKOUT_ENVIRONMENT.ambientMultiplier &&
+          house.materials.wood.envMapIntensity === environmentBase * BLACKOUT_ENVIRONMENT.environmentMultiplier,
+          id + " left ambient/image lighting at normal brightness");
+        check(house.lights.every(light => light.visible === visibility.get(light)),
+          id + " changed shader light counts instead of light intensity");
         restore();
       }
 
@@ -159,7 +171,7 @@ const url = (process.env.MIRROR_TEST_URL || "http://127.0.0.1:8000").replace(/\/
       return { status: "PASS", rendered: false, circuits, encounters: Object.keys(encounterSources).length,
         moonlightSources: windowLights.length, fixtures: fixtures.length,
         shadowInvalidations: invalidations.length,
-        checks: ["actual circuit power off/on", "all four crawling encounters", "exterior moonlight preserved",
+        checks: ["actual circuit power off/on", "all four whole-house crawling blackouts", "exterior/ambient/image lighting suppressed then restored",
           "local bulb/shade emission and material isolation", "comfort toggle restores real lights", "shared shadow scheduler delegation",
           "puzzle-owned lampOff/material pointers preserved", "restart keeps failed fuse and fixture emission off"] };
     });

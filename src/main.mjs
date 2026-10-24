@@ -220,9 +220,9 @@ const safeText = (text) =>
   );
 function updateInventory() {
   const cards = [];
-  const item = (title, text, symbol = "⌑") =>
+  const item = (title, text, symbol = "⌑", id = "") =>
     cards.push(
-      `<article class="item"><div class="item-symbol">${symbol}</div><h3>${safeText(title)}</h3><p>${safeText(text).replace(/\n/g, "<br>")}</p></article>`,
+      `<article class="item"${id ? ` data-memory="${safeText(id)}" tabindex="-1"` : ""}><div class="item-symbol">${symbol}</div><h3>${safeText(title)}</h3><p>${safeText(text).replace(/\n/g, "<br>")}</p></article>`,
     );
   if (story.hasNote) item("The folded note", WRITINGS.note);
   if (story.hasFuse)
@@ -247,10 +247,12 @@ function updateInventory() {
       "03:17\n\nThe mirror has 03:17 written on it. Set the hall clock to that time.",
       "◷",
     );
-  if (story.radioTuned)
+  if (story.hasStationClue || story.radioTuned)
     item(
-      "The station",
-      "93.7 FM. An empty carrier, keeping the line open.",
+      "The kitchen walls",
+      story.radioTuned
+        ? "93.7 FM. An empty carrier, keeping the line open."
+        : "93.7 FM. The same number, repeated in blood across the kitchen walls.",
       "◌",
     );
   const names = {
@@ -272,13 +274,11 @@ function updateInventory() {
         " / 3.",
       "◌",
     );
-  if (story.stage === 4)
+  if (story.stage >= 3 && story.hasDiary)
     item(
-      "End the evening",
-      "Silence the last sound first: bedroom music box, bathroom tap, kitchen radio.\n\nThe sitting-room telephone is not part of her routine.\nQuiet: " +
-        story.echoIndex +
-        " / 3.",
-      "◌",
+      "The diary's last page",
+      WRITINGS.routine + (story.stage === 4 ? "\n\nQuiet: " + story.echoIndex + " / 3." : ""),
+      "◌", "routine",
     );
   if (story.stage >= 5)
     item(
@@ -606,7 +606,10 @@ $("sudden-scares").onchange = (e) => {
   if (!scaresEnabled) sound.stopCreatureCues();
   if (!scaresEnabled && funeralAttack) house.wake.reduceAttack?.(elapsed);
 };
-$("flashing-lights").onchange = (e) => (flashingLights = e.target.checked);
+$("flashing-lights").onchange = (e) => {
+  flashingLights = e.target.checked;
+  house.wake.setBlackoutEnabled?.(flashingLights);
+};
 $("quality").onchange = (e) => {
   quality = Number(e.target.value);
   adaptive.reset();
@@ -756,6 +759,10 @@ function findTarget() {
   );
 }
 function interact(id) {
+  // A reflection reply never interrupts essential dialogue or builds a long
+  // queue when E is held/repeated; its cycle advances only on an actual reply.
+  if (id === "mirror" && story.hasKey && story.frozen && story.stage < 5 &&
+      (sound.busy || pending.length)) return;
   if (id.startsWith("evidence-")) {
     if (!story.inverted) return;
     if (!evidenceSeen.has(id)) {
@@ -774,6 +781,7 @@ function interact(id) {
   }
   const event = story.interact(id);
   if (event) respond(event);
+  if (event === "diary-routine") return; // Keep the focused last page intact.
   drainStoryEvents();
   updateInventory();
 }
@@ -782,7 +790,20 @@ function drainStoryEvents() {
 }
 function respond(event) {
   if (!event) return;
+  if (event === "diary-routine") {
+    pocket();
+    const lastPage = $("items").querySelector('[data-memory="routine"]');
+    lastPage?.scrollIntoView({ block: "start" });
+    lastPage?.focus({ preventScroll: true });
+    return;
+  }
   sound.effect(event);
+  const mirrorTaunt = /^mirror[0-7]$/.test(event);
+  if (mirrorTaunt) {
+    const index = Number(event.slice(6));
+    mirror.react(elapsed, index, { enabled: scaresEnabled });
+    if (scaresEnabled) sound.effect("reflection-twitch", { x: MIRROR.x, y: 1.6, z: MIRROR.z });
+  }
   const lines = {
     note: WRITINGS.note,
     "arrival-recording":
@@ -812,15 +833,16 @@ function respond(event) {
     key: "A small brass key. The tag reads BEDROOM.",
     "bedroom-locked": "Locked. The key is small; it must be nearby.",
     diary:
-      "Her station: 93.7 FM. Her watch, her ring, the blue ribbon. The diary remembers where she left them, and in what order.",
+      "Her watch, her ring, the blue ribbon. The diary remembers where she left them, and in what order.",
     "diary-repeat":
-      "Her station is 93.7 FM. Watch beside the radio, ring by the bath, ribbon beside the music box. The evening ends in reverse.",
+      "Watch beside the radio, ring by the bath, ribbon beside the music box. The evening ends in reverse.",
+    "station-clue": "93.7 FM. The same number, written again and again across the kitchen.",
     "bath-clouded":
       "The moisture is uneven. There is nothing legible yet.",
     "time-clue": "The mirror has 03:17 written on it.",
     "clock-set": "You leave the hands where you put them. The house waits.",
     "clock-solved":
-      "The hands agree. A faint carrier comes from the kitchen radio.",
+      "The hands agree. Fresh writing has appeared on the kitchen walls.",
     call: "Mum's voice. The music box. The bath. The radio. The diary remembers their places.",
     musicbox: "A few notes turn in the little wooden box.",
     tap: "Water runs into an empty basin.",
@@ -850,7 +872,7 @@ function respond(event) {
     "backdoor-unlocked": "A heavy latch releases at the back of the house.",
     "backdoor-gone": "Wallpaper. It has always been wallpaper.",
     "radio-await-clock": "A voice keeps circling the same unfinished hour.",
-    "radio-static": "Only static. The bedside diary kept the station number.",
+    "radio-static": "Only static. Look at the blood-written numbers on the kitchen walls.",
     "radio-tuned":
       "93.7. The static stops. Somewhere else, a telephone begins to ring.",
     "keepsake-watch": "Her watch. Stopped at the hour the house remembers.",
@@ -888,7 +910,7 @@ function respond(event) {
     "ending-open": "Cold daylight. A place outside.",
   };
   if (event === "note") house.note.visible = false;
-  if (event === "arrival-recording" || event === "call")
+  if (event === "arrival-recording" || event === "call" || event === "routine-call")
     story.phoneLiftUntil = elapsed + 13;
   if (event === "radio-on" || event === "radio-off") sound.effect("switch");
   if (event === "radio-tune") {
@@ -916,6 +938,7 @@ function respond(event) {
     letter: "letter",
     "time-clue": "time",
     call: "call",
+    "routine-call": "routineCall",
     "mirror-command": "command",
     unlocked: "unlocked",
     released: "released",
@@ -929,12 +952,13 @@ function respond(event) {
     "house-quiet": "released",
     "mirror-enter": "command",
   };
-  if (voiced[event]) {
+  const voiceId = voiced[event] || (mirrorTaunt ? event : null);
+  if (voiceId) {
     // Spoken dialogue owns one caption channel; never print the same thought
     // above it as a second toast while the voice is queued or playing.
     $("message").textContent = "";
-    const telephone = event === "arrival-recording" || event === "call";
-    queueVoice(voiced[event], 0.35, telephone ? {
+    const telephone = event === "arrival-recording" || event === "call" || event === "routine-call";
+    queueVoice(voiceId, 0.35, telephone ? {
       onDuration: (duration) => {
         story.phoneLiftUntil = elapsed + Math.max(0, duration - sound.voiceElapsed()) + .4;
       },
@@ -1060,7 +1084,9 @@ function update(dt) {
   if (endingAt) {
     const t = elapsed - endingStart;
     if (!funeralAttack) player.update(dt, house.colliders);
+    house.wake.setBlackoutEnabled(flashingLights);
     house.animate(elapsed, dt, story, player);
+    for (const event of house.wake.drainEvents()) sound.effect(event.id, event);
     sound.update(story, player);
     if (elapsed >= messageUntil) $("message").textContent = "";
     playPendingVoice();
@@ -1081,6 +1107,7 @@ function update(dt) {
           if (!endingAt || startedAt !== endingStart) return;
           newsFinished = true;
           newsFinishedAt = elapsed;
+          house.wake.beginBlackout(elapsed, { flashes: flashingLights });
           endingAt = elapsed + 10;
         },
       });
@@ -1188,7 +1215,6 @@ function update(dt) {
     lateSpoken = true;
     queueVoice("late", 0.3);
   }
-  mirror.update(elapsed, player, story, looking);
   house.animate(elapsed, dt, story, player);
   for (const event of house.dressing?.drainEvents() || [])
     sound.effect(event.id, event);
@@ -1201,6 +1227,7 @@ function update(dt) {
   for (const event of horror.drainEvents()) sound.effect(event.id, event);
   target = findTarget();
   updateFlashlight(dt);
+  mirror.update(elapsed, player, story, looking, firstPerson.capturePose());
   sound.step(
     player.distance,
     player.speed,
@@ -1237,7 +1264,8 @@ function update(dt) {
         : "TURN KITCHEN RADIO " + (story.radioOn ? "OFF" : "ON");
   if (target?.id === "telephone")
     label =
-      story.stage >= 3 ? "CHECK DEAD TELEPHONE" : "LIFT TELEPHONE RECEIVER";
+      (((story.stage === 3 && story.ritualIndex === 3) || (story.stage === 4 && !story.silenceComplete)) && !story.heardRoutineCall) || story.stage < 3
+        ? "LIFT TELEPHONE RECEIVER" : "CHECK DEAD TELEPHONE";
   if (target?.id === "tap" && story.stage >= 4)
     label = story.echoIndex >= 2 ? "THE TAP IS OFF" : "TURN OFF TAP";
   if (target?.id === "musicbox" && story.stage >= 4)
@@ -1289,7 +1317,8 @@ try {
     house.wake.group.visible = wake;
     await renderer.compileAsync(scene, camera);
     warmupStats.push(warmRenderResources(renderer, scene, camera, {
-      target: picture.target, objects: [firstPerson.body, horror.figure.body],
+      target: picture.target,
+      objects: [firstPerson.body, horror.figure.body, house.props.kitchenFrequency.root],
     }));
   }
   house.revelation.group.visible = warmupVisibility[0];
@@ -1345,6 +1374,7 @@ if (testMode) {
       headYaw: mirror.head.rotation.y,
       visible: mirror.body.visible,
     },
+    reflection: mirror.snapshot(),
     audio: sound.context?.state,
     dialogue: {
       id: sound.currentVoice,

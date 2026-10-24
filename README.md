@@ -4,9 +4,9 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — presentation and embodiment:** polished title/pause menus and saved grouped settings, optional subtitles with one dialogue channel, a filmic post pass, real spatial telephone bells, Mum's fragmented pleading call, and irregular crawler light failures. Mara has a visible rigged body, hand-held flashlight with draw/stow, and item-reaching animations using the existing CC0 character. GPU/audio warmup, stable flashlight shaders, local shadow scheduling and adaptive resolution target smoother 60 FPS play; broad hardware performance still needs playtesting. This pass is local and not deployed.
+**Current local development — mirror, clues and electrical scares:** faithful and delayed reflections now replay real hands/flashlight motion before the held pose freezes. Post-key inspections cycle through eight rough, clicking reminders with finite twitch/eye-bleed reactions. A new Mum call points to the readable reverse-order diary page; the station clue moves to blood writing across the kitchen walls. Crawlers interrupt the whole house and the funeral has a pre-attack blackout sequence. Producer/jam/title splashes, a content warning and optional eerie menu audio cover loading. Load-time optimization is deferred to the next test. This pass is local and not deployed.
 
-**Published baseline:** `be16d32` includes fullscreen, the bounded mouse input, face-to-face wounded Evelyn attack, warm funeral parlor and complete Goodnight. Its 134 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=be16d32).
+**Published baseline:** `9ea89a0` contains the polished menu/settings, first-person body/flashlight, phone bells, filmic presentation and performance safeguards. Its 139 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=9ea89a0).
 
 The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
@@ -30,7 +30,7 @@ That exit leads to the warm funeral parlor with empty chairs and an open casket.
 
 The house retains photographic wood/fabric, independent PBR normal/roughness maps, restrained indirect reflections, soft practical shadows and screen-space contact shading. Default output is up to 1080p, with 720p performance and 1440p detail options. Grain and walking motion start off. Six finite authored sightings, directional sound, falling décor and independent sudden-scare/light-flicker settings remain; changing comfort settings cannot block a puzzle.
 
-The sitting-room **telephone carries calls only**. The **kitchen radio** retains the 93.7 FM puzzle and weather role. The **funeral radio** carries the late factual report. Keepsakes still follow the diary's care order, and the evening's sounds stop in reverse: bedroom music box → bathroom tap → kitchen radio. Wrong attempts remain recoverable. Thirty local Kokoro performances cover Mara/glass, Mum, weather, the funeral report and broken-word crying; all performances are synthetic.
+The sitting-room **telephone carries calls only**. The **kitchen radio** retains the 93.7 FM puzzle and weather role. The **funeral radio** carries the late factual report. Keepsakes still follow the diary's care order, and the evening's sounds stop in reverse: bedroom music box → bathroom tap → kitchen radio. Wrong attempts remain recoverable. Thirty-nine local Kokoro performances cover Mara/glass, Mum, weather, the funeral report and broken-word crying; all performances are synthetic.
 
 The first-play target remains **10–15 minutes**, unvalidated by first-time human timing. The revised ending must be tested for clarity, pacing and headphone balance. Cloud software rendering cannot establish real desktop-GPU performance or how frightening the game feels.
 
@@ -66,6 +66,11 @@ node --test tests/*.test.mjs
 node tests/browser.cjs
 node tests/browser-smoke.cjs
 node tests/polish.cjs
+node tests/intro.cjs
+node tests/mirror-embodiment.cjs
+node tests/kitchen-frequency.cjs
+node tests/reflection-audio.cjs
+node tests/funeral-blackout.cjs
 node tests/settings.cjs
 node tests/picture.cjs
 node tests/first-person.cjs
@@ -112,6 +117,6 @@ Current validation and release evidence are recorded in [current status](PROJECT
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `be16d32`; its automatic deployment and all 134 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `9ea89a0`; its automatic deployment and all 139 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

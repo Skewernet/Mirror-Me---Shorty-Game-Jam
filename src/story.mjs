@@ -1,5 +1,6 @@
 import { ECHO_ORDER, CLOCK_SOLUTION } from "./layout.mjs";
 import { KEEPSAKE_ORDER, RADIO_SOLUTION } from "./chapters.mjs";
+import { EXTRA_VOICES } from "./extra-voices.mjs";
 
 const numeric = (value) =>
   typeof value === "number" || (typeof value === "string" && value.trim())
@@ -39,6 +40,9 @@ export class Story {
     this.clockMinute = 0;
     this.clockSolved = false;
     this.heardCall = false;
+    this.heardRoutineCall = false;
+    this.hasStationClue = false;
+    this.mirrorTauntCursor = 0;
     this.keepsakes = { watch: false, ring: false, ribbon: false };
     this.placedKeepsakes = [];
     this.ritualIndex = 0;
@@ -298,6 +302,10 @@ export class Story {
         this.heardCall = true;
         return this.result("call");
       }
+      if (((this.stage === 3 && this.ritualIndex === KEEPSAKE_ORDER.length) || (this.stage === 4 && !this.silenceComplete)) && !this.heardRoutineCall) {
+        this.heardRoutineCall = true;
+        return "routine-call";
+      }
       return this.stage >= 3 ? "telephone-dead" : "telephone-repeat";
     }
     if (id === "radio") {
@@ -330,6 +338,11 @@ export class Story {
       if (this.stage === 5) return "mirror-enter";
       if (this.stage === 6) return "mirror-inverted";
       if (this.stage === 0) return "mirror-first";
+      if (this.hasKey && this.frozen) {
+        const event = "mirror" + (this.mirrorTauntCursor % 8);
+        this.mirrorTauntCursor = (this.mirrorTauntCursor + 1) % 8;
+        return event;
+      }
       return this.encounter ? "mirror-held" : "mirror-late";
     }
     if (id === "drawer") {
@@ -346,9 +359,15 @@ export class Story {
     }
     if (id === "diary") {
       if (!this.hasKey) return "bedroom-locked";
+      if (this.hasDiary && this.stage >= 3) return "diary-routine";
       if (this.hasDiary) return "diary-repeat";
       this.hasDiary = true;
       return this.result("diary");
+    }
+    if (id === "station-clue") {
+      if (this.stage !== 2 || !this.clockSolved) return null;
+      this.hasStationClue = true;
+      return "station-clue";
     }
     if (id === "bath-clue") {
       if (this.stage < 2) return "bath-clouded";
@@ -425,6 +444,8 @@ export class Story {
     return "wrong-order";
   }
   hint() {
+    if (this.stage === 3 && this.ritualIndex === KEEPSAKE_ORDER.length && !this.heardRoutineCall)
+      return "The sitting-room telephone is ringing once more. Mum's diary is beside her bed.";
     if (this.stage <= 4 && this.doorOpen)
       return "The rear latch has opened. Leave through the back door.";
     if (this.stage === 0) {
@@ -450,7 +471,9 @@ export class Story {
       if (!this.clockSolved)
         return "The mirror has 03:17 written on it. Set the hall clock.";
       if (!this.radioTuned)
-        return "The diary gives Mum's station: tune the kitchen radio to 93.7 FM.";
+        return this.hasStationClue
+          ? "The kitchen walls repeat 93.7. Tune the kitchen radio to that station."
+          : "There is fresh writing on the kitchen walls. Look near the radio.";
       if (!this.heardCall)
         return "The sitting-room telephone is ringing again.";
     }
@@ -471,7 +494,9 @@ export class Story {
         }[next.item];
     }
     if (this.stage === 4)
-      return "End her evening in reverse: close the bedroom music box, stop the bathroom tap, then switch off the kitchen radio.";
+      return !this.heardRoutineCall
+        ? "The sitting-room phone is ringing. Mum's diary is beside her bed; its last page explains how to end the evening."
+        : "End her evening in reverse: close the bedroom music box, stop the bathroom tap, then switch off the kitchen radio.";
     if (this.stage === 5)
       return "The back door is gone. Your reflection is gone. Walk into the empty mirror.";
     if (this.stage === 6) {
@@ -487,9 +512,10 @@ export class Story {
   }
 }
 export const WRITINGS = {
+  routine: "THE LAST PAGE — END HER EVENING\n\nDo the sounds in reverse. Start with the last sound she heard:\n\n1. CLOSE the music box beside Mum's bed.\n2. STOP the tap in the bathroom.\n3. SWITCH OFF the kitchen radio.\n\nMusic box → bathroom tap → kitchen radio. The telephone is not part of this order.",
   note: "IF THE HALL RETURNS, FINISH WHAT YOU LEFT.\nIF THE LATCH HOLDS, SOMETHING IS UNFINISHED.\nWHEN THE GLASS IS EMPTY, WALK THROUGH.\n\nI know this handwriting.",
   diary:
-    "HER EVENING\nHer station is 93.7 FM. The kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nSEVEN YEARS\nI knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.\n\nAFTER THE CALL\nThe bathroom mirror had 03:17 written in the condensation. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.\n\nIf I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.\n\nI have written that last line twice.",
+    "HER EVENING\nThe kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nSEVEN YEARS\nI knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.\n\nAFTER THE CALL\nThe bathroom mirror had 03:17 written in the condensation. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.\n\nTHE LAST PAGE — TO END HER EVENING\nDo the sounds in reverse. FIRST close the bedroom music box. SECOND stop the bathroom tap. LAST switch off the kitchen radio. The telephone does not belong to this order.\n\nI have written that last line twice.",
   letter:
     "ST. ANNE'S — DISCHARGE / PERSONAL PROPERTY\nPATIENT: EVELYN VALE\nProperty received by: MARA VALE\n\nOne wristwatch. One wedding ring. One ribbon.\nItems returned on discharge to home care.\nLong-term care to continue at the patient's home.\n\nIn my handwriting, below the signature:\nI kept the house exactly how she liked it. I did everything.",
   truth:
@@ -614,4 +640,5 @@ export const VOICES = {
     speaker: "THE FUNERAL RADIO",
     text: "Police have confirmed that sixty-eight-year-old Evelyn Vale was attacked in her bathroom and died in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
   },
+  ...EXTRA_VOICES,
 };
