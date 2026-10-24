@@ -75,6 +75,8 @@ node tests/crime-scene.cjs
 node tests/funeral-scare.cjs
 node tests/door-transitions.cjs
 node tests/portal-warmup.cjs
+node tests/camera-input.cjs
+node tests/doorway-camera.cjs
 ```
 
 Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.

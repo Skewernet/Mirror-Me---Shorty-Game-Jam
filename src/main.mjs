@@ -1,6 +1,7 @@
 import * as T from "three";
 import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
+import { LookInput } from "./look-input.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
 import { Story, VOICES, WRITINGS } from "./story.mjs";
@@ -65,6 +66,7 @@ try {
 }
 const picture = new Picture(renderer, camera);
 const player = new Player(camera),
+  lookInput = new LookInput(),
   mirror = new Mirror(scene, house),
   story = new Story(),
   ray = new T.Raycaster(),
@@ -268,6 +270,7 @@ function announceChapter() {
 }
 
 function reset() {
+  lookInput.reset();
   story.reset();
   player.reset();
   mirror.reset();
@@ -560,7 +563,8 @@ $("contact-shadows").onchange = (e) => {
 };
 $("grain").onchange = (e) =>
   $("veil").classList.toggle("clean", !e.target.checked);
-document.addEventListener("pointerlockchange", () => {
+document.addEventListener("pointerlockchange", (e) => {
+  lookInput.reset(e.timeStamp);
   if (document.pointerLockElement === renderer.domElement) {
     mode = "playing";
     active = true;
@@ -588,17 +592,21 @@ document.addEventListener("pointerlockerror", () => {
   $("error").textContent = "Mouse capture was refused. Click RETURN again.";
 });
 window.addEventListener("blur", () => {
+  lookInput.reset();
   player.clear();
   if (document.pointerLockElement) document.exitPointerLock();
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
+    lookInput.reset();
     player.clear();
     if (document.pointerLockElement) document.exitPointerLock();
   }
 });
 document.addEventListener("mousemove", (e) => {
-  if (active && !funeralAttack) player.look(e.movementX, e.movementY);
+  if (!active || funeralAttack || document.pointerLockElement !== renderer.domElement) return;
+  const motion = lookInput.read(e, player.sensitivity);
+  if (motion) player.look(motion.x, motion.y);
 });
 document.addEventListener("keydown", (e) => {
   if (e.code === "Tab" && (active || mode === "pocket")) {
@@ -1222,7 +1230,7 @@ if (testMode) {
     portal: null,
     lastPortal,
     portalCount,
-    input: { keys: [...player.keys], vx: player.vx, vz: player.vz },
+    input: { keys: [...player.keys], vx: player.vx, vz: player.vz, look: lookInput.snapshot() },
     scares: {
       mirrorSnap,
       ...horror.snapshot(),

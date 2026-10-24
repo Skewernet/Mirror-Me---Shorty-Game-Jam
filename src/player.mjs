@@ -1,6 +1,7 @@
 import * as T from "three";
 import { wishDirection, moveWithCollision } from "./physics.mjs";
 import { SPAWN } from "./layout.mjs";
+import { LOOK_RADIANS_PER_PIXEL } from "./look-input.mjs";
 export class Player {
   constructor(camera) {
     this.camera = camera;
@@ -26,9 +27,9 @@ export class Player {
     this.speed = 0;
   }
   look(dx, dy) {
-    this.yaw -= dx * 0.0018 * this.sensitivity;
+    this.yaw -= dx * LOOK_RADIANS_PER_PIXEL * this.sensitivity;
     this.pitch = T.MathUtils.clamp(
-      this.pitch - dy * 0.0018 * this.sensitivity,
+      this.pitch - dy * LOOK_RADIANS_PER_PIXEL * this.sensitivity,
       -1.25,
       1.25,
     );
