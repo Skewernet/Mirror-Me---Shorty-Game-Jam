@@ -590,11 +590,11 @@ export class Sound {
     } else if (id === "funeral-lunge") {
       // A finite inward breath and close cloth rush; keep dialogue/master
       // headroom instead of making the final scare depend on excessive level.
-      noise(0.62, 0.075, 1050);
-      impulse(47, 0.09, 0.55);
+      noise(0.16, 0.075, 1800);
+      impulse(47, 0.09, 0.22);
     } else if (id === "funeral-impact") {
-      noise(0.18, 0.085, 620);
-      impulse(58, 0.11, 0.38);
+      noise(0.10, 0.085, 1100);
+      impulse(58, 0.11, 0.24);
     }
     if (p) {
       // Audio completion, rather than a wall-clock timer: pausing for several
@@ -900,7 +900,8 @@ export class Sound {
       clearTimeout(this.voiceTimer);
       this.voiceTimer = setTimeout(
         done,
-        Math.max(0, this.voiceDuration - this.voiceOffset) * 1000 + 650,
+        Math.max(0, this.voiceDuration - this.voiceOffset) * 1000 +
+          (Number.isFinite(options.postGap) ? Math.max(0, options.postGap) * 1000 : 650),
       );
       options.onDuration?.(this.voiceDuration);
     };

@@ -7,7 +7,7 @@
     "speaker_id": 21
   },
   "recording": {
-    "text": "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
+    "text": "Mara? It's Mum. The fuse went out again. There are spares in the kitchen. Please don't leave before saying goodnight.",
     "role": "phone",
     "speed": 0.93,
     "voice": "bf_isabella",
@@ -56,7 +56,7 @@
     "speaker_id": 21
   },
   "time": {
-    "text": "Three seventeen. That's when the nurse called.",
+    "text": "The mirror has three seventeen written on it.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
@@ -212,5 +212,12 @@
     "voice": "bf_emma",
     "speaker_id": 21,
     "text": "I took it from here. I brought it to her."
+  },
+  "goodnight": {
+    "text": "Goodnight.",
+    "role": "mother",
+    "speed": 1.1,
+    "voice": "bf_isabella",
+    "speaker_id": 22
   }
 }

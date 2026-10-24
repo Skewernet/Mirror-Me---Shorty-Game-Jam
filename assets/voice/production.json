@@ -27,11 +27,11 @@
       "speaker_id": 22,
       "role": "phone",
       "speed": 0.93,
-      "text": "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
-      "speech_seconds": 6.826,
-      "file_seconds": 6.9,
+      "text": "Mara? It's Mum. The fuse went out again. There are spares in the kitchen. Please don't leave before saying goodnight.",
+      "speech_seconds": 7.187,
+      "file_seconds": 7.2,
       "effects": "highpass=f=300,lowpass=f=3400,loudnorm=I=-19:TP=-4:LRA=8",
-      "sha256": "c62398444a89025229aa2959c2f39fea11e4898790dc449b910163e570754aec",
+      "sha256": "cfef9b7b01b4fe65d123b0722b3696e229098ad12108cbc0b77c3cef0861c565",
       "decoded_true_peak_dbfs": -3.7
     },
     "power": {
@@ -111,12 +111,12 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "Three seventeen. That's when the nurse called.",
-      "speech_seconds": 2.872,
-      "file_seconds": 2.872,
+      "text": "The mirror has three seventeen written on it.",
+      "speech_seconds": 2.461,
+      "file_seconds": 2.461,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "0c0606e26fd005cfc00cc1ad06dace038364c5c74936a273bb7ddd8ad7b9cbe2",
-      "decoded_true_peak_dbfs": -3.9
+      "sha256": "274f92cc177399a0667fd56c7fb69f6c3a918bfbf10d94a7fdb1786e2e95709a",
+      "decoded_true_peak_dbfs": -4.0
     },
     "call": {
       "voice": "bf_emma",
@@ -368,6 +368,18 @@
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
       "sha256": "d86eef0bcea0e2ed9b2e2199399fe4393089f35df6b22763004dd4c37c1f4250",
       "decoded_true_peak_dbfs": -4.3
+    },
+    "goodnight": {
+      "voice": "bf_isabella",
+      "speaker_id": 22,
+      "role": "mother",
+      "speed": 1.1,
+      "text": "Goodnight.",
+      "speech_seconds": 0.856,
+      "file_seconds": 0.856,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "0964ef2015413cf4f521287baee79e004b88758d09f78529274048e3b362e2ab",
+      "decoded_true_peak_dbfs": -6.1
     }
   }
 }

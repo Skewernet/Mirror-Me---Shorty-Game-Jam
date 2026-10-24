@@ -1,0 +1,164 @@
+{
+  "identity": "Evelyn Vale",
+  "reference": {
+    "file": "assets/art/family-photographs.png",
+    "sha256": "b8e2b25d3656404df9402813ec704430a1f4aef1cf01c35a9dd643c28ac7614b",
+    "interpretation": "Original fictional mother seated at left: broad oval face, soft short waved hair, cream floral blouse, aged to68; not a biometric reconstruction."
+  },
+  "license": "CC0-1.0 for MakeHuman source assets; original project morphology choices, floral shader and wound artwork",
+  "archive": {
+    "url": "https://github.com/Makehuman-2/MH2_Asset_Repository_CCO/releases/download/CC0/mh_system_CC0.zip",
+    "sha256": "d38970b0a2a06dbcb2d3f55aa3d673c45bc88e7bd1f4afa0368a0782938d55bc"
+  },
+  "mpfb": {
+    "url": "https://github.com/makehumancommunity/mpfb2",
+    "commit": "b1a2dc98776da9d1eea751b159d42cf61778fe2e"
+  },
+  "sourceFiles": [
+    {
+      "path": "skins/old_caucasian_female/old_caucasian_female.mhmat",
+      "sha256": "a88440d9f1225d3b4c963259e6f434eb3be7d3a2932e46ea88cfc675ed20c387"
+    },
+    {
+      "path": "skins/old_caucasian_female/old_lightskinned_female_diffuse.png",
+      "sha256": "00c45246c145562b917371e92de44a1fe394bc5f4bd91418addf24b6adff5e9d"
+    },
+    {
+      "path": "clothes/female_elegantsuit01/female_elegantsuit01.mhclo",
+      "sha256": "8ed657dbc49466e6a485993cfdcfd7b6ac30a0f44408dfd38de7a649477d8928"
+    },
+    {
+      "path": "clothes/female_elegantsuit01/female_elegantsuit01.obj",
+      "sha256": "3b46cef6d63968954dc00c39ede649d76c05e5d36fe9f9c677349c88fd424de9"
+    },
+    {
+      "path": "clothes/female_elegantsuit01/female_elegantsuit01_diffuse.png",
+      "sha256": "ebe6f2afcbaadbe56d5cee6e00bab45e97ce482f0be0e34491d16ca5f98b38ac"
+    },
+    {
+      "path": "clothes/female_elegantsuit01/female_elegantsuit01_normal.png",
+      "sha256": "ae3650bce6678cd67d025ab70e68b22683176aeaabc06d8e5b2129af99c762e9"
+    },
+    {
+      "path": "clothes/shoes04/shoes04.mhclo",
+      "sha256": "88223bf0c6168e85fd118015e4ca61612c6b35f42a79d7ce5df1864f1a6f715e"
+    },
+    {
+      "path": "clothes/shoes04/shoes04.obj",
+      "sha256": "eac355a842a8eb8ae2f09fac8dd18a877a24ef2521ed2d6bf38559b42ce4b49a"
+    },
+    {
+      "path": "eyes/high-poly/high-poly.mhclo",
+      "sha256": "b183cfe37120ab726f9b3f2ea6cd3a64c44ce7b4bd91a77c841cf70c04f83a0d"
+    },
+    {
+      "path": "eyebrows/eyebrow001/eyebrow001.mhclo",
+      "sha256": "54c8892c2ba577f4152d779ce1f20f7cd323beb8cbd9cb701796165c221b4f5b"
+    },
+    {
+      "path": "eyelashes/eyelashes01/eyelashes01.mhclo",
+      "sha256": "5a86b29c15649273d723084954b7fa7bf199112571d4f58539b46734d397ee6b"
+    },
+    {
+      "path": "hair/short02/short02.mhclo",
+      "sha256": "625736cdb73e6d094df6e5a2df18f371781f1d2cd37b0ae15795c5d7051c3ec2"
+    },
+    {
+      "path": "hair/short02/short02.obj",
+      "sha256": "48f979114adfa712165a69cc55c45a70831af1fb3cba8e2a89120f0c87407b64"
+    },
+    {
+      "path": "hair/short02/short02_diffuse.png",
+      "sha256": "47fe33831a3929567c733356dd66243116e05df2ace1f884ddca0080b728229f"
+    }
+  ],
+  "morphology": {
+    "gender": 0.0,
+    "age": 0.94,
+    "muscle": 0.24,
+    "weight": 0.59,
+    "proportions": 0.46,
+    "height": 0.38,
+    "cupsize": 0.35,
+    "firmness": 0.24,
+    "race": {
+      "caucasian": 0.94,
+      "asian": 0.04,
+      "african": 0.02
+    }
+  },
+  "faceTargets": {
+    "head/head-oval.target.gz": 0.24,
+    "head/head-age-incr.target.gz": 0.38,
+    "head/head-scale-horiz-incr.target.gz": 0.13,
+    "head/head-fat-incr.target.gz": 0.1,
+    "nose/nose-width1-incr.target.gz": 0.13,
+    "nose/nose-hump-incr.target.gz": 0.1,
+    "chin/chin-width-incr.target.gz": 0.12,
+    "cheek/l-cheek-volume-incr.target.gz": 0.17,
+    "cheek/r-cheek-volume-incr.target.gz": 0.17
+  },
+  "builder": "tools/build_evelyn.py",
+  "output": {
+    "file": "evelyn.glb",
+    "sha256": "94ef3c1146a6039ddfcae6cdbedfe7d601e4c192370ae8f1f7e17646b29ec477"
+  },
+  "distinctFromMara": [
+    "Independent elderly morphology and old female skin",
+    "Fuller oval face, broader nose/cheeks, shorter stature",
+    "Different fitted blouse/skirt and shoe mesh",
+    "Different short02 wavy hair mesh and strand atlas, original ash/gray material treatment",
+    "Separate GLB, skeleton instances, owned materials and wounded-only topology"
+  ],
+  "mpfbFiles": [
+    {
+      "path": "src/mpfb/data/targets/head/head-oval.target.gz",
+      "sha256": "057eea7c5535c325493b9107228052b03c78fac1bcb24905313fae6351179cb8"
+    },
+    {
+      "path": "src/mpfb/data/targets/head/head-age-incr.target.gz",
+      "sha256": "ea5b7b9404daa1f6b8ea14a11a0e8ae6a082e98d0d65f63cc2150057a168e396"
+    },
+    {
+      "path": "src/mpfb/data/targets/head/head-scale-horiz-incr.target.gz",
+      "sha256": "671542640aec14d1740c1263deb0e274f3044edec761e6d4171329f0419be084"
+    },
+    {
+      "path": "src/mpfb/data/targets/head/head-fat-incr.target.gz",
+      "sha256": "28494dfd84ee8677000ef0a8d8e3b38dff0674d16c54103997b7bbe0de943a1a"
+    },
+    {
+      "path": "src/mpfb/data/targets/nose/nose-width1-incr.target.gz",
+      "sha256": "6818e340a06a968a51fb52a32c749dff0ec69fefbfc80a67c118d5e1f26ccb97"
+    },
+    {
+      "path": "src/mpfb/data/targets/nose/nose-hump-incr.target.gz",
+      "sha256": "ca6649d78752cca02fdb37f10804e021713b4fbfe2f85136e12b5787cc654aa6"
+    },
+    {
+      "path": "src/mpfb/data/targets/chin/chin-width-incr.target.gz",
+      "sha256": "68764b6ec7c923597beaaf643f71c41f00c93639d9bb522c169c279db2ad299e"
+    },
+    {
+      "path": "src/mpfb/data/targets/cheek/l-cheek-volume-incr.target.gz",
+      "sha256": "75bf330b96d0036c46f779ed003782c7380c77dd06c14fd80f1fa20a5093fee1"
+    },
+    {
+      "path": "src/mpfb/data/targets/cheek/r-cheek-volume-incr.target.gz",
+      "sha256": "4df3e61e843c2d3381ef534e90d347b6b8ea763428d69eba8ef2ed5ab0affb8c"
+    },
+    {
+      "path": "src/mpfb/data/targets/expression/units/caucasian/mouth-open.target.gz",
+      "sha256": "dc1260a8728d93a9c52d6b35b5f55ad39ab8096090acd5ccad7f973c26e28818"
+    },
+    {
+      "path": "src/mpfb/data/targets/expression/units/caucasian/eye-left-closure.target.gz",
+      "sha256": "ff0d21ceb6da55fe51e03b48a7562a650924fea9bef0c686fcd7aa44d16422ed"
+    },
+    {
+      "path": "src/mpfb/data/targets/expression/units/caucasian/eye-right-closure.target.gz",
+      "sha256": "2b7be6bc65845d77e5f83b7bf852090854747e448644997795fa59b6cf76122d"
+    }
+  ],
+  "builderSha256": "0df9bc221fb27cee662fd67dc7e243e909b3509fef91724951eacd93863e1cf4"
+}

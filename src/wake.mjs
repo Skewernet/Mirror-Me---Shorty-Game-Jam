@@ -2,23 +2,25 @@ import * as T from "three";
 import { createFigure } from "./figure.mjs";
 import { FigureRig } from "./figure-motion.mjs";
 import { createFuneralScare } from "./funeral-scare.mjs";
+import { createEvelyn } from "./evelyn.mjs";
+import { alignArchitectureUV } from "./architecture-uv.mjs";
 
 export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
 
-// A single reception room beyond the real front entrance. Its ordinary daylight
-// and a place already reserved for Mara form the ending, rather than a corridor
-// into another level.
+// A furnished funeral parlor beyond the real front entrance. A clear central
+// aisle ends at Evelyn's open casket; several chairs remain visibly unoccupied.
+// The restrained warm interior belongs to the same tactile house aesthetic.
 export function buildWake(b, m, surfaces, photos) {
   const { box, cylinder, sphere, group, contact } = b;
   const wake = group();
-  wake.name = "The reception";
+  wake.name = "Vale funeral parlor";
   wake.userData.wake = true;
   const bounds = {
-    minX: -2.7,
-    maxX: 2.7,
+    minX: -4.0,
+    maxX: 4.0,
     minZ: 7.56,
-    maxZ: 12.4,
-    ceiling: 2.7,
+    maxZ: 17.2,
+    ceiling: 3.1,
   };
   const entry = { x: 0, z: 7.56, width: 0.92, triggerZ: 8.35 };
   const colliders = [],
@@ -37,15 +39,15 @@ export function buildWake(b, m, surfaces, photos) {
         envMapIntensity: 0.06,
       }),
     );
-  const wall = tag(surfaces.material("plaster", 2.1, 1.4, 0xeeeae2));
+  const wall = tag(surfaces.material("wallpaper", 1, 1, 0x93846b));
   wall.normalScale.set(0.35, 0.35);
-  const ceiling = tag(surfaces.material("plaster", 2.8, 2.4, 0xeeeae2));
+  const ceiling = tag(surfaces.material("plaster", 1, 1, 0xa99d84));
   ceiling.normalScale.set(0.18, 0.18);
-  const floor = tag(surfaces.material("wood", 2.9, 2.6, 0xb3a38b));
-  const painted = tag(surfaces.material("panel", 1, 1, 0xcac8bc));
+  const floor = tag(surfaces.material("floor", 1, 1, 0x7d6145));
+  const painted = tag(surfaces.material("panel", 1, 1, 0x655544));
   const wood = tag(surfaces.material("wood", 1, 1, 0x8b7358));
   const darkWood = tag(surfaces.material("wood", 1, 1, 0x67594b));
-  const upholstery = tag(surfaces.material("linen", 1, 1, 0xb5b8ab));
+  const upholstery = tag(surfaces.material("linen", 1, 1, 0x645b4c));
   const paper = plain(0xe9e3d5),
     metal = plain(0x999e98, 0.43, 0.48),
     leaf = plain(0x7c8d70),
@@ -59,29 +61,31 @@ export function buildWake(b, m, surfaces, photos) {
     return box(w, h, d, x, y, z, material, false, parent, round);
   }
   function wallBox(w, d, x, z) {
-    const object = slab(w, 2.7, d, x, 1.35, z, wall);
+    const object = alignArchitectureUV(slab(w, bounds.ceiling, d, x, bounds.ceiling / 2, z, wall));
     addSolid(object);
-    slab(w + 0.012, 0.1, d + 0.012, x, 0.055, z, painted);
-    slab(w + 0.012, 0.065, d + 0.012, x, 2.655, z, painted);
+    // Continuous dark timber dado and fitted skirting, not pale institutional walls.
+    alignArchitectureUV(slab(w + .018, .85, d + .018, x, .425, z, painted));
+    alignArchitectureUV(slab(w + .028, .045, d + .028, x, .86, z, darkWood));
+    alignArchitectureUV(slab(w + .03, .10, d + .03, x, .05, z, darkWood));
+    alignArchitectureUV(slab(w + .03, .075, d + .03, x, bounds.ceiling - .045, z, darkWood));
     return object;
   }
-  slab(5.52, 0.13, 4.98, 0, -0.071, 9.98, floor);
-  const ceilingMesh = slab(5.52, 0.11, 4.98, 0, 2.755, 9.98, ceiling);
+  alignArchitectureUV(slab(8.12, .13, 9.76, 0, -.065, 12.38, floor));
+  const ceilingMesh = alignArchitectureUV(slab(8.12, .11, 9.76, 0, 3.155, 12.38, ceiling));
   ceilingMesh.castShadow = false;
-  wallBox(0.12, 4.96, -2.76, 9.98);
-  wallBox(0.12, 4.96, 2.76, 9.98);
-  wallBox(5.52, 0.12, 0, 12.46);
-  wallBox(2.24, 0.12, -1.64, 7.56);
-  wallBox(2.24, 0.12, 1.64, 7.56);
-  // The lintel sits above the old front-door frame; the threshold remains clear.
-  slab(1.04, 0.56, 0.12, 0, 2.42, 7.56, wall);
+  wallBox(.12, 9.76, -4.06, 12.38);
+  wallBox(.12, 9.76, 4.06, 12.38);
+  wallBox(8.12, .12, 0, 17.26);
+  wallBox(3.54, .12, -2.29, 7.56);
+  wallBox(3.54, .12, 2.29, 7.56);
+  slab(1.04, 1.02, .12, 0, 2.59, 7.56, wall);
 
   function window(x, z) {
     const frame = group(x, 1.94, z, Math.PI, wake);
     slab(1.1, 1.17, 0.065, 0, 0, 0, painted, frame, 0.008);
-    const glass = plain(0xe2e9e7, 0.76);
-    glass.emissive.set(0xdbe6e5);
-    glass.emissiveIntensity = 0.48;
+    const glass = plain(0x9e9b88, 0.76);
+    glass.emissive.set(0x7d7662);
+    glass.emissiveIntensity = 0.13;
     const pane = slab(0.98, 1.03, 0.018, 0, 0, 0.045, glass, frame);
     pane.castShadow = false;
     for (const sx of [-1, 0, 1])
@@ -94,8 +98,26 @@ export function buildWake(b, m, surfaces, photos) {
     slab(1.04, 0.14, 0.025, 0, 0.44, 0.1, blind, frame, 0.003);
     return frame;
   }
-  window(-1.72, 12.365);
-  window(1.72, 12.365);
+  window(-2.7, 17.165);
+  window(2.7, 17.165);
+  const drape = tag(surfaces.material("fabric", 1.2, 2, 0x443b32));
+  drape.side = T.DoubleSide;
+  for (const centre of [-2.7, 2.7]) {
+    for (const side of [-1, 1]) {
+      const geometry = new T.PlaneGeometry(.61, 2.38, 20, 20);
+      const positions = geometry.attributes.position;
+      for (let i = 0; i < positions.count; i++)
+        positions.setZ(i, Math.sin(positions.getX(i) * 42) * .025);
+      geometry.computeVertexNormals();
+      const curtain = new T.Mesh(geometry, drape);
+      curtain.name = "Heavy funeral-parlor drape";
+      curtain.position.set(centre + side * .76, 1.43, 17.10);
+      curtain.rotation.y = Math.PI;
+      wake.add(curtain);
+    }
+    const rail = cylinder(.018, .018, 2.16, centre, 2.68, 17.09, metal, wake, 16);
+    rail.rotation.z = Math.PI / 2;
+  }
 
   function chair(x, z, rotation, style) {
     const parent = group(x, 0, z, rotation, wake),
@@ -182,11 +204,11 @@ export function buildWake(b, m, surfaces, photos) {
     chairs.push(result);
     return result;
   }
-  chair(-1.62, 8.96, Math.PI + 0.14, 0);
-  chair(-1.47, 10.31, Math.PI - 0.08, 1);
-  chair(1.67, 8.8, Math.PI - 0.18, 2);
-  chair(1.62, 9.65, Math.PI + 0.04, 0);
-  const reserved = chair(1.25, 10.56, Math.PI - 0.1, 1);
+  for (const z of [9.35, 11.05, 12.75]) {
+    for (const x of [-2.45, -1.63, 1.63, 2.45])
+      chair(x, z, Math.PI, 1);
+  }
+  const reserved = chairs[6];
   const reservedMap = cardTexture(["RESERVED", "MARA"], [38, 80]);
   const reservedMaterial = tag(
     new T.MeshStandardMaterial({
@@ -205,10 +227,12 @@ export function buildWake(b, m, surfaces, photos) {
   // Preparing after preload keeps construction of the house independent from
   // the character download, and the entire cast stays under the hidden wake.
   const mourners = [];
-  const mournerSeats = [chairs[0], chairs[1], chairs[3]];
+  const mournerSeats = [chairs[0], chairs[5], chairs[11]];
+  mournerSeats.forEach(seat => { seat.occupied = true; });
   const lace = veilTexture();
   let prepared = false;
   let funeralScare = null;
+  let casketMother = null;
   for (const seat of mournerSeats)
     addSolid(slab(0.49, 1.42, 0.82, 0, 0.71, -0.2, m.invisible, seat.group));
 
@@ -303,6 +327,7 @@ export function buildWake(b, m, surfaces, photos) {
       mourners.push(mourner);
       poseMourner(mourner, 0, 0);
     }
+    prepareCasketMother();
     funeralScare = createFuneralScare(wake, bounds, colliders);
     prepared = true;
     for (const light of lights)
@@ -409,7 +434,7 @@ export function buildWake(b, m, surfaces, photos) {
     contact(w * 1.2, d * 1.3, x, z, 0.48, wake);
     return parent;
   }
-  const portraitTable = table(0, 11.94, 1.52, 0.55, 0.8, darkWood);
+  const portraitTable = table(-2.2, 15.85, 1.10, .55, .8, darkWood);
   // A separate, visible source for the final report. It never shares the
   // kitchen radio's weather loop or switch state.
   const radioTable = table(1.12, 11.98, 0.72, 0.48, 0.8, darkWood);
@@ -468,7 +493,7 @@ export function buildWake(b, m, surfaces, photos) {
   slab(1.3, 0.008, 0.52, 0, 0.832, 0, cloth, portraitTable);
   for (const sx of [-1, 1])
     slab(0.012, 0.2, 0.52, sx * 0.647, 0.735, 0, cloth, portraitTable);
-  const portrait = group(0, 1.3, 12.04, Math.PI, wake);
+  const portrait = group(-2.2, 1.3, 15.96, Math.PI, wake);
   slab(0.62, 0.75, 0.043, 0, 0, 0, darkWood, portrait, 0.006);
   slab(0.555, 0.685, 0.012, 0, 0, 0.029, plain(0xb9af97, 0.48, 0.55), portrait);
   slab(
@@ -494,7 +519,7 @@ export function buildWake(b, m, surfaces, photos) {
       envMapIntensity: 0.06,
     }),
   );
-  const captionCard = slab(0.32, 0.15, 0.004, 0.47, 0.91, 11.73, caption);
+  const captionCard = slab(0.32, 0.15, 0.004, -1.83, 0.91, 15.65, caption);
   captionCard.rotation.x = -0.3;
   // A small mixed bunch, with real stems rather than a large decorative prop.
   const vase = plain(0xd5d7cf, 0.3);
@@ -506,15 +531,15 @@ export function buildWake(b, m, surfaces, photos) {
       [0.045, 0.21],
       [0.042, 0.22],
     ],
-    -0.49,
+    -2.57,
     0.842,
-    11.95,
+    15.85,
     vase,
     wake,
   );
   for (let i = 0; i < 5; i++) {
-    const x = -0.49 + Math.sin(i * 2.3) * 0.065,
-      z = 11.95 + Math.cos(i * 1.9) * 0.048,
+    const x = -2.57 + Math.sin(i * 2.3) * 0.065,
+      z = 15.85 + Math.cos(i * 1.9) * 0.048,
       y = 1.2 + (i % 3) * 0.055;
     const stem = cylinder(
       0.003,
@@ -544,8 +569,95 @@ export function buildWake(b, m, surfaces, photos) {
       object.rotation.y = -angle;
     }
   }
+  // A real open casket replaces the old portrait-table focal point. The
+  // remembered body is the separately authored Evelyn asset, never Mara.
+  const casket = group(0, 0, 15.65, 0, wake);
+  casket.name = "Evelyn's open walnut casket";
+  const casketWood = tag(surfaces.material("wood", 1.6, .7, 0x583622));
+  casketWood.roughness = .40;
+  const casketLining = tag(surfaces.material("linen", 1.5, 1, 0xe3d9c4));
+  casketLining.roughness = .66;
+  const fittings = plain(0xa28b57, .32, .78);
+  const outline = [[-1.17,-.28],[-.82,-.45],[.63,-.45],[1.17,-.31],[1.17,.31],[.63,.45],[-.82,.45],[-1.17,.28]];
+  const shell = new T.Shape();
+  outline.forEach(([x,z], i) => i ? shell.lineTo(x,z) : shell.moveTo(x,z));
+  shell.closePath();
+  const interior = new T.Path();
+  [...outline].reverse().forEach(([x,z],i) => i ? interior.lineTo(x*.94,z*.84) : interior.moveTo(x*.94,z*.84));
+  interior.closePath();
+  shell.holes.push(interior);
+  const shellGeometry = new T.ExtrudeGeometry(shell, { depth:.31, bevelEnabled:true, bevelSize:.013, bevelThickness:.012, bevelSegments:2, steps:1 });
+  shellGeometry.rotateX(-Math.PI/2);
+  const casing = new T.Mesh(shellGeometry, casketWood);
+  casing.position.y = .70;
+  casing.castShadow = casing.receiveShadow = true;
+  casket.add(casing);
+  slab(2.16, .07, .69, 0, .72, 0, casketWood, casket, .025);
+  slab(2.06, .065, .64, -.015, .805, 0, casketLining, casket, .045);
+  slab(.43, .095, .57, .72, .865, 0, casketLining, casket, .04);
+  for (const x of [-.76,.76]) {
+    slab(.12, .58, .55, x, .35, 0, darkWood, casket, .012);
+    slab(.17, .08, .90, x, .075, 0, darkWood, casket, .018);
+  }
+  for (const side of [-1,1]) for (const x of [-.69,0,.69]) {
+    slab(.27, .055, .025, x, .855, side*.459, fittings, casket, .012);
+    const handle = new T.Mesh(new T.TorusGeometry(.075,.008,8,20,Math.PI), fittings);
+    handle.position.set(x,.84,side*.474);
+    handle.rotation.z = Math.PI;
+    if (side < 0) handle.rotation.y = Math.PI;
+    casket.add(handle);
+  }
+  const lid = group(0,1.025,.44,0,casket);
+  slab(2.25,.07,.83,0,0,-.42,casketWood,lid,.03);
+  slab(2.10,.032,.68,0,-.055,-.42,casketLining,lid,.025);
+  lid.rotation.x = 2.0;
+  addSolid(slab(2.48,1.85,1.62,0,.925,.19,m.invisible,casket));
+
+  function prepareCasketMother() {
+    if (casketMother) return;
+    casketMother = createEvelyn({ wounded:false });
+    const body = casketMother.body;
+    body.name = "Evelyn resting in the casket";
+    casket.add(body);
+    body.position.set(-.81,.935,0);
+    body.rotation.set(Math.PI/2,Math.PI/2,0,"YXZ");
+    casketMother.resetPose?.();
+    const rig = casketMother.rig;
+    if (rig) {
+      rig.reset();
+      for (const side of rig.sides) {
+        const sign = Math.sign(side.shoulder.x) || (side.side === "l" ? -1 : 1);
+        const target = rig.bodyPoint(new T.Vector3(sign*.13,sign < 0 ? 1.06 : 1.02,sign < 0 ? -.19 : -.17));
+        const pole = rig.bodyPoint(new T.Vector3(sign*.44,.97,-.12));
+        rig.solveLimb(`upperarm_${side.side}`,`lowerarm_${side.side}`,`hand_${side.side}`,target,pole,side.upperArm,side.lowerArm);
+        // Lay the palms into the abdomen and direct the fingers gently across
+        // it, rather than retaining the standing rig's arbitrary wrist roll.
+        const wrist = rig.restPoint(`hand_${side.side}`);
+        const forward = rig.restPoint(`middle_01_${side.side}`).sub(wrist).normalize();
+        const across = rig.restPoint(`index_01_${side.side}`).sub(rig.restPoint(`pinky_01_${side.side}`));
+        across.addScaledVector(forward,-across.dot(forward)).normalize();
+        const bind = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(across,forward.clone().cross(across),forward));
+        const desiredForward = new T.Vector3(-sign,-.10,0).normalize();
+        const desiredAcross = new T.Vector3(-sign*.10,1,0).normalize();
+        const desired = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(desiredAcross,desiredForward.clone().cross(desiredAcross),desiredForward));
+        desired.multiply(bind.invert()).multiply(rig.joint(`hand_${side.side}`).bodyQuaternion);
+        rig.setWorldQuaternion(`hand_${side.side}`,rig.bodyQuaternion(desired));
+        for (const finger of ["index","middle","ring","pinky"])
+          for (let segment=1; segment<=3; segment++)
+            rig.rotate(`${finger}_0${segment}_${side.side}`,-.025*segment,0,0);
+      }
+      rig.update();
+    }
+    casketMother.setMouthOpen?.(0);
+    casketMother.setEyesClosed?.(true);
+    body.traverse(object => {
+      object.userData.wake = true;
+      if (object.isMesh) { object.castShadow = false; object.receiveShadow = true; }
+    });
+  }
+
   // Everyday hospitality makes the unoccupied chairs more uncomfortable.
-  const tea = table(-2.32, 10.4, 0.54, 1.45, 0.76, painted);
+  const tea = table(-3.62, 13.15, 0.54, 1.45, 0.76, painted);
   const urn = plain(0x9da3a0, 0.38, 0.68);
   cylinder(0.115, 0.12, 0.31, 0, 0.945, 0.31, urn, tea, 32);
   cylinder(0.13, 0.13, 0.025, 0, 1.11, 0.31, metal, tea, 32);
@@ -588,30 +700,39 @@ export function buildWake(b, m, surfaces, photos) {
     lights.push(light);
     return light;
   }
-  function daylight(x, shadowed = false) {
-    const light = new T.SpotLight(0xe0e9ec, 15, 6.8, 1.0, 0.96, 2);
-    light.position.set(x, 2.17, 12.22);
-    light.target.position.set(0, 0.85, 9.25);
+  function casketLight() {
+    const light = new T.SpotLight(0xf2dbb1, 27, 9.5, .86, .85, 2);
+    light.position.set(-.9, 2.85, 14.45);
+    light.target.position.set(.4, .98, 15.65);
     wake.add(light, light.target);
-    light.userData.base = 15;
+    light.userData.base = 27;
     light.userData.wake = true;
+    light.castShadow = true;
+    light.shadow.mapSize.set(1024, 1024);
+    light.shadow.autoUpdate = false;
+    light.shadow.needsUpdate = true;
+    light.shadow.bias = -.0002;
+    light.shadow.normalBias = .015;
+    light.shadow.camera.near = .1;
+    light.shadow.camera.far = 9.5;
     lights.push(light);
-    if (shadowed) {
-      light.castShadow = true;
-      light.shadow.mapSize.set(1024, 1024);
-      light.shadow.autoUpdate = false;
-      light.shadow.needsUpdate = true;
-      light.shadow.bias = -0.0002;
-      light.shadow.normalBias = 0.015;
-      light.shadow.camera.near = 0.1;
-      light.shadow.camera.far = 6.8;
-    }
-    return light;
   }
-  daylight(-1.72, true);
-  daylight(1.72);
-  point(0xf1eee5, 11, 7, -0.7, 2.35, 9.1);
-  point(0xe3e9e8, 4.5, 4.5, 0, 2.02, 11.25);
+  casketLight();
+  point(0xe7c89b, 7.5, 9, 0, 2.8, 11.7);
+  // The broad room fill has a visible period pendant rather than an
+  // unexplained bright patch on the ceiling.
+  cylinder(.13,.13,.04,0,3.06,11.7,darkWood,wake,24);
+  cylinder(.008,.008,.25,0,2.91,11.7,metal,wake,12);
+  b.lathe([[.23,0],[.225,.03],[.08,.23],[.06,.25]],0,2.61,11.7,plain(0xbca17a,.78),wake);
+  const pendantBulb = new T.Mesh(new T.SphereGeometry(.045,16,12), new T.MeshBasicMaterial({color:0xe3bf82}));
+  pendantBulb.position.set(0,2.70,11.7);
+  wake.add(pendantBulb);
+  for (const side of [-1, 1]) for (const z of [9.65, 14.0]) {
+    const x = side * 3.89;
+    slab(.045, .28, .17, x, 1.85, z, darkWood);
+    sphere(.06, .085, .06, x - side * .10, 1.95, z, plain(0xd3b789));
+    point(0xe7bc7c, 5.8, 4.6, x - side * .16, 1.95, z);
+  }
   let active = false,
     startedAt = null,
     reportAt = null,
@@ -707,6 +828,8 @@ export function buildWake(b, m, surfaces, photos) {
     reserved,
     mourners,
     portraitTable,
+    casket,
+    get casketBody() { return casketMother?.body; },
     funeralRadio,
     radioTable,
     bounds,
@@ -729,6 +852,9 @@ export function buildWake(b, m, surfaces, photos) {
       prepared,
       turned: mourners.filter((mourner) => mourner.turned).length,
       radioPosition: { ...FUNERAL_RADIO },
+      roomArea: (bounds.maxX - bounds.minX) * (bounds.maxZ - bounds.minZ),
+      emptyChairs: chairs.filter(seat => !seat.occupied).length,
+      casket: { visible: wake.visible, prepared: Boolean(casketMother), cleanMother: Boolean(casketMother), position: casket.position.toArray() },
       attack: funeralScare?.snapshot() || { active: false, phase: "idle", visible: false },
     }),
     reset,

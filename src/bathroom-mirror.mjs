@@ -20,10 +20,8 @@ export function fingerWipeCanvas() {
   const g = canvas.getContext("2d");
   g.fillStyle = "black";
   g.fillRect(0, 0, canvas.width, canvas.height);
-  // The house's existing clue is seen backward: 03:17 written on the other
-  // side. Keep that puzzle, but wipe moisture away rather than printing ink.
-  g.translate(canvas.width, 0);
-  g.scale(-1, 1);
+  // Write 03:17 directly into the visible condensation. The clear finger paths
+  // reveal reflected glass; neither the digits nor their order are reversed.
   g.lineCap = g.lineJoin = "round";
   for (const [strokeIndex, points] of TIME_STROKES.entries()) {
     const p = points.map(([x, y]) => [x * canvas.width, y * canvas.height]);

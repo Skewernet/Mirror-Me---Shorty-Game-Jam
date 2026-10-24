@@ -420,15 +420,16 @@ export async function buildHouse(scene) {
     alignArchitectureUV(
       box(width + 0.14, 0.07, 0.14, 0, 2.093, 0.005, m.wood, false, g, 0.005),
     );
-    // Door label faces the corridor and is readable at its own practical light.
-    if (id === "kitchen" || id === "back") {
+    // The kitchen retains its sign; the looping rear door has no destination
+    // label or plaque implying that it leads to a garden.
+    if (id === "kitchen") {
       const label = basic(0xbcb89a, 0.72);
-      label.map = writingTexture([id === "back" ? "GARDEN" : "KITCHEN"], {
+      label.map = writingTexture(["KITCHEN"], {
         background: "#beb99e",
         color: "#393d32",
         font: 62,
       });
-      box(
+      const plaque = box(
         0.27,
         0.085,
         0.008,
@@ -440,6 +441,7 @@ export async function buildHouse(scene) {
         pivot,
         0.003,
       );
+      plaque.name = "Kitchen door label";
     }
     const proxy = box(
         width,

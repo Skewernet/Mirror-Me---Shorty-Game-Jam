@@ -446,9 +446,9 @@ export class Story {
     }
     if (this.stage === 2) {
       if (!this.hasTimeClue)
-        return "The bathroom glass has kept the hour backward. Wipe it.";
+        return "There is writing in the condensation on the bathroom mirror. Look closely.";
       if (!this.clockSolved)
-        return "Read 71:30 backward: 03:17. Set the hall clock.";
+        return "The mirror has 03:17 written on it. Set the hall clock.";
       if (!this.radioTuned)
         return "The diary gives Mum's station: tune the kitchen radio to 93.7 FM.";
       if (!this.heardCall)
@@ -489,7 +489,7 @@ export class Story {
 export const WRITINGS = {
   note: "IF THE HALL RETURNS, FINISH WHAT YOU LEFT.\nIF THE LATCH HOLDS, SOMETHING IS UNFINISHED.\nWHEN THE GLASS IS EMPTY, WALK THROUGH.\n\nI know this handwriting.",
   diary:
-    "HER EVENING\nHer station is 93.7 FM. The kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nSEVEN YEARS\nI knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.\n\nAFTER THE CALL\nThe bathroom glass kept the hour backward. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.\n\nIf I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.\n\nI have written that last line twice.",
+    "HER EVENING\nHer station is 93.7 FM. The kitchen radio for company, then her bath, then the bedroom music box.\n\nBefore the bath: her watch beside the kitchen radio. Next, her ring in the dish beside the bath. Last, the ribbon on the tray at the bedroom music box. Always that order. Things where she could reach them.\n\nSEVEN YEARS\nI knew what she needed before she asked. I stayed. I did everything. When I write it down, I always start with that.\n\nWHAT I BROUGHT HOME\nI left the watch on the kitchen table. The ring is with the washing in the utility room. The ribbon is on the sitting-room table. They came home in the hospital property bag when she did.\n\nAFTER THE CALL\nThe bathroom mirror had 03:17 written in the condensation. I wrote: the nurse called at 03:17. The first word has been rubbed through the paper.\n\nIf I do it again, I have to finish it: close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. Her evening, in reverse.\n\nI have written that last line twice.",
   letter:
     "ST. ANNE'S — DISCHARGE / PERSONAL PROPERTY\nPATIENT: EVELYN VALE\nProperty received by: MARA VALE\n\nOne wristwatch. One wedding ring. One ribbon.\nItems returned on discharge to home care.\nLong-term care to continue at the patient's home.\n\nIn my handwriting, below the signature:\nI kept the house exactly how she liked it. I did everything.",
   truth:
@@ -502,7 +502,7 @@ export const VOICES = {
   },
   recording: {
     speaker: "THE TELEPHONE",
-    text: "Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.",
+    text: "Mara? It's Mum. The fuse went out again. There are spares in the kitchen. Please don't leave before saying goodnight.",
   },
   power: { speaker: "MARA", text: "They disconnected this house on Monday." },
   repeat: {
@@ -528,7 +528,7 @@ export const VOICES = {
   },
   time: {
     speaker: "MARA",
-    text: "Three seventeen. That's when the nurse called.",
+    text: "The mirror has three seventeen written on it.",
   },
   call: {
     speaker: "THE TELEPHONE",
@@ -551,6 +551,7 @@ export const VOICES = {
     text: "Now tell it the right way round.",
   },
   ending: { speaker: "MUM", text: "You were looking right at me." },
+  goodnight: { speaker: "MUM", text: "Goodnight." },
   crimeBathroom: {
     speaker: "MARA",
     text: "It started here. She tried to get away from me.",

@@ -21,6 +21,7 @@ import {
 } from "./layout.mjs";
 import { preloadCharacterAssets } from "./figure.mjs";
 import { preloadDemonAssets } from "./demon.mjs";
+import { preloadEvelynAssets } from "./evelyn.mjs";
 import { FUNERAL_RADIO } from "./wake.mjs";
 import { CHAPTERS } from "./chapters.mjs";
 const $ = (id) => document.getElementById(id),
@@ -56,6 +57,7 @@ try {
     buildHouse(scene),
     preloadCharacterAssets(),
     preloadDemonAssets(),
+    preloadEvelynAssets(),
   ]);
   await house.wake?.prepare?.();
   await house.revelation?.prepare?.();
@@ -91,6 +93,8 @@ let mode = "title",
   funeralAttack = false,
   funeralRush = false,
   funeralImpact = false,
+  goodnightStarted = false,
+  goodnightFinished = false,
   sobQueued = false,
   lateSpoken = false,
   flashlightOn = false,
@@ -201,7 +205,7 @@ function updateInventory() {
   if (story.hasTimeClue)
     item(
       "Writing in the steam",
-      "71:30\n\nThe writing faces the other side of the glass.",
+      "03:17\n\nThe mirror has 03:17 written on it. Set the hall clock to that time.",
       "◷",
     );
   if (story.radioTuned)
@@ -282,6 +286,7 @@ function reset() {
   arrival = lateSpoken = endingSpoken = wakeTurned = mirrorSnap = false;
   newsStarted = newsFinished = lastLineFinished = sobQueued = false;
   funeralAttack = funeralRush = funeralImpact = false;
+  goodnightStarted = goodnightFinished = false;
   evidenceSeen.clear();
   newsStartedAt = newsFinishedAt = 0;
   lastPortal = null;
@@ -724,7 +729,7 @@ function respond(event) {
   const lines = {
     note: WRITINGS.note,
     "arrival-recording":
-      "Mum asks you to stay until she is asleep. There is a spare fuse by the kitchen sink.",
+      "Mum asks you not to leave before saying goodnight. There are spare fuses in the kitchen.",
     "telephone-repeat": "Only a dead line now. You remember what she asked.",
     "telephone-dead":
       "Only a dead line. The telephone was never one of her evening sounds.",
@@ -754,8 +759,8 @@ function respond(event) {
     "diary-repeat":
       "Her station is 93.7 FM. Watch beside the radio, ring by the bath, ribbon beside the music box. The evening ends in reverse.",
     "bath-clouded":
-      "The glass is cold and dry. There is nothing to wipe away yet.",
-    "time-clue": "71:30. A time, written backward in the steam.",
+      "The moisture is uneven. There is nothing legible yet.",
+    "time-clue": "The mirror has 03:17 written on it.",
     "clock-set": "You leave the hands where you put them. The house waits.",
     "clock-solved":
       "The hands agree. A faint carrier comes from the kitchen radio.",
@@ -898,6 +903,7 @@ function beginEnding() {
   wakeTurned = false;
   newsStarted = newsFinished = lastLineFinished = false;
   funeralAttack = funeralRush = funeralImpact = false;
+  goodnightStarted = goodnightFinished = false;
   newsStartedAt = newsFinishedAt = 0;
   endingSpoken = false;
   const essential = ["sob", "farewell", "unlocked"];
@@ -1008,6 +1014,7 @@ function update(dt) {
       sound.voice("ending", {
         position: { x: 1.62, y: 1.2, z: 9.65 },
         gain: 1.05,
+        postGap: .06,
         onComplete: () => {
           if (!endingAt || startedAt !== endingStart) return;
           lastLineFinished = true;
@@ -1028,13 +1035,26 @@ function update(dt) {
       if (attack.phase === "lunge" && !funeralRush) {
         funeralRush = true;
         sound.effect("funeral-lunge");
+        goodnightStarted = true;
+        const startedAt = endingStart;
+        sound.voice("goodnight", {
+          position: { x: attack.x, y: 1.5, z: attack.z },
+          gain: 1.05,
+          postGap: .05,
+          onComplete: () => {
+            if (!endingAt || startedAt !== endingStart) return;
+            goodnightFinished = true;
+          },
+        });
       }
       if (attack.phase === "impact" && !funeralImpact) {
         funeralImpact = true;
         sound.effect("funeral-impact");
       }
       $("veil").style.backgroundColor = `rgba(0,0,0,${attack.fade})`;
-      if (attack.done) finish();
+      // The visual strike is deliberately much faster than the spoken word.
+      // Hold black long enough for Mum's complete "Goodnight" (or captions).
+      if (attack.done && (!goodnightStarted || goodnightFinished)) finish();
     }
     updateFlashlight(dt);
     return;
@@ -1218,6 +1238,8 @@ if (testMode) {
       newsStartedAt,
       newsFinished,
       lastLineFinished,
+      goodnightStarted,
+      goodnightFinished,
       attack: house.wake.snapshot().attack,
       endsAt: endingAt,
     },
@@ -1240,6 +1262,7 @@ if (testMode) {
     quality,
     dressing: house.dressing?.snapshot(),
     revelation: house.revelation?.snapshot?.(),
+    funeralRoom: house.wake.snapshot(),
     evidence: [...evidenceSeen],
     character: mirror.figure.identity,
     drawCalls: picture.stats?.calls,

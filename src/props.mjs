@@ -378,23 +378,51 @@ export function furnish(b, m) {
   const photoInteraction = b.interactables.find((item) => item.id === "photo");
   window(-4.4, 1.51, 4.1, Math.PI / 2, lounge, 0.95, 1.05);
   const bookcase = group(-0.96, 0, 3.88, -Math.PI / 2, lounge);
-  slab(0.62, 1.9, 0.24, 0, 0.95, 0, m.wood, bookcase, 0.012);
+  bookcase.name = "Sitting-room bookcase";
+  // A full-depth solid cabinet used to fill the shelves, swallowing the books
+  // and leaving their spines intersecting its front face. The actual case has
+  // open bays, a thin back and separate stiles inside the same collision bounds.
+  slab(0.572, 1.844, 0.018, 0, 0.95, -0.111, m.wood, bookcase, 0.003).name = "Bookcase back";
+  for (const side of [-1, 1])
+    slab(0.024, 1.9, 0.24, side * 0.298, 0.95, 0, m.wood, bookcase, 0.005).name = "Bookcase side";
+  for (const y of [0.014, 1.886])
+    slab(0.572, 0.028, 0.24, 0, y, 0, m.wood, bookcase, 0.004).name = "Bookcase cap";
+  const bookCovers = [0x372d27, 0x58423b, 0x606050, 0x343f45, 0x887452, 0x4b343a].map(color => {
+    const material = m.book.clone();
+    material.color.set(color);
+    material.roughness = 0.91;
+    return material;
+  });
   for (let row = 0; row < 4; row++) {
-    box(0.6, 0.022, 0.27, 0, 0.18 + row * 0.43, 0.025, m.wood, false, bookcase);
+    const shelfY = 0.18 + row * 0.43;
+    box(0.572, 0.022, 0.24, 0, shelfY, 0, m.wood, false, bookcase).name = `Bookcase shelf ${row}`;
     for (let i = 0; i < 6; i++) {
+      const width = 0.045 + (i % 2) * 0.004;
+      const height = 0.21 + (i % 3) * 0.026;
+      const tilt = ((i % 3) - 1) * 0.045;
+      // Tilting an upright book also lowers its outside corner. Seat that
+      // corner on the shelf rather than intersecting the shelf by a centimetre.
+      const halfHeight = (height * Math.cos(tilt) + width * Math.abs(Math.sin(tilt))) / 2;
       const book = box(
-        0.045,
-        0.19 + (i % 3) * 0.024,
-        0.16,
+        width,
+        height,
+        0.17,
         -0.24 + i * 0.087,
-        0.295 + row * 0.43,
-        0.04,
-        [m.book, m.fabric, m.linen][i % 3],
+        shelfY + 0.011 + halfHeight + 0.001,
+        0.014 + (i % 2) * 0.004,
+        bookCovers[(i + row * 2) % bookCovers.length],
         false,
         bookcase,
         0.002,
       );
-      book.rotation.z = ((i % 3) - 1) * 0.045;
+      book.rotation.z = tilt;
+      book.name = `Book ${row}-${i}`;
+      // Keep upholstery checks off the book covers. A narrow inset paper edge
+      // on top makes the depth of each volume readable from a standing view.
+      const pages = box(width - 0.009, 0.0015, 0.144, 0, height / 2 + 0.0003, -0.003,
+        m.paper, false, book);
+      pages.name = "Book page edge";
+      pages.castShadow = false;
     }
   }
   collision(0.66, 1.9, 0.3, 0, 0.95, 0, bookcase);
@@ -955,22 +983,24 @@ export function furnish(b, m) {
   }
   collision(0.69, 0.86, 0.68, 0, 0.43, 0, washer);
   const shelf = group(-2.05, 0, 1.0, 0, utility);
+  shelf.name = "Utility storage rack";
   for (const x of [-0.55, 0.55])
     box(0.025, 1.96, 0.3, x, 0.98, 0, m.steel, false, shelf);
   for (let row = 0; row < 4; row++) {
-    box(1.15, 0.023, 0.34, 0, 0.2 + row * 0.45, 0, m.wood, false, shelf);
+    const shelfY = 0.2 + row * 0.45;
+    box(1.15, 0.023, 0.34, 0, shelfY, 0, m.wood, false, shelf).name = `Utility shelf ${row}`;
     for (let i = 0; i < 3; i++)
       slab(
         0.23,
         0.2,
         0.24,
         -0.37 + i * 0.36,
-        0.32 + row * 0.45,
+        shelfY + 0.0115 + 0.1 + 0.001,
         0,
         [m.paper, m.rust, m.cabinet][i],
         shelf,
         0.01,
-      );
+      ).name = `Storage box ${row}-${i}`;
   }
   collision(1.18, 1.96, 0.36, 0, 0.98, 0, shelf);
 

@@ -94,3 +94,26 @@ test("restarting cancels an unfinished funeral callback and its saved pause stat
   assert.equal(sound.busy, false);
   assert.deepEqual(completed, []);
 });
+
+test("the strike word completes in full with its short configured gap after pause", async (t) => {
+  const advance = clock(t), completed = [], sound = new Sound(() => {});
+  t.after(() => sound.stopVoice());
+  sound.paused = false;
+  sound.voiceEnabled = false;
+  sound.context = {};
+  sound.buffers.set("goodnight", { duration: .856 });
+  t.mock.method(sound, "loadBuffer", async (id) => sound.buffers.get(id));
+  await sound.voice("goodnight", { postGap: .05, onComplete: id => completed.push(id) });
+  advance(300);
+  await sound.pause();
+  assert.equal(sound.resumeVoice.options.postGap, .05);
+  advance(10000);
+  assert.deepEqual(completed, []);
+  sound.resumeDialogue();
+  await Promise.resolve();
+  await Promise.resolve();
+  advance(600);
+  assert.deepEqual(completed, [], "Neither pausing nor the short gap may truncate the word");
+  advance(10);
+  assert.deepEqual(completed, ["goodnight"]);
+});

@@ -4,11 +4,11 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — dialogue, evidence and ending:** the house starts without practical lights and Mara identifies the failed fuse. The returned family photograph is visible in the entrance hall, must be straightened, and carries a memory of Dad. After the glass crossing, a bloodied bathroom and connected handprint/footfall trail reveal Evelyn's flight to her bed. The completed funeral report and Mum's final accusation precede a wounded-human lunge and fade; reduced-scare mode keeps a quiet ending. There are 29 matching local synthetic voice takes. These changes are not pushed or deployed.
+**Current local development — Evelyn and the funeral parlor:** a separate 68-year-old mother model follows the family portrait's face, short waved hair and floral clothing. A clean closed-eye instance rests in the parlor's open casket; a distinct wounded instance has real skin/garment openings and attached tissue geometry. The larger warm parlor has empty seating. The attack now strikes at 0.38 seconds and reaches black at 0.68 seconds while Mum's complete "Goodnight" uses her existing phone voice. The bookshelf is rebuilt, the rear-door plaque is removed, and the bathroom clue reads 03:17 directly. This pass is local and not deployed.
 
-**Local development — Environment and Mirror Polish, Pass 1:** continuous architectural texture placement, fitted floor/skirting and door trim, a reflective bathroom mirror with uneven condensation and finger-wiped time, and capsule-aware hall-mirror collision/entry. The existing backward-time puzzle and PBR presentation are preserved. These changes have not been pushed or deployed; production remains the approved 0.8 described below. See [current status](PROJECT_STATUS.md) for validation.
+**Published baseline:** `93f3199` contains the dark fuse-failure opening, hall-photo interaction, apartment-wide crime trail and pointer-lock camera fix. Its 126 runtime/credit assets were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=93f3199). The new Evelyn/parlor pass above remains local.
 
-**The owner-approved 0.8 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=0.8), synchronized with GitHub `main`.** Reviewed revision `3d26ffb` deployed automatically, and all 116 public runtime/credit hashes match the tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records. See [current status](PROJECT_STATUS.md).
+The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
 The authored intruder has new appearance, timing and nonverbal sound. The demon owns its facial sculpt and surfaces; Mara's normal reflection, the truthful final reflection, the covered mother and the mourners keep their existing human model. The house, puzzle order and seamless returns retain the 0.7 baseline.
 
@@ -20,7 +20,7 @@ The familiar female face has a collapsed cheek and an original generated torn-ti
 
 Mara Vale returns with a version of the evening in which she was a devoted daughter and her mother died from illness. The mirror keeps correcting what that account leaves out. The revised final chapter reveals a violent death in the familiar bedroom, followed by a separate funeral-room radio report that names Mara's responsibility. The horror comes from recognition, rather than an external demon taking the blame. The complete script and walkthrough contain spoilers in [GAME_DIRECTION.md](GAME_DIRECTION.md).
 
-The building keeps the approved narrow L, five furnished rooms, readable kitchen entrance and seven ordered chapters. Restore the light; test the reflection; solve the reflected clock and kitchen radio; return the keepsakes; undo the evening's sounds; enter the empty mirror; then acknowledge what happened in Mum's room. The rear door stays physically locked until each of the first five chapters is complete. Its threshold returns Mara immediately to the front hall while preserving held movement, transformed velocity and facing, lateral position and crossing overshoot. There is no fade or forced stop.
+The building keeps the approved narrow L, five furnished rooms, readable kitchen entrance and seven ordered chapters. Restore the light; test the reflection; read 03:17 on the bathroom mirror, set the hall clock and tune the kitchen radio; return the keepsakes; undo the evening's sounds; enter the empty mirror; then acknowledge what happened in Mum's room. The rear door stays physically locked until each of the first five chapters is complete. Its threshold returns Mara immediately to the front hall while preserving held movement, transformed velocity and facing, lateral position and crossing overshoot. There is no fade or forced stop.
 
 The rear leaf now opens inward and folds flat along the hall wall, with corrected hinge/jamb clearance and a collider aligned to its closed position. It stays on the source side of the portal instead of being sliced by the view into the front room. Floor and ceiling crawlers use deliberate, world-planted contacts, measured limb solving and travel-driven movement; the standing walk and delayed/held reflection retain their separate gait.
 
@@ -30,7 +30,7 @@ That exit leads to the pale playable funeral room. Its own visible radio deliver
 
 The house retains photographic wood/fabric, independent PBR normal/roughness maps, restrained indirect reflections, soft practical shadows and screen-space contact shading. Default output is up to 1080p, with 720p performance and 1440p detail options. Grain and walking motion start off. Six finite authored sightings, directional sound, falling décor and independent sudden-scare/light-flicker settings remain; changing comfort settings cannot block a puzzle.
 
-The sitting-room **telephone carries calls only**. The **kitchen radio** retains the 93.7 FM puzzle and weather role. The **funeral radio** carries the late factual report. Keepsakes still follow the diary's care order, and the evening's sounds stop in reverse: bedroom music box → bathroom tap → kitchen radio. Wrong attempts remain recoverable. Twenty-five local Kokoro performances cover Mara/glass, Mum, weather, the funeral report and broken-word crying; all performances are synthetic.
+The sitting-room **telephone carries calls only**. The **kitchen radio** retains the 93.7 FM puzzle and weather role. The **funeral radio** carries the late factual report. Keepsakes still follow the diary's care order, and the evening's sounds stop in reverse: bedroom music box → bathroom tap → kitchen radio. Wrong attempts remain recoverable. Thirty local Kokoro performances cover Mara/glass, Mum, weather, the funeral report and broken-word crying; all performances are synthetic.
 
 The first-play target remains **10–15 minutes**, unvalidated by first-time human timing. The revised ending must be tested for clarity, pacing and headphone balance. Cloud software rendering cannot establish real desktop-GPU performance or how frightening the game feels.
 
@@ -77,6 +77,10 @@ node tests/door-transitions.cjs
 node tests/portal-warmup.cjs
 node tests/camera-input.cjs
 node tests/doorway-camera.cjs
+node tests/furniture.cjs
+node tests/evelyn-model.cjs
+node tests/evelyn-wounds.cjs
+node tests/parlor.cjs
 ```
 
 Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.

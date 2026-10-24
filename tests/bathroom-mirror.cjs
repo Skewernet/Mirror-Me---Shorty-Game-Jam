@@ -49,6 +49,9 @@ fs.mkdirSync(out, { recursive: true });
       const uniforms = glass.material.uniforms;
       const canvas = uniforms.wipeMap.value.image;
       const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+      const markAt = (u, v) => pixels[(Math.round(v * canvas.height) * canvas.width + Math.round(u * canvas.width)) * 4];
+      check(markAt(.145, .52) > 230 && markAt(.855, .52) < 10,
+        "03:17 must read directly, with zero at the left rather than mirrored digits");
       let cleared = 0, fogged = 0, feathered = 0;
       for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i] > 230) cleared++;

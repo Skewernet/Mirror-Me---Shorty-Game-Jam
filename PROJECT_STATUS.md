@@ -2,6 +2,18 @@
 
 Updated October 23, 2026 (America/Denver).
 
+## Current local development — Evelyn, parlor and fast final strike
+
+Production was last verified at `93f3199`, with all 126 runtime/credit asset hashes matching the approved package. The changes in this section remain local and require release approval.
+
+- Evelyn is now a separately built 1.62 m, 68-year-old character, guided by the original family portrait: aged facial/body morphology, old-female skin, short waved hair and floral blouse/skirt. Her GLB, source checksums, build recipe and runtime factory are independent of Mara. Closed-eye clean Evelyn rests in an open casket; the wounded form owns its geometry/material changes. It removes actual skin/garment faces and adds five ragged, recessed, bone-attached injuries with tissue/rib detail, blood and material relief. The wounded helper adds 5,444 triangles; the independent base is 82,328 triangles. No film assets or downloaded monster body are used.
+- The funeral room is a 77.12 m² warm parlor with wallpaper, walnut trim, drapes, 12 chairs and nine empty seats. The entry and funeral-radio position remain stable. The casket replaces the old portrait-table focal point; clean Evelyn fits inside with folded hands and closed eyes. The center aisle and doorway remain clear.
+- After the complete accusation, the turn lasts 0.20 seconds, the lunge strikes at 0.38 seconds and the picture reaches black at 0.68 seconds. Mum says "Goodnight" during the lunge using the same bf_isabella/speaker 22 as the telephone call; black holds until the full word or muted-voice caption pacing completes. Pause, reset and reduced-scare paths remain supported.
+- The phone message now explicitly names the failed fuse, spares in the kitchen and saying goodnight. The condensation shows 03:17 directly; subtitles, journal, hints and speech agree. Thirty local synthetic takes have matching text, hashes, casting and decoded headroom records.
+- The filled-in sitting-room bookcase is rebuilt as open bays with seated books and paper edges; utility boxes meet their shelves. The rear door has no destination plaque. Existing collision footprints and the PBR aesthetic are retained.
+
+Focused checks pass for the independent model/wounds, parlor/casket geometry and renders, furniture contacts, direct-reading moisture mask, voice records and fast attack timing. All 60 unit tests, normal-mode startup/controls and the complete seven-chapter route pass with no browser errors or failed requests. The route verifies the larger parlor and clean casket body, distinct wounded asset, rapid phase progression, pause/resume, complete Goodnight, fade/credits and replay reset; all 30 Oggs decode and match their synthesis text. The final accusation and Goodnight use short completion gaps, preserving the complete speech without the old extra pause. Browser artifacts remain outside the checkout. Desktop GPU performance and subjective fear still need human playtesting.
+
 ## Current local development — dialogue, crime scene and final attack
 
 This pass follows the approved/pushed `faee420` mirror polish. The new work remains local and requires separate release approval.

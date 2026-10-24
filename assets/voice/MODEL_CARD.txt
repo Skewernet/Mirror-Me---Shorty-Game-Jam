@@ -22,7 +22,7 @@ weights, embeddings, phonemizer data and inference runtime stay outside it.
 Preset IDs use the official conversion's table:
 https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/kokoro/v1.0/generate_voices_bin.py
   21 bf_emma — Mara and the glass; second telephone call
-  22 bf_isabella — Mum / first telephone call and final recognition
+  22 bf_isabella — Mum / first telephone call, final recognition and attack “Goodnight”
   26 bm_george — original kitchen weather bulletin and fictional funeral news report
 The preset labels identify supplied synthetic styles, not actors or cloned
 identifiable people. No human performance is claimed.
@@ -33,7 +33,7 @@ Sample rate: 24000 Hz. Exact line settings and output/model checksums are in
 production.json; source text and voice assignments are in lines.json.
 
 Kokoro v1.0 supersedes the former public-domain LJ Speech/Piper engine in this
-revision. No LJ Speech voice is used in the current twenty-nine takes.
+revision. No LJ Speech voice is used in the current thirty takes.
 
 Revision 0.7 adds a finite fictional news report and a broken-word Mara take.
 The latter uses scripted phrase spacing and restrained amplitude modulation;
@@ -43,3 +43,8 @@ The local narrative/crime-scene pass adds a photograph memory and three
 evidence observations, and re-renders arrival, confession, final accusation
 and funeral news with matching source text. Existing supplied presets,
 model hashes, normalization and decoded peak checks remain unchanged.
+
+The local visual/parlor pass updates the telephone message and direct 03:17
+mirror observation, and adds a finite “Goodnight” at the attack. The new word
+uses bf_isabella / speaker22, exactly as Mum on the telephone, at speed1.10
+with full-range mastering and no pitch shift.

@@ -25,10 +25,11 @@ fs.mkdirSync(out, { recursive: true });
       const T = await import("three");
       const { buildHouse } = await import("/src/house.mjs");
       const { preloadCharacterAssets, createFigure } = await import("/src/figure.mjs");
+      const { preloadEvelynAssets } = await import("/src/evelyn.mjs");
       const { Story } = await import("/src/story.mjs");
       const { overlaps } = await import("/src/physics.mjs");
       const check = (ok, label) => { if (!ok) throw new Error(label); };
-      await preloadCharacterAssets();
+      await Promise.all([preloadCharacterAssets(), preloadEvelynAssets()]);
       const normal = createFigure({}, 0);
       const fingerprint = () => {
         const values = [];
@@ -41,6 +42,10 @@ fs.mkdirSync(out, { recursive: true });
       const house = await buildHouse(scene);
       house.wake.prepare();
       check(before === fingerprint(), "Mother variant changed ordinary Mara's materials");
+      check(house.wake.attackBody.userData.characterAsset === "assets/character/evelyn.glb",
+        "The mother must use her separate elderly character model");
+      check(house.wake.snapshot().attack.wounds.removedFaces > 0,
+        "The wounded model needs actual openings rather than surface paint alone");
       const state = new Story();
       state.stage = 6;
       state.inverted = state.frontOpen = state.wakeEntered = true;
@@ -79,17 +84,17 @@ fs.mkdirSync(out, { recursive: true });
       window.wakeFixture = { wake, state, player };
       return { status: "PASS", model: wake.attackBody.name, humanIsolated: true };
     });
-    for (const [name, time] of [["turn", 10.64], ["lunge", 11.12], ["impact", 11.37]]) {
+    for (const [name, time] of [["turn", 10.10], ["lunge", 10.29], ["impact", 10.50]]) {
       const attack = await p.evaluate(time => window.drawAttack(time), time);
       assert.equal(attack.visible, true);
       await p.screenshot({ path: `${out}/${name}.png`, timeout: 60000 });
     }
     await p.evaluate(() => {
       const { wake, player } = window.wakeFixture;
-      wake.reduceAttack(11.37);
-      if (wake.attackBody.visible || wake.attackCamera(11.37).yaw !== undefined)
+      wake.reduceAttack(10.50);
+      if (wake.attackBody.visible || wake.attackCamera(10.50).yaw !== undefined)
         throw new Error("Disabling paused scare retained mother or camera control");
-      if (!wake.attackCamera(12.5).done) throw new Error("Reduced ending failed to finish");
+      if (!wake.attackCamera(11.61).done) throw new Error("Reduced ending failed to finish");
       wake.reset();
       if (wake.attackBody.visible || wake.snapshot().attack.active) throw new Error("Reset retained the attacker");
       wake.begin(20, player);
