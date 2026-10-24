@@ -1,10 +1,22 @@
 # MIRROR ME — current status
 
-Updated October 23, 2026 (America/Denver).
+Updated October 24, 2026 (UTC).
 
-## Current local development — Evelyn, parlor and fast final strike
+## Current local development — mouse stability and face-to-face attack
 
-Production was last verified at `93f3199`, with all 126 runtime/credit asset hashes matching the approved package. The changes in this section remain local and require release approval.
+Production was last verified at `f824f50`, with all 133 runtime/credit asset hashes matching the approved package. This pass remains local and has not been pushed or deployed.
+
+- Replaced the adjacent-packet mouse heuristic with a single drain per simulation/render frame. The old reader accepted coherent packets totalling 206° in one visible frame, reproduced with trusted Chromium mouse events. The new reader enforces a 20° maximum per frame and a 1,080°/second rate budget, drops gross discontinuities and discards excess without catch-up rotation. Ordinary input and deliberate multi-frame half turns preserve their displacement; stale packets, capture changes, blur, hiding and restart cannot retain a turn.
+- Capture now starts directly in the user activation, requests unadjusted movement and falls back only when unsupported. Both Promise and legacy event APIs are supported. Request-owned error handling prevents a delayed raw-capture error from pausing a successfully captured game. The user reports Opera GX in a normal window; cloud validation uses Chromium, not their physical mouse/Opera GX installation.
+- Invisible rear portals skip their extra 1024² scene render. A rendered house audit found no orientation change across 210 doorway/mirror frames and 630 landmark samples; two visible portal cases still render, including a partial screen-edge view, while six offscreen cases skip without changing camera or renderer state.
+- The attacking Evelyn alone is scaled to 1.12. Posed eye geometry aligns to the player's eye line instead of pitching the camera down at a shorter figure. Across 21 lunge samples the eye-height error stays below 1.4 mm. At impact the face fills 61.2% of the frame and its closest skin/head/neck-wound vertex remains 0.273 m from the camera, beyond the 0.055 m near plane. The strike still lands at 0.38 seconds with the complete Goodnight sequence.
+- Wounded Evelyn now has connected mouth/cheek trauma with exposed teeth, gums and stretched tissue, recessed irregular wound margins, bruised sockets, blood streaking and matted hair. Folded visceral tissue, irregular crossing loops and fat replace simpler abdominal folds. Her five injuries add 24 meshes/9,272 triangles and remove 2,700 source faces. Clean casket and future clean instances remain independent.
+
+All 70 unit tests pass. Focused browser checks pass for trusted-event burst rejection, actual-game normal/fast mouse input, no delayed replay, capture loss/resume, viewport resizing, raw-input fallback, portal visibility/state restoration, actual wound geometry and projected attack framing. Final normal-mode startup/controls and the complete seven-chapter route pass with no page/console errors or failed requests, including all rear returns, mirror crossing, required interactions, attack pause/resume, complete Goodnight, fade/credits and replay reset. All 30 Oggs decode; credits, syntax and whitespace checks pass. Browser artifacts remain outside the checkout. Physical-device behavior in Opera GX and subjective fear still need human playtesting.
+
+## Released — Evelyn, parlor and fast final strike (`f824f50`)
+
+The owner approved pushing and deploying this release. Production was verified with all 133 runtime/credit asset hashes matching the approved package.
 
 - Evelyn is now a separately built 1.62 m, 68-year-old character, guided by the original family portrait: aged facial/body morphology, old-female skin, short waved hair and floral blouse/skirt. Her GLB, source checksums, build recipe and runtime factory are independent of Mara. Closed-eye clean Evelyn rests in an open casket; the wounded form owns its geometry/material changes. It removes actual skin/garment faces and adds five ragged, recessed, bone-attached injuries with tissue/rib detail, blood and material relief. The wounded helper adds 5,444 triangles; the independent base is 82,328 triangles. No film assets or downloaded monster body are used.
 - The funeral room is a 77.12 m² warm parlor with wallpaper, walnut trim, drapes, 12 chairs and nine empty seats. The entry and funeral-radio position remain stable. The casket replaces the old portrait-table focal point; clean Evelyn fits inside with folded hands and closed eyes. The center aisle and doorway remain clear.
@@ -14,11 +26,11 @@ Production was last verified at `93f3199`, with all 126 runtime/credit asset has
 
 Focused checks pass for the independent model/wounds, parlor/casket geometry and renders, furniture contacts, direct-reading moisture mask, voice records and fast attack timing. All 60 unit tests, normal-mode startup/controls and the complete seven-chapter route pass with no browser errors or failed requests. The route verifies the larger parlor and clean casket body, distinct wounded asset, rapid phase progression, pause/resume, complete Goodnight, fade/credits and replay reset; all 30 Oggs decode and match their synthesis text. The final accusation and Goodnight use short completion gaps, preserving the complete speech without the old extra pause. Browser artifacts remain outside the checkout. Desktop GPU performance and subjective fear still need human playtesting.
 
-## Current local development — dialogue, crime scene and final attack
+## Earlier release — dialogue, crime scene and final attack (`93f3199`)
 
-This pass follows the approved/pushed `faee420` mirror polish. The new work remains local and requires separate release approval.
+This pass followed `faee420` mirror polish and was subsequently approved, pushed and verified live as `93f3199` (126 runtime/credit asset hashes).
 
-**Additional camera-input correction:** ordinary doors never request a turn: 60 actual-house movement/contact cases and 70 doorway renders preserve camera orientation, including both planar mirrors and the rear portal renderer. The former raw mouse handler did accept an isolated 1,745-count packet as an approximately 180-degree turn. The input reader now confirms unusually large individual packets against adjacent motion, cancels reciprocal recenter jumps, rejects non-finite/stale events, and accepts input only while the canvas actually owns pointer lock. Capture changes, blur, hiding and restart clear pending input; queued events older than the new capture are ignored. Continuous fast and high-DPI streams retain their full displacement. The exact client-device source of the bad packet is not established by cloud testing; its half-turn failure and correction are reproduced through the real browser event binding.
+**Earlier camera-input correction, superseded by the current frame budget:** ordinary doors never request a turn: 60 actual-house movement/contact cases and 70 doorway renders preserved camera orientation, including both planar mirrors and the rear portal renderer. The raw mouse handler accepted an isolated 1,745-count packet as an approximately 180-degree turn. This revision confirmed unusually large packets against adjacent motion and cleared input on capture changes. It preserved coherent fast/high-DPI streams, which the current trusted-event regression demonstrated could still produce a one-frame half turn. The current local reader above replaces that heuristic.
 
 Camera validation: 54 unit tests pass, including 13 input regressions, plus the actual application's pointer-lock/input fixture, 60 ordinary-door movement/contact cases and the 70-render orientation audit. Normal-mode controls/settings, all 27 rear-door cases, two overlap-recovery cases and all 18 mirror cases also pass, with no browser errors or failed requests.
 
@@ -31,7 +43,7 @@ Camera validation: 54 unit tests pass, including 13 input regressions, plus the 
 
 Validation: 41 unit tests, 27 actual-house rear-door cases at 120/60/20 Hz, 18 mirror cases, overlap recovery, portal warmup state restoration, opening/photo animation, crime-scene visibility/reset and finite audio checks pass. The wounded-model render fixture verifies material isolation, safe placement, pause/reduced-scare behavior and reset. Final normal-mode startup/settings and the complete seven-chapter route pass with no browser errors or failed requests: required photograph correction, all puzzle gates, collision returns, full paused/resumed news, accusation, forced turn, lunge, paused attack recovery, fade/credits and replay reset. All 29 Oggs decode and match their synthesis text. Software rendering does not establish desktop-GPU performance or subjective horror impact.
 
-## Released baseline
+## Original 0.8 release
 
 **Production:** the owner-approved 0.8, Demonic Presence, is live at https://mirror-me.pages.dev and synchronized with GitHub `main`. Automatic deployment `24a9b009-81be-4acb-99bf-b7c97e88553d` succeeded for reviewed revision `3d26ffb`; normal HTTPS verification confirmed all 116 public runtime/credit hashes match the immutable tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records.
 

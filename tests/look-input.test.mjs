@@ -1,100 +1,169 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { LookInput } from "../src/look-input.mjs";
+import {
+  LookInput,
+  LOOK_RADIANS_PER_PIXEL,
+  MAX_LOOK_FRAME_ANGLE,
+  MAX_LOOK_RATE,
+} from "../src/look-input.mjs";
 
 const packet = (x, y, timeStamp) => ({ movementX: x, movementY: y, timeStamp });
-const total = (values) => values.filter(Boolean).reduce((sum, value) => ({
-  x: sum.x + value.x, y: sum.y + value.y,
-}), { x: 0, y: 0 });
+const enqueue = (input, x, y, time, now = time) => input.enqueue(packet(x, y, time), now);
+const angle = (motion, sensitivity = 1) => motion
+  ? Math.hypot(motion.x, motion.y) * LOOK_RADIANS_PER_PIXEL * sensitivity : 0;
+const near = (a, b, label = "values differ") => assert.ok(Math.abs(a - b) < 1e-9, `${label}: ${a} vs ${b}`);
+const bounded = (motion, dt = 1 / 60, sensitivity = 1) => {
+  assert.ok(angle(motion, sensitivity) <= Math.min(MAX_LOOK_FRAME_ANGLE, MAX_LOOK_RATE * Math.min(dt, .05)) + 1e-9,
+    `One rendered frame turned ${angle(motion, sensitivity)} radians`);
+};
 
-test("ordinary horizontal and diagonal mouse input keeps its exact displacement", () => {
+test("ordinary input is summed once per frame with exact horizontal and diagonal counts", () => {
   const input = new LookInput();
-  assert.deepEqual(input.read(packet(12, -7, 10)), { x: 12, y: -7 });
-  assert.deepEqual(input.read(packet(-18, 11, 18)), { x: -18, y: 11 });
-  assert.deepEqual(input.read(packet(0, 0, 26)), { x: 0, y: 0 });
+  enqueue(input, 12, -7, 10);
+  enqueue(input, -3, 2, 18);
+  assert.deepEqual(input.consume(1 / 60, 1), { x: 9, y: -5 });
+  assert.equal(input.consume(1 / 60, 1), null, "Events cannot be applied twice");
 });
 
-test("a deliberate fast half turn delivered as a normal stream is never angle capped", () => {
-  const input = new LookInput(), accepted = [];
-  // 1750 counts at default sensitivity is slightly more than 180 degrees.
-  for (let i = 0; i < 25; i++) accepted.push(input.read(packet(70, i % 2 ? 1 : -1, 10 + i * 4)));
-  assert.deepEqual(total(accepted), { x: 1750, y: -1 });
-});
-
-test("a lone 180-degree packet cannot spin the camera before ordinary input resumes", () => {
+test("the published coherent-large-packet failure cannot apply a half turn in one frame", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10)), null);
-  assert.deepEqual(input.read(packet(4, -2, 18)), { x: 4, y: -2 });
-  assert.deepEqual(input.read(packet(5, 1, 26)), { x: 5, y: 1 });
+  enqueue(input, 1000, 0, 10);
+  enqueue(input, 1000, 0, 18);
+  const motion = input.consume(1 / 60, 1);
+  assert.ok(motion === null || motion.x > 0, "A discarded burst must not reverse the look direction");
+  bounded(motion);
+  assert.ok(angle(motion) < Math.PI / 4, "Formerly accepted 206-degree spin must be impossible");
+  assert.equal(input.consume(1 / 60, 1), null, "Dropped excess cannot become a delayed spin");
 });
 
-test("corroborated high-DPI packets preserve every count instead of imposing a rate cap", () => {
+test("two individually sub-90-degree packets share one frame budget", () => {
   const input = new LookInput();
-  const accepted = [10, 18, 26, 34].map(time => input.read(packet(1000, 0, time)));
-  assert.equal(accepted[0], null);
-  assert.deepEqual(total(accepted), { x: 4000, y: 0 });
+  enqueue(input, 850, 0, 10);
+  enqueue(input, 850, 0, 18);
+  const motion = input.consume(1 / 60, 1);
+  bounded(motion);
+  assert.ok(angle(motion) < Math.PI / 4, "Formerly accepted 175-degree frame turn must be impossible");
+  assert.equal(input.consume(), null);
 });
 
-test("reciprocal pointer recenter packets cancel without a frame of camera rotation", () => {
+test("same-timestamp ordinary packet bursts cannot evade the total frame budget", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10)), null);
-  assert.equal(input.read(packet(-1745, 0, 18)), null);
-  assert.deepEqual(input.read(packet(6, 2, 26)), { x: 6, y: 2 });
+  for (let i = 0; i < 10; i++) enqueue(input, 200, 0, 10);
+  bounded(input.consume(1 / 60, 1));
+  for (let frame = 0; frame < 10; frame++) assert.equal(input.consume(), null);
 });
 
-test("a recenter pair retains its small real net motion", () => {
+test("a queue delivered after a short doorway stall drains without catch-up rotation", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10)), null);
-  assert.deepEqual(input.read(packet(-1741, 3, 18)), { x: 4, y: 3 });
+  for (let i = 0; i < 10; i++) enqueue(input, 200, 0, 10 + i * 8, 90);
+  const motion = input.consume(.2, 1);
+  bounded(motion, .2);
+  assert.ok(angle(motion) <= MAX_LOOK_FRAME_ANGLE + 1e-9);
+  for (let frame = 0; frame < 10; frame++) assert.equal(input.consume(1 / 60, 1), null);
 });
 
-test("a large reciprocal residual cannot become a second visible camera jerk", () => {
+test("stale queued mouse movement is dropped rather than delivered after a long stall", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10)), null);
-  assert.equal(input.read(packet(-1445, 0, 18)), null);
-  assert.deepEqual(input.read(packet(4, 2, 26)), { x: 4, y: 2 });
+  enqueue(input, 2000, 0, 10, 250);
+  assert.equal(input.consume(), null);
+  enqueue(input, 4, -2, 251, 251);
+  assert.deepEqual(input.consume(), { x: 4, y: -2 });
 });
 
-test("reciprocal residual tolerance remains small at high sensitivity", () => {
+test("a deliberate fast half turn across rendered frames remains controllable and exact", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10), 4), null);
-  assert.equal(input.read(packet(-1735, 0, 18), 4), null);
-  assert.deepEqual(input.read(packet(2, 1, 26), 4), { x: 2, y: 1 });
+  let total = 0;
+  for (let frame = 0; frame < 14; frame++) {
+    enqueue(input, 125, 0, 10 + frame * (1000 / 60));
+    const motion = input.consume(1 / 60, 1);
+    bounded(motion);
+    total += motion.x;
+  }
+  near(total, 1750, "Normal fast flick lost displacement");
+  assert.ok(total * LOOK_RADIANS_PER_PIXEL > Math.PI);
+  assert.equal(input.consume(), null);
 });
 
-test("packet corroboration uses the player's configured sensitivity", () => {
-  const slow = new LookInput(), fast = new LookInput();
-  assert.deepEqual(slow.read(packet(1000, 0, 10), .2), { x: 1000, y: 0 });
-  assert.equal(fast.read(packet(500, 0, 10), 2), null);
-  assert.deepEqual(fast.read(packet(5, 0, 18), 2), { x: 5, y: 0 });
-});
-
-test("delayed large packets cannot corroborate an earlier cursor discontinuity", () => {
+test("high-DPI input at a low configured sensitivity preserves intended small turns", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 10)), null);
-  assert.equal(input.read(packet(1745, 0, 80)), null);
-  assert.deepEqual(input.read(packet(3, 1, 88)), { x: 3, y: 1 });
+  enqueue(input, 1000, 0, 10);
+  assert.deepEqual(input.consume(1 / 60, .1), { x: 1000, y: 0 });
+  enqueue(input, 1000, 0, 26);
+  const limited = input.consume(1 / 60, 2);
+  bounded(limited, 1 / 60, 2);
+  assert.equal(input.consume(1 / 60, 2), null);
 });
 
-test("lock lifecycle reset discards a pending discontinuity and previous timestamp", () => {
+test("diagonal bursts are limited as one angular vector rather than two independent axes", () => {
   const input = new LookInput();
-  assert.equal(input.read(packet(1745, 0, 100)), null);
-  input.reset();
-  assert.deepEqual(input.read(packet(5, -3, 10)), { x: 5, y: -3 });
+  enqueue(input, 300, -150, 10);
+  const motion = input.consume(1 / 60, 1);
+  bounded(motion);
+  near(motion.x / motion.y, -2, "Clamping changed the look direction");
+  assert.equal(input.consume(), null);
 });
 
-test("a new lock rejects mouse packets queued before its acquisition", () => {
+test("high refresh rate frames enforce the elapsed-time turn budget", () => {
   const input = new LookInput();
+  enqueue(input, 200, 0, 10);
+  const dt = 1 / 240;
+  const motion = input.consume(dt, 1);
+  bounded(motion, dt);
+  near(angle(motion), MAX_LOOK_RATE * dt, "Rate limit changed with a 240 Hz frame");
+});
+
+test("reciprocal cursor-recentering packets cancel before any camera turn is applied", () => {
+  const input = new LookInput();
+  enqueue(input, 1745, 0, 10);
+  enqueue(input, -1745, 0, 18);
+  near(angle(input.consume()), 0);
+  enqueue(input, 1745, 0, 26);
+  enqueue(input, -1741, 3, 34);
+  assert.deepEqual(input.consume(), { x: 4, y: 3 });
+});
+
+test("capture reset clears queued motion and rejects packets predating the new capture", () => {
+  const input = new LookInput();
+  enqueue(input, 2000, 0, 10);
   input.reset(500);
-  assert.equal(input.read(packet(1745, 0, 450)), null);
-  assert.deepEqual(input.read(packet(5, 2, 501)), { x: 5, y: 2 });
+  assert.equal(input.consume(), null);
+  enqueue(input, 1745, 0, 450, 501);
+  assert.equal(input.consume(), null);
+  enqueue(input, 5, -3, 502, 502);
+  assert.deepEqual(input.consume(), { x: 5, y: -3 });
 });
 
-test("non-finite and stale input cannot corrupt the look state", () => {
+test("non-finite and reordered packets cannot corrupt the next valid mouse frame", () => {
   const input = new LookInput();
-  assert.deepEqual(input.read(packet(2, 3, 10)), { x: 2, y: 3 });
-  assert.equal(input.read(packet(4, 5, 9)), null);
-  assert.equal(input.read(packet(NaN, 2, 18)), null);
-  assert.equal(input.read(packet(4, Infinity, 26)), null);
-  assert.deepEqual(input.read(packet(6, -2, 34)), { x: 6, y: -2 });
+  enqueue(input, 2, 3, 10);
+  enqueue(input, 100, 100, 9, 10);
+  enqueue(input, NaN, 2, 18);
+  enqueue(input, 4, Infinity, 26);
+  enqueue(input, 4, 1, NaN, 30);
+  assert.deepEqual(input.consume(), { x: 2, y: 3 });
+  enqueue(input, 6, -2, 34);
+  assert.deepEqual(input.consume(), { x: 6, y: -2 });
+});
+
+test("diagnostics record discarded input and limited frames without retaining a motion tail", () => {
+  const input = new LookInput();
+  enqueue(input, 2000, 0, 10);
+  input.consume();
+  enqueue(input, NaN, 0, 18);
+  const state = input.snapshot();
+  assert.ok(state.clampedFrames >= 1);
+  assert.ok(state.discarded >= 1);
+  assert.equal(Boolean(state.pending), false);
+  assert.equal(input.consume(), null);
+});
+
+test("invalid frame timing or sensitivity drains rather than storing a future turn", () => {
+  for (const [dt, sensitivity] of [[NaN, 1], [0, 1], [-1, 1], [1 / 60, Infinity], [1 / 60, 0]]) {
+    const input = new LookInput();
+    enqueue(input, 100, 50, 10);
+    assert.equal(input.consume(dt, sensitivity), null);
+    assert.equal(input.consume(), null);
+    enqueue(input, 3, -2, 18);
+    assert.deepEqual(input.consume(), { x: 3, y: -2 });
+  }
 });

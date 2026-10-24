@@ -2,6 +2,7 @@ import * as T from "three";
 import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
 import { LookInput } from "./look-input.mjs";
+import { requestGamePointerLock } from "./pointer-lock.mjs";
 import { buildHouse } from "./house.mjs";
 import { Mirror } from "./mirror.mjs";
 import { Story, VOICES, WRITINGS } from "./story.mjs";
@@ -347,6 +348,12 @@ function showMenu() {
 async function enter() {
   $("error").textContent = "";
   if (mode === "ending") reset();
+  // Capture starts inside the activation click. Audio initialization must not
+  // consume that activation, and a raw-input fallback owns its own errors.
+  const capture = requestGamePointerLock(renderer.domElement).then(
+    () => null,
+    error => error,
+  );
   try {
     await sound.start();
   } catch {
@@ -354,9 +361,8 @@ async function enter() {
     $("error").textContent =
       "Audio could not start. You can still play with subtitles.";
   }
-  try {
-    await renderer.domElement.requestPointerLock();
-  } catch {
+  const captureError = await capture;
+  if (captureError) {
     showMenu();
     $("error").textContent =
       "Mouse capture was refused. Click RETURN again. Progress is kept.";
@@ -592,10 +598,6 @@ document.addEventListener("pointerlockchange", (e) => {
   )
     showMenu();
 });
-document.addEventListener("pointerlockerror", () => {
-  showMenu();
-  $("error").textContent = "Mouse capture was refused. Click RETURN again.";
-});
 window.addEventListener("blur", () => {
   lookInput.reset();
   player.clear();
@@ -610,8 +612,7 @@ document.addEventListener("visibilitychange", () => {
 });
 document.addEventListener("mousemove", (e) => {
   if (!active || funeralAttack || document.pointerLockElement !== renderer.domElement) return;
-  const motion = lookInput.read(e, player.sensitivity);
-  if (motion) player.look(motion.x, motion.y);
+  lookInput.enqueue(e, performance.now());
 });
 document.addEventListener("keydown", (e) => {
   if (e.code === "Tab" && (active || mode === "pocket")) {
@@ -979,6 +980,8 @@ function crossGlass() {
 
 function update(dt) {
   if (!active) return;
+  const look = lookInput.consume(dt, player.sensitivity);
+  if (look && !funeralAttack) player.look(look.x, look.y);
   elapsed += dt;
   if (endingAt) {
     const t = elapsed - endingStart;

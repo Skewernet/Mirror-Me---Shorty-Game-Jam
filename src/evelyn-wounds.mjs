@@ -1,4 +1,6 @@
 import * as T from "three";
+import { mergeGeometries } from "../vendor/BufferGeometryUtils.js";
+import { RoundedBoxGeometry } from "../vendor/RoundedBoxGeometry.js";
 
 const TAU = Math.PI * 2;
 const noise = (x, y) => Math.sin(x * 83.17 + y * 131.93) * .54 + Math.sin(x * 217.31 - y * 91.71) * .29;
@@ -11,7 +13,7 @@ float ewNoise(vec3 p){
 }`;
 
 function woundPoint(wound, angle, scale = 1) {
-  const edge = 1 + .075 * Math.sin(angle * 7 + wound.seed) + .045 * Math.sin(angle * 13 - wound.seed);
+  const edge = 1 + .11 * Math.sin(angle * 3 + wound.seed) + .065 * Math.sin(angle * 7 + wound.seed) + .035 * Math.sin(angle * 13 - wound.seed);
   const x = Math.cos(angle) * wound.w * .5 * scale * edge;
   const y = Math.sin(angle) * wound.h * .5 * scale * edge;
   const c = Math.cos(wound.angle), s = Math.sin(wound.angle);
@@ -24,7 +26,7 @@ function inside(wound, x, y, scale = 1) {
   const u = (dx * c + dy * s) / (wound.w * .5);
   const v = (-dx * s + dy * c) / (wound.h * .5);
   const angle = Math.atan2(v, u);
-  const edge = 1 + .075 * Math.sin(angle * 7 + wound.seed) + .045 * Math.sin(angle * 13 - wound.seed);
+  const edge = 1 + .11 * Math.sin(angle * 3 + wound.seed) + .065 * Math.sin(angle * 7 + wound.seed) + .035 * Math.sin(angle * 13 - wound.seed);
   return Math.hypot(u, v) < scale * edge;
 }
 
@@ -108,7 +110,7 @@ function stainMaterial(material, kind, metrics, wounds) {
         vec2 ewDelta${i}=ew.xy-vec2(${wound.x.toFixed(6)},${wound.y.toFixed(6)});
         vec2 ewCut${i}=mat2(${Math.cos(wound.angle).toFixed(6)},${(-Math.sin(wound.angle)).toFixed(6)},${Math.sin(wound.angle).toFixed(6)},${Math.cos(wound.angle).toFixed(6)})*ewDelta${i}/vec2(${(wound.w * .5).toFixed(6)},${(wound.h * .5).toFixed(6)});
         float ewAngle${i}=atan(ewCut${i}.y,ewCut${i}.x);
-        float ewEdge${i}=1.+.075*sin(ewAngle${i}*7.+${wound.seed.toFixed(1)})+.045*sin(ewAngle${i}*13.-${wound.seed.toFixed(1)});
+        float ewEdge${i}=1.+.11*sin(ewAngle${i}*3.+${wound.seed.toFixed(1)})+.065*sin(ewAngle${i}*7.+${wound.seed.toFixed(1)})+.035*sin(ewAngle${i}*13.-${wound.seed.toFixed(1)});
         if(length(ewCut${i})<ewEdge${i}*.82 && ew.z<${(wound.frontZ + .08).toFixed(6)}) discard;
       `).join("\n")}
       float ewFront=1.-smoothstep(-.012,.055,ew.z);
@@ -116,10 +118,21 @@ function stainMaterial(material, kind, metrics, wounds) {
       float ewCloud=ewNoise(ew*39.+vec3(2.1,7.3,1.9));
       float ewChest=exp(-pow(ew.x/.17,2.)-pow((ew.y-${chest})/.24,2.));
       float ewBelly=exp(-pow((ew.x+.008)/.17,2.)-pow((ew.y-${abdomen})/.25,2.));
-      float ewJaw=exp(-pow((ew.x-.036)/.070,2.)-pow((ew.y-${neck}-.11)/.14,2.));
+      float ewJaw=exp(-pow((ew.x-.038)/.071,2.)-pow((ew.y-${neck}-.10)/.17,2.));
+      float ewSocket=exp(-pow((ew.x-.031)/.030,2.)-pow((ew.y-${(metrics.head + .049).toFixed(6)})/.024,2.));
+      float ewOtherSocket=exp(-pow((ew.x+.028)/.031,2.)-pow((ew.y-${(metrics.head + .049).toFixed(6)})/.022,2.));
+      float ewFaceRun=exp(-pow((ew.x-.032-sin(ew.y*118.)*.0028)/.0028,2.))
+        *smoothstep(${(metrics.head - .038).toFixed(6)},${(metrics.head - .014).toFixed(6)},ew.y)
+        *(1.-smoothstep(${(metrics.head + .083).toFixed(6)},${(metrics.head + .102).toFixed(6)},ew.y))*(.48+.52*ewCloud);
+      ${kind === "skin" ? `
+        float ewFace=exp(-pow((ew.y-${(metrics.head + .015).toFixed(6)})/.105,2.))*ewFront;
+        float ewSkinValue=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));
+        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(ewSkinValue)*vec3(.78,.80,.70),ewFace*.32);
+        diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.043,.017,.019),(ewSocket*.77+ewOtherSocket*.39)*ewFront);
+      ` : ""}
       float ewRun=exp(-pow((ew.x+.017+sin(ew.y*93.)*.008)/.046,2.))
         *smoothstep(${abdomen}-.30,${abdomen}-.10,ew.y)*(1.-smoothstep(${neck}+.03,${neck}+.12,ew.y));
-      float ewBlood=clamp((ewChest*.84+ewBelly*.78+ewJaw*.96+ewRun*.8)*(.86+.14*ewCloud)*ewFront,0.,1.);
+      float ewBlood=clamp((ewChest*.84+ewBelly*.78+ewJaw*.96+ewRun*.8+ewFaceRun*.82)*(.86+.14*ewCloud)*ewFront,0.,1.);
       ${kind === "hair" ? `ewBlood=clamp(exp(-pow((ew.x-.08)/.12,2.))*smoothstep(${neck}+.02,${neck}+.11,ew.y)*.95,0.,.95);` : ""}
       vec3 ewDry=vec3(.075,.006,.0045), ewWet=vec3(.16,.0065,.004);
       diffuseColor.rgb=mix(diffuseColor.rgb,mix(ewDry,ewWet,ewGrain*.6),ewBlood);
@@ -144,7 +157,7 @@ export function addEvelynWounds(body, rig) {
   const head = rig.restPoint("head").y;
   const metrics = { neck, head };
   const wounds = [
-    { name: "Torn left cheek", x: .050, y: head - .002, w: .048, h: .076, angle: -.34, depth: .020, seed: 2, bone: "head", area: "skin" },
+    { name: "Torn left cheek", x: .037, y: head - .029, w: .076, h: .105, angle: -.53, depth: .023, seed: 2, bone: "head", area: "skin" },
     { name: "Open neck slash", x: -.009, y: neck + .005, w: .083, h: .022, angle: -.18, depth: .021, seed: 7, bone: "neck_01", area: "skin" },
     { name: "Upper chest stab", x: -.065, y: neck - .152, w: .080, h: .054, angle: .52, depth: .030, seed: 11, bone: "spine_03", area: "both" },
     { name: "Lower chest stab", x: .060, y: neck - .252, w: .056, h: .086, angle: -.33, depth: .029, seed: 13, bone: "spine_03", area: "both" },
@@ -167,6 +180,8 @@ export function addEvelynWounds(body, rig) {
   const cavity = own(new T.MeshBasicMaterial({ color: 0x110202, side: T.DoubleSide }));
   const connective = own(new T.MeshStandardMaterial({ color: 0x65261e, roughness: .39, envMapIntensity: .08 }));
   const boneMaterial = own(new T.MeshStandardMaterial({ color: 0x9d7560, roughness: .55, envMapIntensity: .05 }));
+  const teethMaterial = own(new T.MeshStandardMaterial({ color: 0x8d8069, roughness: .42, envMapIntensity: .055 }));
+  const fatMaterial = own(new T.MeshStandardMaterial({ color: 0x76573f, roughness: .52, envMapIntensity: .045 }));
   for (const material of [flesh, connective, boneMaterial]) {
     material.onBeforeCompile = shader => {
       shader.vertexShader = "varying vec3 vEwTissue;\n" + shader.vertexShader;
@@ -224,12 +239,16 @@ export function addEvelynWounds(body, rig) {
   for (const wound of wounds) {
     const sample = wound.area === "both" && clothSamples ? clothSamples : skinSamples;
     const ring = [], color = [], rim = [], indices = [], count = 52;
-    const tones = [new T.Color(0x78443a), new T.Color(0x9b3327), new T.Color(0x4a0d0b), new T.Color(0x260504)];
-    const scales = [1.14, 1.01, .87, .64];
+    // The margin falls into the wound; a narrow raised red ring around a black
+    // circle reads as stage makeup. These thin, uneven layers instead expose
+    // pallid dermis, raw wall and deep muscle as a continuous recession.
+    const tones = [new T.Color(0x793a2f), new T.Color(0x78291d), new T.Color(0x6e2019), new T.Color(0x4b110e), new T.Color(0x300807), new T.Color(0x1c0403)];
+    const scales = [1.12, 1.025, .955, .86, .64, .36];
     for (let layer = 0; layer < scales.length; layer++) for (let i = 0; i <= count; i++) {
       const angle = i / count * TAU;
       const [x, y] = woundPoint(wound, angle, scales[layer]);
-      const z = sample.at(x, y) + [-.0015, -.006, .007, wound.depth * .78][layer] + noise(x, y) * .0012;
+      const pull = .0013 * Math.sin(angle * 5.3 + wound.seed) + .0009 * Math.sin(angle * 11.7);
+      const z = sample.at(x, y) + [-.0005, -.0012, .003 + pull, wound.depth * .23, wound.depth * .63, wound.depth * .94][layer] + noise(x, y) * .0007;
       ring.push(x, y, z);
       const tone = tones[layer].clone().multiplyScalar(.96 + .05 * Math.sin(i * 2.13 + wound.seed));
       color.push(tone.r, tone.g, tone.b);
@@ -258,6 +277,105 @@ export function addEvelynWounds(body, rig) {
     inner.setIndex(recessIndex);
     inner.computeVertexNormals();
     bind(inner, cavity, wound.name + " / recessed cavity", wound.bone);
+    if (wound.name === "Torn left cheek") {
+      // A damaged mouth corner needs an oral structure, not another circular
+      // black decal. The exposed upper row is fixed to the skull; the lower
+      // end is deliberately broken rather than pretending to animate a jaw.
+      const teeth = [];
+      for (let j = 0; j < 5; j++) {
+        const x = .019 + j * .0060;
+        const y = head - .025 - Math.sin(j * .6) * .0022;
+        const tooth = new RoundedBoxGeometry(.0049 + (j % 2) * .0005, .0074 - j * .0004, .0045, 1, .0007);
+        tooth.rotateZ(-.16 + j * .087);
+        tooth.rotateY((j - 2) * .11);
+        tooth.translate(x, y, sample.at(x, y) + .0095);
+        teeth.push(tooth);
+      }
+      for (let j = 0; j < 2; j++) {
+        const x = .046 + j * .0051, y = head - .058 - j * .003;
+        const tooth = new RoundedBoxGeometry(.0038, .0057, .004, 1, .0007);
+        tooth.rotateZ(.4 + j * .19);
+        tooth.translate(x, y, sample.at(x, y) + .007);
+        teeth.push(tooth);
+      }
+      bind(mergeGeometries(teeth), teethMaterial, "Exposed cheek teeth and broken jaw fragments", "head");
+      const gumPath = Array.from({ length: 9 }, (_, j) => {
+        const x = .017 + j * .0041, y = head - .020 - Math.sin(j * .48) * .0022;
+        return new T.Vector3(x, y, sample.at(x, y) + .011);
+      });
+      bind(new T.TubeGeometry(new T.CatmullRomCurve3(gumPath), 20, .0026, 7, false), connective, "Torn cheek / exposed gingiva", "head");
+      const strips = [];
+      for (let j = 0; j < 3; j++) {
+        const x = .038 + j * .009;
+        const path = [
+          new T.Vector3(x, head + .014, sample.at(x, head + .014) + .003),
+          new T.Vector3(x + .007, head - .012, sample.at(x, head - .012) + .015),
+          new T.Vector3(x - .002, head - .048 - j * .003, sample.at(x, head - .048) + .009),
+        ];
+        strips.push(new T.TubeGeometry(new T.CatmullRomCurve3(path), 14, .0014 + j * .00025, 5, false));
+      }
+      bind(mergeGeometries(strips), connective, "Torn cheek / stretched connective strips", "head");
+      continue;
+    }
+    if (wound.name === "Abdominal rupture") {
+      // A folded serosal sheet and crossing, locally lobed loops replace the
+      // old four parallel red cylinders. Their ends remain inside the cavity.
+      const sheet = new T.BufferGeometry(), sheetPositions = [], sheetIndex = [];
+      const sheetRows = 7, sheetSegments = 44;
+      for (let row = 0; row <= sheetRows; row++) for (let segment = 0; segment <= sheetSegments; segment++) {
+        const [x, y] = woundPoint(wound, segment / sheetSegments * TAU, row / sheetRows * .84);
+        const z = sample.at(x, y) + wound.depth * .42 + Math.sin(y * 135. + x * 21.) * .007 + Math.sin(x * 110.) * .003;
+        sheetPositions.push(x, y, z);
+        if (row && segment < sheetSegments) {
+          const a = (row - 1) * (sheetSegments + 1) + segment, b = row * (sheetSegments + 1) + segment;
+          sheetIndex.push(a, b, a + 1, a + 1, b, b + 1);
+        }
+      }
+      sheet.setAttribute("position", new T.Float32BufferAttribute(sheetPositions, 3));
+      sheet.setIndex(sheetIndex);
+      sheet.computeVertexNormals();
+      bind(sheet, connective, "Abdominal rupture / folded visceral wall", wound.bone);
+      const loopParts = [];
+      for (let j = 0; j < 2; j++) {
+        const route = j === 0
+          ? [[-.060,.073],[-.033,.043],[.042,.021],[.050,-.015],[-.036,-.045],[-.025,-.090],[.051,-.092]]
+          : [[.060,.068],[.023,.051],[-.038,.021],[-.040,-.012],[.029,-.040],[.035,-.076],[-.051,-.091]];
+        const path = route.map(([x, y], k) => {
+          x += wound.x; y += wound.y;
+          const attachment = k === 0 || k === route.length - 1;
+          return new T.Vector3(x, y, sample.at(x, y) + (attachment ? .014 : -.010 + Math.sin(k * 1.7 + j) * .004));
+        });
+        const curve = new T.CatmullRomCurve3(path);
+        const loop = new T.TubeGeometry(curve, 46, .0090, 8, false);
+        const p = loop.attributes.position;
+        for (let segment = 0; segment <= 46; segment++) {
+          const centre = curve.getPointAt(segment / 46);
+          const strength = .78 + .17 * Math.sin(segment * 1.37 + j) + .10 * Math.sin(segment * .41);
+          for (let radial = 0; radial <= 8; radial++) {
+            const i = segment * 9 + radial;
+            const point = new T.Vector3().fromBufferAttribute(p, i).sub(centre);
+            point.multiplyScalar(strength + .06 * Math.sin(radial * 2.8 + segment));
+            point.z *= .67;
+            point.add(centre);
+            p.setXYZ(i, point.x, point.y, point.z);
+          }
+        }
+        loop.computeVertexNormals();
+        loopParts.push(loop);
+      }
+      bind(mergeGeometries(loopParts), connective, "Abdominal rupture / exposed irregular visceral loops", wound.bone);
+      const lobules = [];
+      for (let j = 0; j < 9; j++) {
+        const x = wound.x - .032 + j * .0066, y = wound.y + .062 + Math.sin(j * .83) * .004;
+        const lobe = new T.SphereGeometry(1, 9, 7);
+        lobe.scale(.005 + (j % 3) * .0012, .0040, .0027);
+        lobe.rotateZ(j * .53);
+        lobe.translate(x, y, sample.at(x, y) + .016);
+        lobules.push(lobe);
+      }
+      bind(mergeGeometries(lobules), fatMaterial, "Abdominal rupture / torn mesenteric fat", wound.bone);
+      continue;
+    }
     // Short, irregular connective folds stay inside each opening. The large
     // abdominal opening has layered exposed tissue and two broken rib edges.
     const folds = wound.name === "Abdominal rupture" ? 4 : 2;

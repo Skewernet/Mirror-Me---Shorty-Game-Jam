@@ -4,9 +4,9 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — Evelyn and the funeral parlor:** a separate 68-year-old mother model follows the family portrait's face, short waved hair and floral clothing. A clean closed-eye instance rests in the parlor's open casket; a distinct wounded instance has real skin/garment openings and attached tissue geometry. The larger warm parlor has empty seating. The attack now strikes at 0.38 seconds and reaches black at 0.68 seconds while Mum's complete "Goodnight" uses her existing phone voice. The bookshelf is rebuilt, the rear-door plaque is removed, and the bathroom clue reads 03:17 directly. This pass is local and not deployed.
+**Current local development — mouse stability and face-to-face attack:** mouse motion is now drained once per frame with an angular budget, so several individually valid packets cannot accumulate into a sudden half turn. Excess motion is discarded without a delayed spin. Capture requests raw movement with a supported fallback; capture changes and focus loss clear queued motion. Offscreen doorways skip their portal render. Evelyn's actual eyes now meet the player's camera during the lunge, with a larger attacking apparition, torn cheek/mouth tissue, exposed teeth and layered abdominal wounds. The clean casket model retains its own size and materials. This pass is local and not deployed.
 
-**Published baseline:** `93f3199` contains the dark fuse-failure opening, hall-photo interaction, apartment-wide crime trail and pointer-lock camera fix. Its 126 runtime/credit assets were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=93f3199). The new Evelyn/parlor pass above remains local.
+**Published baseline:** `f824f50` contains independent aged Evelyn, the larger warm funeral parlor, clean open-casket body, 0.38-second strike and complete "Goodnight" in Mum's phone voice. It also includes the dark fuse-failure opening, hall-photo interaction, crime trail, rebuilt bookshelf, unlabelled rear door and direct-reading 03:17 clue. Its 133 runtime/credit assets were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=f824f50).
 
 The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
@@ -26,7 +26,7 @@ The rear leaf now opens inward and folds flat along the hall wall, with correcte
 
 The mirror progresses from faithful to late and held, then distorted and absent. After the physical crossing it returns Mara's ordinary human identity, visibly bloodied, against the revealed crime scene. The bedroom contains the covered mother, a blood-soaked bed, knife and blood on surrounding domestic surfaces. A finite broken-voice/cry beat precedes the bedside admission. Inspecting the bed establishes the truth; only then can Mara switch off the lamp and leave through the front entrance.
 
-That exit leads to the pale playable funeral room. Its own visible radio delivers a complete one-shot news report, separate from the silent kitchen radio and the sitting-room telephone. The ending waits for the report, a quiet interval and Mum's final accusation before fading. It does not offer forgiveness. Free look, walking, flashlight and pause remain available, and pausing dialogue resumes from its current offset. Voice mute retains captions and equivalent pacing.
+That exit leads to the warm funeral parlor with empty chairs and an open casket. Its own visible radio delivers a complete one-shot news report, separate from the silent kitchen radio and the sitting-room telephone. The ending waits for the report, a quiet interval and Mum's final accusation before the attack and fade. It does not offer forgiveness. Free look, walking, flashlight and pause remain available before the attack, and pausing dialogue resumes from its current offset. Voice mute retains captions and equivalent pacing.
 
 The house retains photographic wood/fabric, independent PBR normal/roughness maps, restrained indirect reflections, soft practical shadows and screen-space contact shading. Default output is up to 1080p, with 720p performance and 1440p detail options. Grain and walking motion start off. Six finite authored sightings, directional sound, falling décor and independent sudden-scare/light-flicker settings remain; changing comfort settings cannot block a puzzle.
 
@@ -75,7 +75,10 @@ node tests/crime-scene.cjs
 node tests/funeral-scare.cjs
 node tests/door-transitions.cjs
 node tests/portal-warmup.cjs
+node tests/portal-visibility.cjs
 node tests/camera-input.cjs
+node tests/mouse-browser.cjs
+node tests/pointer-lock.cjs
 node tests/doorway-camera.cjs
 node tests/furniture.cjs
 node tests/evelyn-model.cjs
@@ -85,7 +88,7 @@ node tests/parlor.cjs
 
 Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
 
-The 0.8 source passes all 29 unit tests, 40 creature geometry/gaze/contact cases and eight director lifecycle checks. These include normal-human isolation, all authored anatomical strengths, ceiling/floor limits, real occlusion, silence/anticipation, dialogue priority, reduced flashing, reset and the still-to-backward handoff. Real Web Audio checks cover finite tails, headroom, pause/resume, cancellation and cleanup. The exact 117-file immutable package passes both ordinary-mode startup/controls and the complete seven-chapter collision route, including the full funeral report and reset. All 116 runtime/credit hashes match source; evidence is recorded in [current status](PROJECT_STATUS.md). Credits cover 11 entries, 59 media/model assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
+Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 11 entries, 65 media/model assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 
 ## Development, credits and release
 
@@ -100,6 +103,6 @@ The 0.8 source passes all 29 unit tests, 40 creature geometry/gaze/contact cases
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner specifically approved publication of this 0.8 build; its automatic deployment and all 116 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `f824f50`; its automatic deployment and all 133 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

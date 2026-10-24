@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { FuneralAttack, FUNERAL_ATTACK_TIMING } from "../src/funeral-attack.mjs";
+import { FuneralAttack, FUNERAL_ATTACK_DISTANCE, FUNERAL_ATTACK_TIMING } from "../src/funeral-attack.mjs";
 import { overlaps } from "../src/physics.mjs";
 
 const bounds = { minX: -2.7, maxX: 2.7, minZ: 7.56, maxZ: 12.4 };
@@ -40,12 +40,22 @@ test("the strike lands within 380 milliseconds and reaches black within 680 mill
   assert.equal(impact.phase, "impact");
   assert.equal(impact.strike, true);
   assert.equal(impact.strikeAt, .38);
-  assert.ok(Math.abs(Math.hypot(impact.x - player.x, impact.z - player.z) - .72) < 1e-9);
+  assert.ok(Math.abs(Math.hypot(impact.x - player.x, impact.z - player.z) - FUNERAL_ATTACK_DISTANCE) < 1e-9);
   const complete = attack.update(FUNERAL_ATTACK_TIMING.total);
   assert.equal(complete.phase, "done");
   assert.equal(complete.done, true);
   assert.equal(complete.active, false);
   assert.equal(complete.fade, 1);
+});
+
+test("the mother meets the player's current eye line without pitching down toward her", () => {
+  const attack = new FuneralAttack(bounds);
+  attack.begin(0, { ...player, camera: { position: { y: 1.68 } } });
+  const halfway = attack.update(.1);
+  assert.ok(halfway.pitch > player.pitch && halfway.pitch < 0);
+  const impact = attack.update(.38);
+  assert.ok(Math.abs(impact.pitch) < 1e-9);
+  assert.equal(impact.eyeHeight, 1.68);
 });
 
 test("funeral attack pause preserves pose and reset cancels camera control", () => {

@@ -783,8 +783,10 @@ fs.mkdirSync(out, { recursive: true });
       "The reception retains player movement",
     );
     await p.mouse.move(640, 400);
+    await advance(1 / 60);
     const yaw = (await snap()).pose.yaw;
     await p.mouse.move(700, 400);
+    await advance(1 / 60);
     assert.notEqual(
       (await snap()).pose.yaw,
       yaw,

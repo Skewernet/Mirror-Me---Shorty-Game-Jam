@@ -13,6 +13,9 @@ export const FUNERAL_ATTACK_TIMING = Object.freeze({
   total: .68,
   fadeStart: .365,
 });
+// Root clearance leaves room for the posed face in front of the capsule. The
+// actor's actual eyes, rather than her root/head-bone estimate, own framing.
+export const FUNERAL_ATTACK_DISTANCE = .68;
 const IMPACT_AT = FUNERAL_ATTACK_TIMING.turn + FUNERAL_ATTACK_TIMING.lunge;
 
 // The controller supplies its paused simulation clock. A single immutable
@@ -38,11 +41,13 @@ export class FuneralAttack {
       z > b.minZ + radius && z < b.maxZ - radius &&
       !this.colliders.some((c) => overlaps(x, z, c, radius));
   }
-  begin(time, player, { enabled = true, focusHeight = 1.49 } = {}) {
+  begin(time, player, { enabled = true } = {}) {
     if (this.startedAt !== null) return false;
     this.startedAt = time;
-    this.origin = { x: player.x, z: player.z, yaw: player.yaw, pitch: player.pitch || 0 };
-    this.focusHeight = focusHeight;
+    this.origin = {
+      x: player.x, z: player.z, yaw: player.yaw, pitch: player.pitch || 0,
+      eyeHeight: player.camera?.position.y ?? player.eyeHeight ?? 1.64,
+    };
     if (enabled) {
       // Prefer directly behind. Near a wall/chair, find the nearest viable
       // direction instead of introducing a body through solid furniture.
@@ -52,14 +57,14 @@ export class FuneralAttack {
         const dx = -Math.sin(angle), dz = -Math.cos(angle);
         for (const distance of [2.1, 1.7, 1.3, .95]) {
           let valid = true;
-          for (let d = .72; d <= distance + .001; d += .06) {
+          for (let d = FUNERAL_ATTACK_DISTANCE; d <= distance + .001; d += .06) {
             if (!this.clear(player.x + dx * d, player.z + dz * d)) { valid = false; break; }
           }
           if (!valid || !this.clear(player.x + dx * distance, player.z + dz * distance)) continue;
           this.spawn = { x: player.x + dx * distance, z: player.z + dz * distance };
-          this.destination = { x: player.x + dx * .72, z: player.z + dz * .72 };
+          this.destination = { x: player.x + dx * FUNERAL_ATTACK_DISTANCE, z: player.z + dz * FUNERAL_ATTACK_DISTANCE };
           this.facing = Math.atan2(-dx, -dz);
-          this.distance = distance - .72;
+          this.distance = distance - FUNERAL_ATTACK_DISTANCE;
           this.enabled = true;
           break search;
         }
@@ -90,10 +95,8 @@ export class FuneralAttack {
       x: this.spawn.x + (this.destination.x - this.spawn.x) * travel,
       z: this.spawn.z + (this.destination.z - this.spawn.z) * travel,
       yaw,
-      pitch: this.origin.pitch * (1 - turn) + Math.atan2(
-        this.focusHeight - .04 * travel - 1.64,
-        Math.hypot(this.spawn.x - this.origin.x, this.spawn.z - this.origin.z) - this.distance * travel,
-      ) * turn,
+      pitch: this.origin.pitch * (1 - turn),
+      eyeHeight: this.origin.eyeHeight,
       figureYaw: wrap(this.facing + Math.PI),
       distance: this.distance * travel,
       fade: smooth((elapsed - FUNERAL_ATTACK_TIMING.fadeStart) /

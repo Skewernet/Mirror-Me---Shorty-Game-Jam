@@ -47,6 +47,9 @@ export class ThresholdPortal {
     this.clip = new T.Vector4();
     this.q = new T.Vector4();
     this.mappedCamera = new T.Matrix4();
+    this.viewProjection = new T.Matrix4();
+    this.viewFrustum = new T.Frustum();
+    this.viewBounds = new T.Box3();
     this.scale = new T.Vector3();
     this.viewport = new T.Vector4();
     this.scissor = new T.Vector4();
@@ -82,6 +85,7 @@ export class ThresholdPortal {
     this.surface.rotation.y = Math.PI;
     this.surface.visible = false;
     this.surface.castShadow = this.surface.receiveShadow = false;
+    this.surface.geometry.computeBoundingBox();
     scene.add(this.surface);
     this.frames = 0;
   }
@@ -129,6 +133,23 @@ export class ThresholdPortal {
       Math.abs(sourceCamera.position.x - EXIT.x) > 5.5
     )
       return false;
+    // The doorway can remain enabled while the player explores the house.
+    // Its old pass rendered another complete 1024² view even when looking
+    // away, adding unnecessary scene work while exploring other rooms.
+    // Use a slightly expanded box, rather than the large bounding sphere, to
+    // retain partial views without rendering a doorway behind the camera.
+    sourceCamera.updateMatrixWorld();
+    this.surface.updateWorldMatrix(true, false);
+    this.viewProjection.multiplyMatrices(
+      sourceCamera.projectionMatrix,
+      sourceCamera.matrixWorldInverse,
+    );
+    this.viewFrustum.setFromProjectionMatrix(this.viewProjection);
+    this.viewBounds
+      .copy(this.surface.geometry.boundingBox)
+      .applyMatrix4(this.surface.matrixWorld)
+      .expandByScalar(0.02);
+    if (!this.viewFrustum.intersectsBox(this.viewBounds)) return false;
     this.rendering = true;
     this.scene.updateMatrixWorld(true);
     sourceCamera.updateMatrixWorld();

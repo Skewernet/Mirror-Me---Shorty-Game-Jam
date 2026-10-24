@@ -35,6 +35,14 @@ fs.mkdirSync(out, { recursive: true });
       const cheek = wounded.wounds.meshes.find(mesh => mesh.name.startsWith("Torn left cheek / ragged"));
       const head = wounded.rig.joint("head").bone;
       check(cheek.parent === head, "Cheek trauma is not attached to the head bone");
+      const oralParts = wounded.wounds.meshes.filter(mesh => /teeth|gingiva|connective strips/.test(mesh.name));
+      check(oralParts.length === 3 && oralParts.every(mesh => mesh.parent === head), "The torn mouth lacks skull-attached teeth, gingiva or stretched tissue");
+      const visceralParts = wounded.wounds.meshes.filter(mesh => /folded visceral wall|irregular visceral loops|mesenteric fat/.test(mesh.name));
+      check(visceralParts.length === 3 && visceralParts.every(mesh => mesh.parent === wounded.rig.joint("spine_01").bone), "The abdomen lacks layered tissue attached to the torso");
+      for (const mesh of wounded.wounds.meshes) {
+        const positions = mesh.geometry.attributes.position;
+        check(Array.from(positions.array).every(Number.isFinite), `Non-finite wound geometry: ${mesh.name}`);
+      }
       const first = new T.Vector3().fromBufferAttribute(cheek.geometry.attributes.position, 0);
       wounded.body.updateMatrixWorld(true);
       const before = cheek.localToWorld(first.clone()), headBefore = head.getWorldPosition(new T.Vector3());
@@ -73,6 +81,6 @@ fs.mkdirSync(out, { recursive: true });
       await page.screenshot({ path: `${out}/${view}.png` });
     }
     assert.deepEqual(errors, []); assert.deepEqual(failed, []);
-    console.log(JSON.stringify({ ...report, checks: ["independent clean geometry", "true skin and garment openings", "bone-following physical wounds", "clean template/material isolation", "finite geometry budget", "actual PBR model shader renders"], errors, failed }));
+    console.log(JSON.stringify({ ...report, checks: ["independent clean geometry", "true skin and garment openings", "skull-attached damaged mouth anatomy", "layered torso-attached visceral tissue", "bone-following physical wounds", "clean template/material isolation", "finite geometry budget", "actual PBR model shader renders"], errors, failed }));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
