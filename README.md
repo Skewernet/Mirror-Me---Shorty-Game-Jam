@@ -53,6 +53,7 @@ Use a desktop WebGL browser and click ENTER to capture the mouse and enable audi
 | Tab | Inventory and journal; pauses play |
 | H | Optional contextual thought |
 | Escape | Pause; leave journal/puzzle forms/credits for menu |
+| Fullscreen button | Toggle fullscreen from the title or pause menu |
 | Settings | Resolution, brightness, contact shadows, grain, sudden scares, irregular light flicker, sensitivity, volume, voices and walking motion |
 
 Pause, journal and puzzle forms suspend gameplay/audio. Restart clears the house and inventory while keeping settings. Credits are accessible before play, from pause, and at the ending. No sprint, combat, mobile controls or persistent save is included.

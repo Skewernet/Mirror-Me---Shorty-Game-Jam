@@ -165,6 +165,39 @@ try {
   renderer.setRenderTarget(warmupTarget);
 }
 window.addEventListener("resize", resize);
+const fullscreenButton = $("fullscreen");
+function syncFullscreenButton() {
+  fullscreenButton.hidden = !document.fullscreenEnabled ||
+    typeof document.documentElement.requestFullscreen !== "function";
+  const fullscreen = Boolean(document.fullscreenElement);
+  fullscreenButton.textContent = fullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN";
+  fullscreenButton.setAttribute("aria-pressed", String(fullscreen));
+}
+syncFullscreenButton();
+fullscreenButton.disabled = false;
+fullscreenButton.onclick = async () => {
+  $("error").textContent = "";
+  fullscreenButton.disabled = true;
+  const leaving = Boolean(document.fullscreenElement);
+  try {
+    // Fullscreen the document so dialogue, menus and HUD remain with the view.
+    if (leaving) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    $("error").textContent = leaving
+      ? "Fullscreen could not close. You can use your browser's fullscreen control."
+      : "Fullscreen could not start. You can keep playing in this window.";
+  } finally {
+    fullscreenButton.disabled = false;
+    syncFullscreenButton();
+  }
+};
+document.addEventListener("fullscreenchange", (event) => {
+  lookInput.reset(event.timeStamp);
+  player.clear();
+  syncFullscreenButton();
+  resize();
+});
 function setText(element, text) {
   $(element).textContent = text;
 }
