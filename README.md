@@ -4,6 +4,8 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
+**Local development — Environment and Mirror Polish, Pass 1:** continuous architectural texture placement, fitted floor/skirting and door trim, a reflective bathroom mirror with uneven condensation and finger-wiped time, and capsule-aware hall-mirror collision/entry. The existing backward-time puzzle and PBR presentation are preserved. These changes have not been pushed or deployed; production remains the approved 0.8 described below. See [current status](PROJECT_STATUS.md) for validation.
+
 **The owner-approved 0.8 is live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=0.8), synchronized with GitHub `main`.** Reviewed revision `3d26ffb` deployed automatically, and all 116 public runtime/credit hashes match the tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records. See [current status](PROJECT_STATUS.md).
 
 The authored intruder has new appearance, timing and nonverbal sound. The demon owns its facial sculpt and surfaces; Mara's normal reflection, the truthful final reflection, the covered mother and the mourners keep their existing human model. The house, puzzle order and seamless returns retain the 0.7 baseline.
@@ -64,6 +66,8 @@ node tests/creature-bounds.cjs
 node tests/demon.cjs
 node tests/demon-director.cjs
 node tests/demon-sound.cjs
+node tests/bathroom-mirror.cjs
+node tests/mirror-transition.cjs
 ```
 
 Browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.

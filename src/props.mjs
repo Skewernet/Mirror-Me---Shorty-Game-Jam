@@ -3,6 +3,7 @@ import { writingTexture, rainTexture, radioGrille } from "./surfaces.mjs";
 import { TARGETS } from "./layout.mjs";
 import { addPuzzleProps } from "./puzzle-props.mjs";
 import { WRITINGS } from "./story.mjs";
+import { createBathroomMirror } from "./bathroom-mirror.mjs";
 
 // Furnishings use measured human dimensions and the same coordinates as story
 // targeting/audio. The tight floor plan is furnished deliberately, not scaled
@@ -722,18 +723,22 @@ export function furnish(b, m) {
     bathroom,
     10,
   );
-  const bathroomGlass = box(
-    0.94,
-    0.75,
+  // Thin backing and fitted rim meet the tiled wall; the live glass is flush
+  // with the rim, with no floating opaque clue panel in front of it.
+  box(
+    0.97,
+    0.78,
     0.02,
     2.15,
     1.7,
     0.98,
-    m.foggedGlass,
+    m.steel,
     false,
     bathroom,
-    0.025,
+    0.009,
   );
+  const bathroomMirror = createBathroomMirror(bathroom);
+  const bathroomGlass = bathroomMirror.glass;
   target("bath-clue", bathroomGlass, "WIPE THE FOGGED GLASS", 2.35);
   slab(0.46, 0.055, 0.045, 2.15, 2.13, 1.01, m.steel, bathroom, 0.014);
   const sconce = cylinder(
@@ -749,27 +754,6 @@ export function furnish(b, m) {
   sconce.rotation.z = Math.PI / 2;
   for (const x of [1.94, 2.36])
     sphere(0.035, 0.035, 0.042, x, 2.13, 1.055, m.steel, bathroom);
-  const clue = box(
-    0.7,
-    0.28,
-    0.004,
-    2.15,
-    1.72,
-    1.0,
-    new T.MeshBasicMaterial({
-      map: writingTexture(["03:17"], {
-        background: "#7c8b85",
-        color: "#293a35",
-        font: 96,
-        mirrored: true,
-      }),
-      transparent: true,
-      opacity: 0.73,
-    }),
-    false,
-    bathroom,
-  );
-  clue.visible = false;
   lathe(
     [
       [0.12, 0],
@@ -1006,7 +990,7 @@ export function furnish(b, m) {
     quiltGeo.computeVertexNormals();
     bathCurtain.rotation.y = Math.PI / 2;
     musicFigurine.visible = true;
-    clue.visible = false;
+    bathroomMirror.setClueVisible(false);
     lastStage = 0;
     lastTime = 0;
   }
@@ -1076,7 +1060,7 @@ export function furnish(b, m) {
     receiver.rotation.z = offHook ? -0.18 : 0;
     family.face.material.map = m.photos[state.stage >= 2 ? 1 : 0];
     tvScreen.material.map = state.stage >= 4 ? m.photos[1] : screenMap;
-    clue.visible = state.stage >= 2;
+    bathroomMirror.setClueVisible(state.stage >= 2);
     fuseGroup.visible = !state.hasFuse && !state.power;
     fuseGlow.material = state.power ? m.greenBulb : m.redBulb;
     const musicClosed = state.stage >= 4 && state.echoIndex >= 1;
@@ -1108,7 +1092,7 @@ export function furnish(b, m) {
     panel,
     musicBase,
     tap,
-    clue,
+    bathroomMirror,
     bathCurtain,
     wardrobeDoor,
     bed,

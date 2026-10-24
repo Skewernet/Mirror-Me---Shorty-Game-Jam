@@ -2,19 +2,20 @@ import * as T from "three";
 import { Reflector } from "../vendor/Reflector.js";
 import { MIRROR, SPAWN, CEILING_HEIGHT } from "./layout.mjs";
 import { createFigure } from "./figure.mjs";
+import { singleBounce } from "./reflection.mjs";
 
 // The optical image and Mara use the same room coordinates. The body is visible
 // only to the reflector camera; lag and a held pose create the disobedience.
 export class Mirror {
   constructor(scene, house) {
     this.house = house;
-    this.surface = new Reflector(new T.PlaneGeometry(1.1, 2.08), {
+    this.surface = singleBounce(new Reflector(new T.PlaneGeometry(1.1, 2.08), {
       color: 0x929b98,
       textureWidth: 768,
       textureHeight: 1152,
       clipBias: 0.002,
       multisample: 0,
-    });
+    }));
     this.uniforms = {
       dread: { value: 0 },
       glassTime: { value: 0 },

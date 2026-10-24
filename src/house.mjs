@@ -1,5 +1,6 @@
 import * as T from "three";
 import { builders } from "./builders.mjs";
+import { alignArchitectureUV } from "./architecture-uv.mjs";
 import { createSurfaces, photoTextures, writingTexture } from "./surfaces.mjs";
 import { furnish } from "./props.mjs";
 import { dressHouse } from "./dressing.mjs";
@@ -96,30 +97,32 @@ export async function buildHouse(scene) {
       x,
       bottom + height / 2,
       z,
-      worldMaterial(
-        surfaces.material(kind, Math.max(w, d) / 1.8, height / 1.8),
-      ),
+      worldMaterial(surfaces.material(kind)),
       bottom < 0.1,
     );
+    alignArchitectureUV(mesh);
+    mesh.userData.architecture = "wall";
     if (bottom < 0.1) {
       // Real skirting/cornice and a shallow dado give close walls scale.
       for (const [y, h, extra] of [
-        [0.055, 0.1, 0.025],
+        [0.05, 0.1, 0.025],
         [0.78, 0.035, 0.018],
         [H - 0.045, 0.07, 0.025],
       ])
-        box(w + extra, h, d + extra, x, y, z, m.wood);
+        alignArchitectureUV(box(w + extra, h, d + extra, x, y, z, m.wood));
       if (kind !== "tile")
-        box(
-          w + 0.008,
-          0.72,
-          d + 0.008,
-          x,
-          0.36,
-          z,
-          worldMaterial(
-            surfaces.material("panel", Math.max(w, d) / 1.1, 0.8, 0x9b9e87),
+        alignArchitectureUV(
+          box(
+            w + 0.008,
+            0.72,
+            d + 0.008,
+            x,
+            0.36,
+            z,
+            worldMaterial(surfaces.material("panel", 1, 1, 0x9b9e87)),
           ),
+          1.1,
+          0.9,
         );
     }
     return mesh;
@@ -179,31 +182,33 @@ export async function buildHouse(scene) {
       d = maxZ - minZ,
       x = (minX + maxX) / 2,
       z = (minZ + maxZ) / 2;
-    box(
-      w,
-      0.13,
-      d,
-      x,
-      -0.071,
-      z,
-      worldMaterial(
-        surfaces.material(
-          kind,
-          w / 1.8,
-          d / 1.8,
-          kind === "floor" ? 0x8f7355 : 0xffffff,
+    const ground = alignArchitectureUV(
+      box(
+        w,
+        0.13,
+        d,
+        x,
+        -0.065,
+        z,
+        worldMaterial(
+          surfaces.material(kind, 1, 1, kind === "floor" ? 0x8f7355 : 0xffffff),
         ),
       ),
     );
-    const ceiling = box(
-      w,
-      0.11,
-      d,
-      x,
-      H + 0.055,
-      z,
-      worldMaterial(surfaces.material("plaster", w / 2, d / 2, 0xc6c6b5)),
+    ground.userData.architecture = "floor";
+    const ceiling = alignArchitectureUV(
+      box(
+        w,
+        0.11,
+        d,
+        x,
+        H + 0.055,
+        z,
+        worldMaterial(surfaces.material("plaster", 1, 1, 0xc6c6b5)),
+      ),
+      2,
     );
+    ceiling.userData.architecture = "ceiling";
     ceiling.castShadow = false;
   }
   floor(-0.7, 0.7, -0.7, 7.56);
@@ -245,6 +250,17 @@ export async function buildHouse(scene) {
     wallRange("x", 9.26, -0.7, 0.7, "plaster"),
   );
   const mirrorBarrier = mirrorWall.colliders[0];
+  // The backing wall is 12 cm behind the reflective face. Collide at the glass
+  // itself, including its frame, so the player's shoulder/camera cannot enter
+  // that visual gap. Both barriers share the authored open/closed lifecycle.
+  const glassBarrier = {
+    minX: MIRROR.x,
+    maxX: MIRROR.x + 0.12,
+    minZ: -0.7,
+    maxZ: 0.7,
+  };
+  b.colliders.push(glassBarrier);
+  mirrorWall.colliders.push(glassBarrier);
   wallRange("z", 7.56, -0.7, 0.7, "plaster", [
     { center: FRONT_DOOR.x, width: 1.02 },
   ]);
@@ -387,19 +403,23 @@ export async function buildHouse(scene) {
       );
     }
     for (const side of [-1, 1])
-      box(
-        0.048,
-        2.13,
-        0.14,
-        side * (width / 2 + (id === "back" ? 0.028 : 0.016)),
-        1.065,
-        0.005,
-        m.wood,
-        false,
-        g,
-        0.004,
+      alignArchitectureUV(
+        box(
+          id === "back" ? 0.048 : 0.068,
+          2.13,
+          0.14,
+          side * (width / 2 + (id === "back" ? 0.028 : 0.027)),
+          1.065,
+          0.005,
+          m.wood,
+          false,
+          g,
+          0.004,
+        ),
       );
-    box(width + 0.13, 0.055, 0.14, 0, 2.12, 0.005, m.wood, false, g, 0.005);
+    alignArchitectureUV(
+      box(width + 0.14, 0.07, 0.14, 0, 2.093, 0.005, m.wood, false, g, 0.005),
+    );
     // Door label faces the corridor and is readable at its own practical light.
     if (id === "kitchen" || id === "back") {
       const label = basic(0xbcb89a, 0.72);

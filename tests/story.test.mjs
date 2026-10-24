@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Story } from "../src/story.mjs";
 import { KEEPSAKE_ORDER, RADIO_SOLUTION } from "../src/chapters.mjs";
+import { RADIUS } from "../src/physics.mjs";
 import {
   atBackThreshold,
   atMirrorThreshold,
@@ -132,8 +133,8 @@ test("rear, mirror and front crossing planes exclude neighboring rooms", () => {
   assert.equal(atBackThreshold(7.4, PORTAL.thresholdZ + 0.01), true);
   assert.equal(atBackThreshold(7.4, PORTAL.thresholdZ - 0.01), false);
   assert.equal(atBackThreshold(5, 2), false);
-  assert.equal(atMirrorThreshold(MIRROR.x, 0), true);
-  assert.equal(atMirrorThreshold(MIRROR.x - 0.01, 0), false);
+  assert.equal(atMirrorThreshold(MIRROR.x - RADIUS, 0), true);
+  assert.equal(atMirrorThreshold(MIRROR.x - RADIUS - 0.01, 0), false);
   assert.equal(atMirrorThreshold(MIRROR.x + 0.1, 0.51), false);
   assert.equal(atFrontThreshold(0, 8.15), true);
   assert.equal(atFrontThreshold(0, 8.13), false);

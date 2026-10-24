@@ -4,7 +4,17 @@ Updated October 23, 2026 (America/Denver).
 
 **Production:** the owner-approved 0.8, Demonic Presence, is live at https://mirror-me.pages.dev and synchronized with GitHub `main`. Automatic deployment `24a9b009-81be-4acb-99bf-b7c97e88553d` succeeded for reviewed revision `3d26ffb`; normal HTTPS verification confirmed all 116 public runtime/credit hashes match the immutable tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records.
 
-All 29 unit tests, the integrated browser route, final normal-mode smoke, 40 creature cases and targeted audio/art checks pass. The immutable package also passes exact-source/hash validation and a fresh ordinary-mode cold boot. Previous releases remain in deployment history. First-play timing and subjective horror/voice quality still need human playtesting.
+The released 0.8 passed all 29 unit tests, the integrated browser route, final normal-mode smoke, 40 creature cases and targeted audio/art checks. Its immutable package also passed exact-source/hash validation and a fresh ordinary-mode cold boot. Previous releases remain in deployment history. First-play timing and subjective horror/voice quality still need human playtesting.
+
+## Local development — Environment and Mirror Polish, Pass 1
+
+These source changes are local development after 0.8, not a production release. No push or deployment is authorized for this pass.
+
+- Architectural boxes now share house-space UV scale and origin across floor patches, split walls, headers, ceilings and static trim. All PBR maps follow the same UVs. Floors and skirting meet at y=0; fitted door jambs/header close the visible aperture gaps while retaining the door leaf's clearance. Existing photographic materials, lighting and HDR presentation remain.
+- The bathroom's metal-tinted placeholder and floating printed clue panel are replaced by a planar room reflection. Surface-anchored uneven moisture softens that image; original curved finger paths remove condensation to reveal sharper glass, with ragged margins, small beads and gravity streaks. The authored time is still written backward, preserving the existing 03:17 clock solution and dialogue. Moisture follows reflected illumination, resets with a new game, and has no external image dependency. Facing mirrors use a bounded single live reflection bounce.
+- Hall-mirror collision now meets the visible glass instead of the backing wall 12 cm behind it. Passage starts when the player's leading edge reaches the glass; transformed overshoot, velocity, facing and held input survive, and the body clears the restored wall after crossing.
+- Validation: 33 unit tests pass, including shared-UV regressions; all 18 actual-house mirror-entry cases pass at 60/20 Hz, including lateral/diagonal approaches, post-transition movement and walking back toward closed glass. Bathroom reflection/shader/wipe/reset/darkness checks pass, as do normal-mode startup and the full seven-chapter collision route, including all 25 voices, the funeral report, ending and reset. Creature bounds, 40 demon geometry cases and eight director lifecycle checks pass. Browser snapshots for internal inspection are written outside the checkout; software rendering does not establish desktop-GPU performance or replace human visual/playtesting review.
+
 
 ## Implemented in 0.8 — demonic presence
 

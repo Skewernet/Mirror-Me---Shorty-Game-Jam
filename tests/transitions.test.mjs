@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { backDoorPose, mirrorPose } from "../src/transitions.mjs";
 import { EXIT, PORTAL, MIRROR } from "../src/layout.mjs";
+import { RADIUS, overlaps, moveWithCollision } from "../src/physics.mjs";
 
 const close = (actual, expected) =>
   assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} ≈ ${expected}`);
@@ -63,7 +64,7 @@ test("both sides of the rear doorway retain distinct lateral positions", () => {
 });
 test("walking through the glass preserves overshoot and continuous held movement", () => {
   const incoming = motion({
-      x: MIRROR.x + 0.033,
+      x: MIRROR.x - RADIUS + 0.033,
       z: MIRROR.z + 0.16,
       yaw: -Math.PI / 2,
       vx: 1.85,
@@ -77,4 +78,29 @@ test("walking through the glass preserves overshoot and continuous held movement
   close(result.vz, -0.1);
   for (const key of ["pitch", "speed", "distance", "bobOffset", "keys"])
     assert.deepEqual(result[key], incoming[key]);
+});
+
+test("edge and diagonal mirror entries leave the complete body clear of restored geometry", () => {
+  const restored = [
+    { minX: MIRROR.x, maxX: MIRROR.x + 0.24, minZ: -0.64, maxZ: 0.64 },
+    { minX: 7.9, maxX: 9.32, minZ: -0.76, maxZ: -0.64 },
+    { minX: 7.9, maxX: 9.32, minZ: 0.64, maxZ: 0.76 },
+  ];
+  for (const z of [-0.419, -0.3, 0, 0.3, 0.419]) {
+    for (const overshoot of [0, 0.016, 0.0925]) {
+      const pose = motion({
+        x: MIRROR.x - RADIUS + overshoot,
+        z,
+        yaw: -Math.PI / 2 + z,
+        vx: 1.65,
+        vz: Math.sign(z) * 0.5,
+      });
+      const arrived = mirrorPose(pose);
+      assert.ok(!restored.some((c) => overlaps(arrived.x, arrived.z, c)));
+      const beforeX = arrived.x;
+      moveWithCollision(arrived, arrived.vx * 0.12, arrived.vz * 0.12, restored);
+      assert.ok(arrived.x < beforeX - 0.15, "held movement can leave the mirror");
+      assert.ok(!restored.some((c) => overlaps(arrived.x, arrived.z, c)));
+    }
+  }
 });

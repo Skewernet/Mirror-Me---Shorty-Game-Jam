@@ -1,5 +1,6 @@
 // One connected L-shaped house. The return is a spatial discontinuity at the
 // rear-door threshold, not a second corridor around a partition.
+import { RADIUS } from "./physics.mjs";
 export const CEILING_HEIGHT = 2.32;
 export const HALL_WIDTH = 1.28;
 export const SPAWN = { x: 0, z: 6.7, yaw: 0 };
@@ -129,7 +130,9 @@ export function atBackThreshold(x, z) {
 // Crossing planes are tested after actual collision movement, never interaction
 // clicks. These bounds keep room exploration from triggering a spatial return.
 export function atMirrorThreshold(x, z) {
-  return x >= MIRROR.x && Math.abs(z - MIRROR.z) < 0.5;
+  // Cross when the leading edge reaches the glass. Waiting for the camera's
+  // centre puts it inside the frame/backing before the world can change.
+  return x >= MIRROR.x - RADIUS && Math.abs(z - MIRROR.z) < 0.5;
 }
 export function atFrontThreshold(x, z) {
   return Math.abs(x - FRONT_DOOR.x) < 0.48 && z > 8.14;

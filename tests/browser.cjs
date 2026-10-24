@@ -10,6 +10,7 @@ fs.mkdirSync(out, { recursive: true });
     "../src/layout.mjs"
   );
   const { VOICES } = await import("../src/story.mjs");
+  const { RADIUS } = await import("../src/physics.mjs");
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: ["--no-sandbox", "--enable-unsafe-swiftshader"],
@@ -273,9 +274,10 @@ fs.mkdirSync(out, { recursive: true });
         close(to.z, PORTAL.returnZ - (from.z - PORTAL.thresholdZ));
         assert.ok(from.z > PORTAL.thresholdZ);
       } else {
-        close(to.x, MIRROR.x - 0.48 - (from.x - MIRROR.x));
+        close(to.x, MIRROR.x - (2 * RADIUS + 0.04) - (from.x - (MIRROR.x - RADIUS)));
         close(to.z, MIRROR.z - (from.z - MIRROR.z));
-        assert.ok(from.x >= MIRROR.x);
+        assert.ok(from.x >= MIRROR.x - RADIUS);
+        assert.ok(from.x < MIRROR.x, "crossing happens before the camera clips through the glass");
       }
     }
     async function crossRear(stage, offset = 0) {

@@ -1,4 +1,5 @@
 import { EXIT, MIRROR, PORTAL } from "./layout.mjs";
+import { RADIUS } from "./physics.mjs";
 
 const wrap = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
 
@@ -18,9 +19,12 @@ export function backDoorPose(pose) {
 // The empty glass deposits Mara just inside its opposite side, looking down the
 // same hall. The world changes around her; the camera remains under her control.
 export function mirrorPose(pose) {
+  const entryX = MIRROR.x - RADIUS;
   return {
     ...pose,
-    x: MIRROR.x - 0.48 - Math.max(0, pose.x - MIRROR.x),
+    // Keep the complete body in front of the restored glass, including a
+    // small clearance, and preserve movement beyond the entry boundary.
+    x: MIRROR.x - (2 * RADIUS + 0.04) - Math.max(0, pose.x - entryX),
     z: MIRROR.z - (pose.z - MIRROR.z),
     yaw: wrap(pose.yaw + Math.PI),
     vx: -pose.vx,
