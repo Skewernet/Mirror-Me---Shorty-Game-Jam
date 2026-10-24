@@ -637,6 +637,7 @@ export async function buildHouse(scene) {
     const l = new T.PointLight(color, intensity, distance, 2);
     l.position.set(x, y, z);
     l.userData.base = intensity;
+    l.userData.powerCircuit = "mains";
     scene.add(l);
     lights.push(l);
     return l;
@@ -657,6 +658,7 @@ export async function buildHouse(scene) {
     const l = new T.SpotLight(color, intensity, distance, angle, 0.78, 2);
     l.position.set(x, y, z);
     l.userData.base = intensity;
+    l.userData.powerCircuit = "mains";
     l.target.position.set(tx, ty, tz);
     scene.add(l, l.target);
     lights.push(l);
@@ -772,6 +774,9 @@ export async function buildHouse(scene) {
     2.9,
   );
   const bedWindow = spot(0x91abb9, 5, 4.4, 0.9, 7.4, 1.6, -4.4, 7.4, 0.8, -1.2);
+  const windowLights = new Set([loungeWindow, kitchenWindow, bathWindow, bedWindow]);
+  for (const light of lights)
+    light.userData.powerCircuit = windowLights.has(light) ? "window" : "mains";
   const ambient = new T.HemisphereLight(0xa7bac0, 0x30271e, 0.19);
   scene.add(ambient);
   const exitLight = point(0xb9d1db, 0, 3.8, 7.4, 2.04, 2.4);
@@ -939,6 +944,16 @@ export async function buildHouse(scene) {
       5,
       dt,
     );
+    // The failed fuse really extinguishes the apartment's practical lights.
+    // A little exterior rain light and dark adaptation retain navigation;
+    // the flashlight is the player's deliberate way to inspect the rooms.
+    if (!state.power && !inverted) {
+      for (const light of lights)
+        light.intensity = windowLights.has(light) ? light.userData.base * 0.12 : 0;
+      ambient.intensity = 0.025;
+    }
+    m.bulb.color.set(state.power || inverted ? 0xffd9a0 : 0x101411);
+    m.shade.emissiveIntensity = state.power || inverted ? 0.2 : 0;
     furnishings.animate?.(time, state, player);
     dressing.animate?.(time, state, player);
     revelation.animate(time, state, player);

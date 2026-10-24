@@ -12,6 +12,9 @@ export function buildRevelation(b, m, surfaces) {
   group.visible = false;
   const initialColliders = b.colliders.length;
   let originalQuilt = null;
+  let originalBathWater = null;
+  let bathShell = null;
+  let bathCurtain = null;
   b.scene.traverse((object) => {
     if (
       object.geometry?.type === "PlaneGeometry" &&
@@ -21,9 +24,29 @@ export function buildRevelation(b, m, surfaces) {
       object.parent?.position.z === -3.28
     )
       originalQuilt = object;
+    if (object.geometry?.type === "CircleGeometry" &&
+        Math.abs(object.position.x - 3.22) < .001 &&
+        Math.abs(object.position.y - .345) < .001 &&
+        Math.abs(object.position.z - 3.05) < .001)
+      originalBathWater = object;
+    if (object.geometry?.type === "LatheGeometry" &&
+        Math.abs(object.position.x - 3.22) < .001 &&
+        object.position.y === 0 && Math.abs(object.position.z - 3.05) < .001)
+      bathShell = object;
+    if (object.geometry?.type === "PlaneGeometry" &&
+        object.geometry.parameters.width === 1.56 &&
+        object.geometry.parameters.height === 1.38 &&
+        Math.abs(object.position.x - 2.66) < .001)
+      bathCurtain = object;
   });
   const materials = [];
   const stains = [];
+  const bloodMaps = new Map();
+  const mappedBlood = (kind, seed) => {
+    const key = `${kind}/${seed}`;
+    if (!bloodMaps.has(key)) bloodMaps.set(key, bloodMap(kind, seed));
+    return bloodMaps.get(key);
+  };
   const own = (material) => {
     material.userData.revelation = true;
     materials.push(material);
@@ -51,7 +74,7 @@ export function buildRevelation(b, m, surfaces) {
   function decal(kind, seed, w, h, x, y, z, rotation = 0, wall = false) {
     const material = own(
       new T.MeshStandardMaterial({
-        map: bloodMap(kind, seed),
+        map: mappedBlood(kind, seed),
         color: 0xffffff,
         transparent: true,
         opacity: 0.98,
@@ -84,6 +107,105 @@ export function buildRevelation(b, m, surfaces) {
     mesh.rotation.set(-Math.PI / 2, 0, angle);
     return mesh;
   }
+
+  // This is a trace of a person moving through the actual house, not a red
+  // filter. The first assault is in the bath, the hand trail follows the only
+  // corridor to the bedroom, and later shoe transfers reach the other rooms.
+  const route = [
+    [2.48, 2.95], [1.95, 2.72], [1.38, 2.5], [.72, 2.5],
+    [.12, 2.48], [0, 1.86], [.03, 1.17], [.05, .46], [.28, .05],
+    [1.02, .02], [1.82, .07], [2.62, .02], [3.43, .06],
+    [4.25, .01], [5.06, .05], [5.87, .02], [6.68, .04],
+    [7.38, -.12], [7.4, -.72], [7.43, -1.36], [7.41, -1.95],
+  ];
+  const escapeStains = [];
+  for (let index = 0; index < route.length; index++) {
+    const [x, z] = route[index];
+    const next = route[Math.min(index + 1, route.length - 1)];
+    const previous = route[Math.max(0, index - 1)];
+    const angle = Math.atan2(previous[0] - next[0], previous[1] - next[1]);
+    // The drag is broken and weighted toward the first wet steps. It never
+    // crosses a wall, and the irregular spill leaves the floor grain visible.
+    const stain = floorDecal(index % 4 === 0 ? "pool" : "drag",
+      2101 + index % 4, index < 4 ? .68 : .48,
+      index < 4 ? .88 : .99, x, z, angle);
+    stain.name = `Evelyn's path / ${index + 1}`;
+    escapeStains.push(stain);
+    const dx = next[0] - previous[0], dz = next[1] - previous[1];
+    const length = Math.hypot(dx, dz) || 1;
+    const side = index % 2 ? 1 : -1;
+    const step = floorDecal("step", 2130 + index % 2, .20, .34,
+      x + side * dz / length * .125, z - side * dx / length * .125, angle);
+    step.name = `Barefoot blood transfer / ${index + 1}`;
+    step.position.y = .0075;
+    step.material.roughness = .82;
+  }
+  floorDecal("pool", 2101, 1.76, 1.91, 2.49, 2.94, .18);
+  floorDecal("cast", 2117, 1.33, 1.6, 2.73, 1.88, -.26);
+  // The bath's exact curved enamel surface receives its own conforming cast-
+  // off layer; the former clean water is replaced only in the revealed world.
+  if (bathShell) {
+    bathShell.updateWorldMatrix(true, false);
+    const bathBlood = add(bathShell.geometry.clone(), own(new T.MeshStandardMaterial({
+      map: mappedBlood("impact", 2112), transparent: true, depthWrite: false,
+      alphaTest: .018, side: T.DoubleSide, roughness: .37,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+      envMapIntensity: .12,
+    })), 0, 0, 0, "Blood on the enamel bath");
+    bathShell.matrixWorld.decompose(bathBlood.position, bathBlood.quaternion, bathBlood.scale);
+    stains.push(bathBlood);
+  }
+  const bathWater = add(new T.CircleGeometry(.35, 64),
+    plain(0x4b0e16, .19), 3.22, .347, 3.05, "Diluted blood in the bathwater");
+  bathWater.rotation.x = -Math.PI / 2;
+  bathWater.scale.y = 2.1;
+  stains.push(bathWater);
+  // The assault starts beside the bath and makes contact with its surrounding
+  // tile. Stains on the hall wall fall from a hand getting lower as she fled.
+  decal("impact", 2112, 1.92, 1.72, 3.799, 1.15, 3.01, -Math.PI / 2, true);
+  decal("cast", 2117, 1.73, 1.42, 2.65, 1.12, 4.199, Math.PI, true);
+  decal("hand", 2121, .47, .71, .639, 1.32, 1.53, -Math.PI / 2, true);
+  decal("hand", 2122, .47, .9, 1.30, 1.19, -.639, 0, true);
+  decal("hand", 2121, .47, .82, 3.18, 1.40, -.639, 0, true);
+  decal("drag", 2123, 1.29, .71, 4.33, .93, -.639, 0, true);
+  decal("hand", 2122, .5, .92, 5.48, 1.14, -.639, 0, true);
+  decal("hand", 2121, .53, .81, 6.42, .83, -.639, 0, true);
+  // Several pauses in the flight soaked through the runner onto the boards.
+  // Let these reach beyond the red fabric so the path remains readable.
+  for (const [x, seed] of [[1.05, 2101], [3.45, 2102], [5.86, 2101]])
+    floorDecal("pool", seed, .92, 1.22, x, .015, -Math.PI / 2 + .08);
+
+  // Mara's blood transfers fan out from the crime: a knife was taken from the
+  // kitchen and washing was attempted in the utility room. These secondary
+  // traces stop at actual furnishings instead of inventing another victim.
+  for (const [x, z, angle] of [
+    [2.4, -1.13, 0], [2.35, -2.05, .12], [2.45, -3.2, -.1],
+    [-.92, 1.8, Math.PI / 2], [-1.74, 2.07, 1.2], [-2.45, 2.25, 1.3],
+    [0, 3.3, 0], [0, 4.22, .05], [-.85, 5.1, Math.PI / 2],
+    [-1.6, 5.12, 1.4], [-2.5, 5.45, 1.1], [0, 5.58, .1],
+  ]) floorDecal("transfer", 2128, .43, .77, x, z, angle);
+  const kitchenCounter = decal("transfer", 2129, .49, .52, 2.15, .947, -4.22);
+  kitchenCounter.rotation.x = -Math.PI / 2;
+  decal("hand", 2122, .36, .53, -2.82, .42, 2.306, Math.PI, false);
+  floorDecal("pool", 2101, .9, .8, -2.7, 2.12, .27);
+  floorDecal("pool", 2101, 1.25, .88, -2.35, 5.98, -.23);
+  decal("hand", 2121, .49, .8, -1.7, 1.16, 7.499, Math.PI, true);
+
+  const evidence = [];
+  function evidenceTarget(id, label, x, y, z, w, h, rotation = 0) {
+    const marker = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({
+      transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide,
+    }));
+    marker.position.set(x, y, z);
+    marker.rotation.y = rotation;
+    marker.name = label;
+    group.add(marker);
+    b.target(id, marker, label, 2.5);
+    evidence.push({ id, position: [x, y, z] });
+  }
+  evidenceTarget("evidence-bathroom", "EXAMINE THE BLOODIED BATH", 2.64, .9, 2.95, .8, .7, -Math.PI / 2);
+  evidenceTarget("evidence-trail", "FOLLOW THE BLOODY HANDPRINTS", 4.33, .93, -.625, 1.29, .71);
+  evidenceTarget("evidence-kitchen", "EXAMINE THE BLOOD ON THE WORKTOP", 2.15, 1.05, -4.2, .56, .28);
 
   // A single continuous spill joins the bed, the care tray and the way Mara
   // stood. Its broken edge leaves floor grain readable instead of painting a
@@ -379,6 +501,8 @@ export function buildRevelation(b, m, surfaces) {
   function reset() {
     group.visible = false;
     if (originalQuilt) originalQuilt.visible = true;
+    if (originalBathWater) originalBathWater.visible = true;
+    if (bathCurtain) { bathCurtain.scale.x = 1; bathCurtain.position.z = 3.34; }
     fill.intensity = 0;
     truth = false;
     lastTime = -1;
@@ -388,6 +512,13 @@ export function buildRevelation(b, m, surfaces) {
     lastTime = time;
     group.visible = Boolean(state.inverted || state.stage >= 6);
     if (originalQuilt) originalQuilt.visible = !group.visible;
+    if (originalBathWater) originalBathWater.visible = !group.visible;
+    if (bathCurtain) {
+      // The curtain is caught at the far end, exposing the remembered bath.
+      // Its original geometry/material returns unchanged in the ordinary house.
+      bathCurtain.scale.x = group.visible ? .22 : 1;
+      bathCurtain.position.z = group.visible ? 4.02 : 3.34;
+    }
     truth = Boolean(state.truthFound || state.farewellSaid);
     fill.intensity = group.visible ? (state.lampOff ? 0.12 : 0.55) : 0;
   }
@@ -405,6 +536,12 @@ export function buildRevelation(b, m, surfaces) {
       knife: group.visible,
       newColliders: addedColliders,
       handPosition: patient?.hand.toArray() || null,
+      escapeTrail: group.visible ? escapeStains.length : 0,
+      origin: group.visible ? "bathroom" : null,
+      trailRoute: route.map((point) => [...point]),
+      bloodiedBath: group.visible && Boolean(bathShell),
+      curtainPulledAside: group.visible && Boolean(bathCurtain),
+      evidence: group.visible ? evidence.map((item) => ({ ...item })) : [],
     }),
   };
 }
@@ -496,6 +633,23 @@ function bloodMap(kind, seed) {
       g.beginPath();
       g.ellipse(x, y, 0.015 + r() * 0.08, 0.005 + r() * 0.012, r(), 0, Math.PI);
       g.stroke();
+    }
+  } else if (kind === "step") {
+    // Bare feet leave a lifted arch, a heavier heel and five distinct toes.
+    // These retain the direction of the flight even where the runner is red.
+    g.translate(.5, .5);
+    if (seed % 2) g.scale(-1, 1);
+    g.translate(-.5, -.5);
+    blob(g, .5, .76, .17, .16, r, "#4c0d14", .91, .12);
+    blob(g, .43, .43, .21, .21, r, "#641018", .87, .08);
+    blob(g, .34, .19, .084, .09, r, "#68131c", .95, .07);
+    for (let toe = 0; toe < 4; toe++)
+      blob(g, .47 + toe * .076, .18 + toe * .025,
+        .048 - toe * .005, .057 - toe * .006, r, "#55101a", .92, .1);
+    g.globalCompositeOperation = "destination-out";
+    for (let i = 0; i < 220; i++) {
+      g.fillStyle = `rgba(0,0,0,${r() * .65})`;
+      g.fillRect(.2 + r() * .6, r(), .002 + r() * .015, .001 + r() * .006);
     }
   } else if (kind === "hand") {
     blob(g, 0.52, 0.42, 0.15, 0.12, r, "#65191c", 0.74, 0.08);

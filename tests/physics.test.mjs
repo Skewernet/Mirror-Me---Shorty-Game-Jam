@@ -28,3 +28,19 @@ test("disabled door collider allows passage", () => {
   ]);
   assert.ok(Math.abs(p.z - 3) < 1e-10);
 });
+test("contact keeps submillimeter clearance instead of discarding a whole movement step", () => {
+  const p = { x: 0, z: 0 };
+  moveWithCollision(p, 2, 0, [{ minX: 1, maxX: 1.12, minZ: -2, maxZ: 2 }]);
+  assert.ok(p.x <= 0.78 && p.x > 0.7799, `contact x=${p.x}`);
+});
+test("a shoulder caught by restored geometry can move out immediately without moving deeper inside", () => {
+  const wall = { minX: 1, maxX: 1.12, minZ: -2, maxZ: 2 };
+  const p = { x: 0.80, z: 0 };
+  assert.ok(overlaps(p.x, p.z, wall));
+  moveWithCollision(p, 0.01, 0, [wall]);
+  assert.equal(p.x, 0.80, "further penetration is blocked");
+  moveWithCollision(p, -0.01, 0.02, [wall]);
+  assert.ok(p.x < 0.8 && p.z > 0, "held outward movement recovers in its first frame");
+  moveWithCollision(p, -0.05, 0, [wall]);
+  assert.ok(!overlaps(p.x, p.z, wall));
+});

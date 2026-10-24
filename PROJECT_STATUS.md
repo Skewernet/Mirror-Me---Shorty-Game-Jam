@@ -2,6 +2,21 @@
 
 Updated October 23, 2026 (America/Denver).
 
+## Current local development — dialogue, crime scene and final attack
+
+This pass follows the approved/pushed `faee420` mirror polish. The new work remains local and requires separate release approval.
+
+- The failed fuse now leaves all 13 indoor practical lights and lamp glows off, with restrained exterior moonlight and the existing flashlight available. Mara's new opening take identifies the fuse failure. Replacing it restores the established PBR lighting.
+- The family photograph is seated on the entrance-hall end wall, visible after the first return. Its observation is triggered only by an unobstructed look nearby. An explicit straighten prompt and settling animation are required before that chapter can finish; the new memory recalls Dad and Mum missing him.
+- The inverted apartment reveals the bathroom as the initial assault site. Blood follows the bath enamel and water, then 21 connected trail points, barefoot transfers and declining handprints through the hall to the bed. Secondary transfers cover all five rooms. Three optional evidence inspections add voiced observations and journal entries; the confession and funeral report establish the same bathroom-to-bedroom sequence. All evidence remains absent before inversion and adds no collision.
+- Mum's complete final line, "You were looking right at me," triggers a finite camera turn toward an owned wounded-human model, a reaching lunge, impact and black fade. Her pale clothing, stab wounds, facial/neck blood and gray hair distinguish her from the intruder. Camera/figure placement keeps the head out of the near plane. Pause freezes the sequence; restart clears it; reduced-scare mode removes the figure/forced turn and retains the ending.
+- Collision now reaches contact without discarding a full movement step, and a slightly overlapped shoulder can immediately move outward from restored/closing geometry. Portal allocation and whole-scene shader variants for normal, revelation and funeral light counts are prepared before play to reduce first-use hitches.
+- All 29 shipped synthetic takes match their scripts and provenance records. Eight takes were rendered for this pass; four are new. Credits cover 11 entries, 63 media/model assets and seven vendor modules. No external runtime service or new monster asset is used.
+
+Validation: 41 unit tests, 27 actual-house rear-door cases at 120/60/20 Hz, 18 mirror cases, overlap recovery, portal warmup state restoration, opening/photo animation, crime-scene visibility/reset and finite audio checks pass. The wounded-model render fixture verifies material isolation, safe placement, pause/reduced-scare behavior and reset. Final normal-mode startup/settings and the complete seven-chapter route pass with no browser errors or failed requests: required photograph correction, all puzzle gates, collision returns, full paused/resumed news, accusation, forced turn, lunge, paused attack recovery, fade/credits and replay reset. All 29 Oggs decode and match their synthesis text. Software rendering does not establish desktop-GPU performance or subjective horror impact.
+
+## Released baseline
+
 **Production:** the owner-approved 0.8, Demonic Presence, is live at https://mirror-me.pages.dev and synchronized with GitHub `main`. Automatic deployment `24a9b009-81be-4acb-99bf-b7c97e88553d` succeeded for reviewed revision `3d26ffb`; normal HTTPS verification confirmed all 116 public runtime/credit hashes match the immutable tested package. `/build-id.json` identifies the exact deployed revision, including documentation-only release records.
 
 The released 0.8 passed all 29 unit tests, the integrated browser route, final normal-mode smoke, 40 creature cases and targeted audio/art checks. Its immutable package also passed exact-source/hash validation and a fresh ordinary-mode cold boot. Previous releases remain in deployment history. First-play timing and subjective horror/voice quality still need human playtesting.

@@ -94,6 +94,22 @@ export class ThresholdPortal {
     const size = height >= 1080 ? 1024 : 768;
     if (this.target.width !== size) this.target.setSize(size, size);
   }
+  warmup(renderer, sourceCamera) {
+    // Allocate the portal target and compile its projected view before the
+    // first latch opens, rather than doing that work on a crossing frame.
+    const camera = sourceCamera.clone();
+    camera.position.set(EXIT.x, 1.64, PORTAL.thresholdZ - 0.7);
+    camera.rotation.set(0, Math.PI, 0, "YXZ");
+    camera.updateMatrixWorld(true);
+    const visible = this.surface.visible, enabled = this.enabled, frames = this.frames;
+    try {
+      return this.render(renderer, camera, { stage: 0, doorOpen: true });
+    } finally {
+      this.surface.visible = visible;
+      this.enabled = enabled;
+      this.frames = frames;
+    }
+  }
   render(renderer, sourceCamera, story) {
     if (!this.sync(story) || this.rendering) return false;
     // Match the presentation renderer's capability fallback. An unsupported

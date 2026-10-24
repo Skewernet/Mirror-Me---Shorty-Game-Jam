@@ -15,12 +15,12 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.95,
-      "text": "Mum's light is still on. I asked them to leave it.",
-      "speech_seconds": 3.123,
-      "file_seconds": 3.134,
+      "text": "Huh. I guess the fuse went out again.",
+      "speech_seconds": 2.568,
+      "file_seconds": 2.568,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "d3dd4053416abaebd62f953ae99198e9f8646bf50f12b6ee2b72f20f59e65721",
-      "decoded_true_peak_dbfs": -3.8
+      "sha256": "a8913eda72841a76edc6d094b58676e7662c3a339dcde5406466c46695adf202",
+      "decoded_true_peak_dbfs": -4.1
     },
     "recording": {
       "voice": "bf_isabella",
@@ -183,12 +183,12 @@
       "speaker_id": 22,
       "role": "mum",
       "speed": 0.93,
-      "text": "You looked right at me.",
-      "speech_seconds": 1.444,
-      "file_seconds": 1.444,
+      "text": "You were looking right at me.",
+      "speech_seconds": 1.572,
+      "file_seconds": 1.572,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "519e0ee9d55c466477ac76ca9109dbc047bfe2359c0eb65a4f0d7c7a3e841a91",
-      "decoded_true_peak_dbfs": -4.4
+      "sha256": "0e466fccec514ce51bd086e60c0afc92d99e72731e1ba83dd046ddf565f32e9b",
+      "decoded_true_peak_dbfs": -5.5
     },
     "broadcast": {
       "voice": "bm_george",
@@ -279,12 +279,12 @@
       "speaker_id": 21,
       "role": "player",
       "speed": 0.91,
-      "text": "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.",
-      "speech_seconds": 7.126,
-      "file_seconds": 7.2,
+      "text": "It wasn't the illness. I stabbed you in the bathroom. You ran to your bed. I followed you. I kept going. I killed you, Mum.",
+      "speech_seconds": 8.44,
+      "file_seconds": 8.5,
       "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
-      "sha256": "6be37a283b72fb68ab5c6805563cfc747a19be5d9b1548ab0b477661f56f5c39",
-      "decoded_true_peak_dbfs": -4.1
+      "sha256": "7d95b02532077dbb1a37abf8f2b8df4c4ac717e697e3fc52c42826effa6f4485",
+      "decoded_true_peak_dbfs": -4.6
     },
     "sob": {
       "voice": "bf_emma",
@@ -314,12 +314,60 @@
       "speaker_id": 26,
       "role": "news",
       "speed": 0.94,
-      "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
-      "speech_seconds": 20.781,
-      "file_seconds": 20.8,
+      "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was attacked in her bathroom and died in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
+      "speech_seconds": 22.192,
+      "file_seconds": 22.2,
       "effects": "highpass=f=250,lowpass=f=5200,loudnorm=I=-20:TP=-4:LRA=7",
-      "sha256": "42eb797c932cdf93fc90dfbeb00f06fbe956366460d5fd059ad4c1e83a54d5cf",
-      "decoded_true_peak_dbfs": -3.5
+      "sha256": "2e813cd0481230770e157021abf84ada745dc10e69de689a366b6b0a3e59bd05",
+      "decoded_true_peak_dbfs": -3.8
+    },
+    "photoMemory": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.94,
+      "text": "Dad was still alive. Everything was simpler then. Mum never stopped missing him.",
+      "speech_seconds": 4.864,
+      "file_seconds": 4.9,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "10ca548bc1ff470c158053e596d0f9b1f3b6481f9d8d31e67bf357433ffa30c2",
+      "decoded_true_peak_dbfs": -3.7
+    },
+    "crimeBathroom": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.94,
+      "text": "It started here. She tried to get away from me.",
+      "speech_seconds": 3.009,
+      "file_seconds": 3.02,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "39f7aed288f38ffc1e4d8c34728e0b9f84bd8ea698196a9123c2b5c0f50ad3ff",
+      "decoded_true_peak_dbfs": -4.9
+    },
+    "crimeTrail": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.94,
+      "text": "She held the wall. All the way to her room.",
+      "speech_seconds": 2.888,
+      "file_seconds": 2.888,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "ec40dca003a733a1d1a0d3b2b6ba6d545458d3154fd94f687f676f48078acd1f",
+      "decoded_true_peak_dbfs": -6.1
+    },
+    "crimeKitchen": {
+      "voice": "bf_emma",
+      "speaker_id": 21,
+      "role": "player",
+      "speed": 0.94,
+      "text": "I took it from here. I brought it to her.",
+      "speech_seconds": 2.745,
+      "file_seconds": 2.745,
+      "effects": "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8",
+      "sha256": "d86eef0bcea0e2ed9b2e2199399fe4393089f35df6b22763004dd4c37c1f4250",
+      "decoded_true_peak_dbfs": -4.3
     }
   }
 }

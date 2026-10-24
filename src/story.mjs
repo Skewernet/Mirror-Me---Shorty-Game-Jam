@@ -28,6 +28,8 @@ export class Story {
     this.heardArrival = false;
     this.hasDiary = false;
     this.hasLetter = false;
+    this.photoNoticed = false;
+    this.photoStraightened = false;
     this.radioOn = true;
     this.radioFrequency = 88.0;
     this.radioTuned = false;
@@ -79,7 +81,7 @@ export class Story {
       case 0:
         return this.firstSeen >= 1.3 && this.heardArrival && this.power;
       case 1:
-        return this.encounter && this.hasDiary;
+        return this.photoStraightened && this.encounter && this.hasDiary;
       case 2:
         return this.clockSolved && this.radioTuned && this.heardCall;
       case 3:
@@ -117,6 +119,12 @@ export class Story {
       return "enter-" + room;
     }
     return null;
+  }
+  noticePhoto() {
+    if (this.stage !== 1 || this.photoNoticed || this.photoStraightened)
+      return null;
+    this.photoNoticed = true;
+    return "photo-crooked";
   }
   observe(dt, looking, near, distance = 10, moving = false) {
     const events = [];
@@ -357,7 +365,14 @@ export class Story {
       if (this.stage >= 5) return "already-quiet";
       return this.stage === 4 ? this.silence(id) : id;
     }
-    if (id === "photo") return this.stage >= 2 ? "photo-changed" : "photo";
+    if (id === "photo") {
+      if (this.stage === 1 && !this.photoStraightened) {
+        this.photoNoticed = true;
+        this.photoStraightened = true;
+        return this.result("photo-straightened");
+      }
+      return this.stage >= 2 ? "photo-changed" : "photo";
+    }
     if (id === "door") {
       if (this.backdoorGone || this.stage >= 5) return "backdoor-gone";
       if (!this.ready()) return "backdoor-locked";
@@ -421,6 +436,8 @@ export class Story {
         return "Look into the large mirror at the end of the hall.";
     }
     if (this.stage === 1) {
+      if (!this.photoStraightened)
+        return "The family photograph is crooked at the end of the entrance hall. Straighten it.";
       if (!this.encounter)
         return "Watch the glass. Turn away nearby, then look back.";
       if (!this.hasKey) return "Something dropped into the hall drawer.";
@@ -459,7 +476,7 @@ export class Story {
       return "The back door is gone. Your reflection is gone. Walk into the empty mirror.";
     if (this.stage === 6) {
       if (!this.truthFound)
-        return "Go to Mum's bed. Look at what the room has kept.";
+        return "It started in the bathroom. Follow the blood on the walls to Mum's bed.";
       if (!this.lampOff)
         return "You have seen what happened. Turn off the lamp beside her bed.";
       if (!this.frontOpen)
@@ -476,12 +493,12 @@ export const WRITINGS = {
   letter:
     "ST. ANNE'S — DISCHARGE / PERSONAL PROPERTY\nPATIENT: EVELYN VALE\nProperty received by: MARA VALE\n\nOne wristwatch. One wedding ring. One ribbon.\nItems returned on discharge to home care.\nLong-term care to continue at the patient's home.\n\nIn my handwriting, below the signature:\nI kept the house exactly how she liked it. I did everything.",
   truth:
-    "I SAID SHE DIED IN HER SLEEP.\n\nThe knife came from my kitchen. The cuts in the sheet follow my hand. I dialled for an ambulance at 03:17.\n\nMum was awake. She was looking at me.\n\nI did this.",
+    "I SAID SHE DIED IN HER SLEEP.\n\nThe knife came from my kitchen. I brought it into the bathroom. That was where I first stabbed her.\n\nShe tried to get away. Her blood follows the walls from the bath, through the hall, to her bed. She collapsed there. I followed her. The cuts in the sheet follow my hand.\n\nI dialled for an ambulance at 03:17. Mum was awake. She was looking at me.\n\nI did this.",
 };
 export const VOICES = {
   arrival: {
     speaker: "MARA",
-    text: "Mum's light is still on. I asked them to leave it.",
+    text: "Huh. I guess the fuse went out again.",
   },
   recording: {
     speaker: "THE TELEPHONE",
@@ -491,6 +508,10 @@ export const VOICES = {
   repeat: {
     speaker: "MARA",
     text: "I straightened that photograph before I left.",
+  },
+  photoMemory: {
+    speaker: "MARA",
+    text: "Dad was still alive. Everything was simpler then. Mum never stopped missing him.",
   },
   late: { speaker: "MARA", text: "That wasn't a blink." },
   returned: {
@@ -529,7 +550,19 @@ export const VOICES = {
     speaker: "THE GLASS",
     text: "Now tell it the right way round.",
   },
-  ending: { speaker: "MUM", text: "You looked right at me." },
+  ending: { speaker: "MUM", text: "You were looking right at me." },
+  crimeBathroom: {
+    speaker: "MARA",
+    text: "It started here. She tried to get away from me.",
+  },
+  crimeTrail: {
+    speaker: "MARA",
+    text: "She held the wall. All the way to her room.",
+  },
+  crimeKitchen: {
+    speaker: "MARA",
+    text: "I took it from here. I brought it to her.",
+  },
   broadcast: {
     speaker: "THE KITCHEN RADIO",
     text: "Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.",
@@ -560,7 +593,7 @@ export const VOICES = {
   },
   farewell: {
     speaker: "MARA",
-    text: "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.",
+    text: "It wasn't the illness. I stabbed you in the bathroom. You ran to your bed. I followed you. I kept going. I killed you, Mum.",
   },
   sob: {
     speaker: "MARA",
@@ -568,6 +601,6 @@ export const VOICES = {
   },
   news: {
     speaker: "THE FUNERAL RADIO",
-    text: "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
+    text: "Police have confirmed that sixty-eight-year-old Evelyn Vale was attacked in her bathroom and died in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.",
   },
 };

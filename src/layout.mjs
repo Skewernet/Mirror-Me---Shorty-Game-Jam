@@ -104,7 +104,7 @@ export const TARGETS = {
   "bath-clue": { x: 2.15, y: 1.7, z: 1.015 },
   note: { x: 4.7, y: 0.86, z: 0.4 },
   drawer: { x: 4.7, y: 0.62, z: 0.35 },
-  photo: { x: -1.6, y: 1.38, z: 7.31 },
+  photo: { x: 0, y: 1.66, z: -0.615 },
   mirror: MIRROR,
   clock: HALL_CLOCK,
   door: { x: EXIT.x, y: 1.1, z: EXIT.z },

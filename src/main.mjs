@@ -86,6 +86,9 @@ let mode = "title",
   newsFinished = false,
   newsFinishedAt = 0,
   lastLineFinished = false,
+  funeralAttack = false,
+  funeralRush = false,
+  funeralImpact = false,
   sobQueued = false,
   lateSpoken = false,
   flashlightOn = false,
@@ -100,6 +103,7 @@ let mode = "title",
   quality = 1080,
   renderRequested = true;
 const testMode = new URLSearchParams(location.search).get("test") === "1";
+const evidenceSeen = new Set();
 const flashlight = new T.SpotLight(0xe2dfc5, 0, 13, Math.PI * 0.14, 0.7, 1.8);
 flashlight.castShadow = false;
 flashlight.shadow.mapSize.set(768, 768);
@@ -133,14 +137,24 @@ function resize() {
   house.portal?.setQuality(quality);
 }
 resize();
-// Compile the hidden intruder against the real house lights and beauty target
-// before play, so its first reveal does not also compile its unique surfaces.
-// compileAsync traverses the object without making it visible or drawing it.
+// Prepare each real light-count variant before play. Hidden revelation/wake
+// lights change every PBR program when revealed; warming only their materials
+// against the ordinary house would still hitch on the transition frame.
 const warmupTarget = renderer.getRenderTarget();
+const warmupVisibility = [house.revelation.group.visible, house.wake.group.visible];
 try {
   renderer.setRenderTarget(picture.target);
-  await renderer.compileAsync(horror.figure.body, camera, scene);
+  await renderer.compileAsync(scene, camera);
+  house.revelation.group.visible = true;
+  await renderer.compileAsync(scene, camera);
+  house.wake.group.visible = true;
+  await renderer.compileAsync(scene, camera);
+  house.revelation.group.visible = warmupVisibility[0];
+  house.wake.group.visible = warmupVisibility[1];
+  house.portal.warmup(renderer, camera);
 } finally {
+  house.revelation.group.visible = warmupVisibility[0];
+  house.wake.group.visible = warmupVisibility[1];
   renderer.setRenderTarget(warmupTarget);
 }
 window.addEventListener("resize", resize);
@@ -235,6 +249,12 @@ function updateInventory() {
         : "The glass has brought you back to her room. Look at what you left there.",
       "◐",
     );
+  for (const id of evidenceSeen)
+    item(
+      { "evidence-bathroom": "Where it began", "evidence-trail": "Her way to the bedroom", "evidence-kitchen": "The kitchen knife" }[id],
+      VOICES[{ "evidence-bathroom": "crimeBathroom", "evidence-trail": "crimeTrail", "evidence-kitchen": "crimeKitchen" }[id]].text,
+      "◐",
+    );
   $("inventory").textContent = cards.length
     ? "TAB · " + cards.length + " MEMORIES"
     : "";
@@ -258,6 +278,8 @@ function reset() {
   target = null;
   arrival = lateSpoken = endingSpoken = wakeTurned = mirrorSnap = false;
   newsStarted = newsFinished = lastLineFinished = sobQueued = false;
+  funeralAttack = funeralRush = funeralImpact = false;
+  evidenceSeen.clear();
   newsStartedAt = newsFinishedAt = 0;
   lastPortal = null;
   portalCount = 0;
@@ -271,6 +293,8 @@ function reset() {
   flashlight.intensity = 0;
   house.reset(story);
   $("veil").classList.remove("closing");
+  $("veil").style.removeProperty("background-color");
+  $("veil").style.removeProperty("transition");
   $("message").textContent =
     $("subtitle").textContent =
     $("prompt").textContent =
@@ -517,6 +541,7 @@ $("voice").onchange = (e) => sound.setVoice(e.target.checked);
 $("sudden-scares").onchange = (e) => {
   scaresEnabled = e.target.checked;
   if (!scaresEnabled) sound.stopCreatureCues();
+  if (!scaresEnabled && funeralAttack) house.wake.reduceAttack?.(elapsed);
 };
 $("flashing-lights").onchange = (e) => (flashingLights = e.target.checked);
 $("quality").onchange = (e) => {
@@ -573,7 +598,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 document.addEventListener("mousemove", (e) => {
-  if (active) player.look(e.movementX, e.movementY);
+  if (active && !funeralAttack) player.look(e.movementX, e.movementY);
 });
 document.addEventListener("keydown", (e) => {
   if (e.code === "Tab" && (active || mode === "pocket")) {
@@ -661,6 +686,15 @@ function findTarget() {
   );
 }
 function interact(id) {
+  if (id.startsWith("evidence-")) {
+    if (!story.inverted) return;
+    if (!evidenceSeen.has(id)) {
+      evidenceSeen.add(id);
+      respond(id);
+      updateInventory();
+    } else say("The marks lead from the bathroom to her bed. You followed her.", 5);
+    return;
+  }
   if (id.startsWith("room-")) {
     const d = house.roomDoors[id.slice(5)];
     if (story.doors[id.slice(5)] && d.containsThreshold(player.x, player.z)) {
@@ -721,7 +755,12 @@ function respond(event) {
     musicbox: "A few notes turn in the little wooden box.",
     tap: "Water runs into an empty basin.",
     photo:
-      "Mum, Dad, and you before you learned to leave quietly. Someone has turned the photograph toward the room again.",
+      "Mum, Dad, and you. Before the empty place at the table.",
+    "photo-crooked": VOICES.repeat.text,
+    "photo-straightened": VOICES.photoMemory.text,
+    "evidence-bathroom": VOICES.crimeBathroom.text,
+    "evidence-trail": VOICES.crimeTrail.text,
+    "evidence-kitchen": VOICES.crimeKitchen.text,
     "photo-changed": "The same room. Three places left empty.",
     "echo-silenced": "One sound stops. The others seem farther away.",
     "house-quiet": "Nothing. For the first time, nothing.",
@@ -800,6 +839,11 @@ function respond(event) {
       ["diary", "letter", "note", "time-clue", "call"].includes(event) ? 7 : 4,
     );
   const voiced = {
+    "photo-crooked": "repeat",
+    "photo-straightened": "photoMemory",
+    "evidence-bathroom": "crimeBathroom",
+    "evidence-trail": "crimeTrail",
+    "evidence-kitchen": "crimeKitchen",
     "arrival-recording": "recording",
     power: "power",
     key: "key",
@@ -835,6 +879,8 @@ function finish() {
   pending = [];
   sound.stopVoice();
   $("veil").classList.remove("closing");
+  $("veil").style.removeProperty("background-color");
+  $("veil").style.removeProperty("transition");
   document.exitPointerLock();
   showMenu();
 }
@@ -843,6 +889,7 @@ function beginEnding() {
   endingAt = elapsed + 45;
   wakeTurned = false;
   newsStarted = newsFinished = lastLineFinished = false;
+  funeralAttack = funeralRush = funeralImpact = false;
   newsStartedAt = newsFinishedAt = 0;
   endingSpoken = false;
   const essential = ["sob", "farewell", "unlocked"];
@@ -895,7 +942,6 @@ function crossRear() {
   sound.effect("loop-latch", { x: SPAWN.x, y: 1, z: SPAWN.z });
   announceChapter();
   hintUntil = elapsed + 5;
-  if (event === "pass-1") queueVoice("repeat", 1.0);
   if (event === "pass-5") queueVoice("empty", 1.0);
   updateInventory();
 }
@@ -922,7 +968,7 @@ function update(dt) {
   elapsed += dt;
   if (endingAt) {
     const t = elapsed - endingStart;
-    player.update(dt, house.colliders);
+    if (!funeralAttack) player.update(dt, house.colliders);
     house.animate(elapsed, dt, story, player);
     sound.update(story, player);
     if (elapsed >= messageUntil) $("message").textContent = "";
@@ -957,14 +1003,32 @@ function update(dt) {
         onComplete: () => {
           if (!endingAt || startedAt !== endingStart) return;
           lastLineFinished = true;
-          endingAt = elapsed + 2.5;
+          funeralAttack = true;
+          house.wake.beginAttack(elapsed, player, { enabled: scaresEnabled });
+          $("veil").style.transition = "none";
+          endingAt = elapsed + 10;
         },
       });
     }
-    if (lastLineFinished && elapsed >= endingAt - 1.5)
-      $("veil").classList.add("closing");
+    if (funeralAttack) {
+      const attack = house.wake.attackCamera(elapsed);
+      if (attack.yaw !== null && attack.yaw !== undefined) {
+        player.yaw = attack.yaw;
+        player.pitch = attack.pitch;
+        player.syncCamera();
+      }
+      if (attack.phase === "lunge" && !funeralRush) {
+        funeralRush = true;
+        sound.effect("funeral-lunge");
+      }
+      if (attack.phase === "impact" && !funeralImpact) {
+        funeralImpact = true;
+        sound.effect("funeral-impact");
+      }
+      $("veil").style.backgroundColor = `rgba(0,0,0,${attack.fade})`;
+      if (attack.done) finish();
+    }
     updateFlashlight(dt);
-    if (lastLineFinished && elapsed >= endingAt) finish();
     return;
   }
   player.update(dt, house.colliders);
@@ -1037,6 +1101,10 @@ function update(dt) {
   sound.update(story, player);
   playPendingVoice();
   target = findTarget();
+  if (target?.id === "photo") {
+    const event = story.noticePhoto();
+    if (event) respond(event);
+  }
   let label = target?.label || "";
   if (target?.id === "drawer" && story.drawerOpen)
     label =
@@ -1142,6 +1210,7 @@ if (testMode) {
       newsStartedAt,
       newsFinished,
       lastLineFinished,
+      attack: house.wake.snapshot().attack,
       endsAt: endingAt,
     },
     roomSound: {
@@ -1163,6 +1232,7 @@ if (testMode) {
     quality,
     dressing: house.dressing?.snapshot(),
     revelation: house.revelation?.snapshot?.(),
+    evidence: [...evidenceSeen],
     character: mirror.figure.identity,
     drawCalls: picture.stats?.calls,
     triangles: picture.stats?.triangles,

@@ -2,15 +2,15 @@
 export const CHAPTERS = [
   {
     id: 0,
-    title: "THE LIGHT YOU LEFT ON",
+    title: "THE FUSE AGAIN",
     objective:
-      "Answer the telephone, restore the kitchen light and establish your reflection.",
+      "Answer the telephone, replace the fuse and establish your reflection.",
   },
   {
     id: 1,
     title: "SOMETHING STAYS",
     objective:
-      "Test the glass. Find what it has left for you, then read the bedroom diary.",
+      "Straighten the hall photograph. Test the glass, find its key and read the bedroom diary.",
   },
   {
     id: 2,

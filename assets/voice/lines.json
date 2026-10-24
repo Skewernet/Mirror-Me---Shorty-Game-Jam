@@ -1,6 +1,6 @@
 {
   "arrival": {
-    "text": "Mum's light is still on. I asked them to leave it.",
+    "text": "Huh. I guess the fuse went out again.",
     "role": "player",
     "speed": 0.95,
     "voice": "bf_emma",
@@ -98,7 +98,7 @@
     "speaker_id": 21
   },
   "ending": {
-    "text": "You looked right at me.",
+    "text": "You were looking right at me.",
     "role": "mum",
     "speed": 0.93,
     "voice": "bf_isabella",
@@ -158,7 +158,7 @@
     "speed": 0.91,
     "voice": "bf_emma",
     "speaker_id": 21,
-    "text": "It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum."
+    "text": "It wasn't the illness. I stabbed you in the bathroom. You ran to your bed. I followed you. I kept going. I killed you, Mum."
   },
   "sob": {
     "role": "sobbing",
@@ -166,14 +166,51 @@
     "voice": "bf_emma",
     "speaker_id": 21,
     "text": "No... no. Mum. I'm sorry. I'm so sorry.",
-    "segments": ["No... no.", "Mum.", "I'm sorry.", "I'm so sorry."],
-    "pauses_after_seconds": [0.65, 0.9, 0.6]
+    "segments": [
+      "No... no.",
+      "Mum.",
+      "I'm sorry.",
+      "I'm so sorry."
+    ],
+    "pauses_after_seconds": [
+      0.65,
+      0.9,
+      0.6
+    ]
   },
   "news": {
     "role": "news",
     "speed": 0.94,
     "voice": "bm_george",
     "speaker_id": 26,
-    "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness."
+    "text": "Police have confirmed that sixty-eight-year-old Evelyn Vale was attacked in her bathroom and died in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness."
+  },
+  "photoMemory": {
+    "role": "player",
+    "speed": 0.94,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "Dad was still alive. Everything was simpler then. Mum never stopped missing him."
+  },
+  "crimeBathroom": {
+    "role": "player",
+    "speed": 0.94,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "It started here. She tried to get away from me."
+  },
+  "crimeTrail": {
+    "role": "player",
+    "speed": 0.94,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "She held the wall. All the way to her room."
+  },
+  "crimeKitchen": {
+    "role": "player",
+    "speed": 0.94,
+    "voice": "bf_emma",
+    "speaker_id": 21,
+    "text": "I took it from here. I brought it to her."
   }
 }

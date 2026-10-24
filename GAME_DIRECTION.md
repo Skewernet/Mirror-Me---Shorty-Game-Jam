@@ -1,12 +1,12 @@
 # MIRROR ME — the daughter in the wrong side of the glass
 
-Version 0.7, in development. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define the exact words. Publication requires its own release approval; this script is not evidence of a live release.
+Local development after 0.8. Full spoilers follow. Original concept and direction by Skewernet; AI-assisted development. `src/story.mjs`, `src/chapters.mjs` and the shared `WRITINGS`/`VOICES` exports define the exact words. Publication requires its own release approval; this script is not evidence of a live release.
 
 ## The dramatic spine
 
 Mara Vale has built a story in which she did everything a good daughter could do, then lost her mother to illness. The house lets her keep performing the proof: fix a light, lay out a watch, prepare the bath, keep the music playing. What is missing from that story is the action between the routine and the telephone call.
 
-Evelyn Vale was sixty-eight. Mara had been her full-time caregiver for seven years. Evelyn was ill, but the illness did not kill her. Mara took a kitchen knife into her mother’s bedroom and repeatedly stabbed her. Mum was awake and looking at her. At 03:17 Mara called for an ambulance. The crime is not caused or excused by a demon, a mirror, possession, illness or an implied request for euthanasia.
+Evelyn Vale was sixty-eight. Mara had been her full-time caregiver for seven years. Evelyn was ill, but the illness did not kill her. Mara first stabbed her mother in the bathroom. Evelyn fled along the hall, bracing against the walls, and collapsed on her bed. Mara followed and stabbed her again. Mum was awake and looking at her. At 03:17 Mara called for an ambulance. The crime is not caused or excused by a demon, a mirror, possession, illness or an implied request for euthanasia.
 
 The player initially shares Mara’s selective account. Tender memories remain true; the conclusion she draws from them is false. Her ring really caught in Mara’s hair. Mara really propped the music-box lid open because Mum disliked the silence. Those acts do not cancel what she did. Avoid replacing the earlier tenderness with a sudden cartoon villain personality.
 
@@ -28,8 +28,8 @@ At the bed, the player must inspect and acknowledge what happened. This sets `tr
 
 | Chapter | Required actions | Dramatic work |
 | --- | --- | --- |
-| **0 — The light you left on** | Answer the sitting-room telephone, restore power with the kitchen fuse and utility panel, sustain attention on the faithful hall mirror. | Establish a credible ordinary house and an apparently helpful daughter. The opening Mum take is an ordinary remembered call. |
-| **1 — Something stays** | Watch the delayed reflection, look away nearby, return to its held gaze, take the hall-drawer key and read the bedroom diary. | The reflection refuses her habitual looking away. The diary gives the real care order and plants the selective “I did everything” account. |
+| **0 — The fuse again** | Enter the dark house, answer the sitting-room telephone, restore power with the kitchen fuse and utility panel, sustain attention on the faithful hall mirror. | Establish a credible ordinary house and an apparently helpful daughter. The opening Mum take is an ordinary remembered call. |
+| **1 — Something stays** | Straighten the crooked photograph visible at the entrance-hall end wall; then watch the delayed reflection, look away nearby, return to its held gaze, take the hall-drawer key and read the bedroom diary. | The reflection refuses her habitual looking away. The diary gives the real care order and plants the selective “I did everything” account. |
 | **2 — The hour of the call** | Wipe the bathroom clue, read **71:30** backward as **03:17**, set the hall clock, tune the kitchen radio to **93.7 FM**, then answer the second telephone call. | Mara labels the time as the nurse’s call. Her own voice on the receiver remembers the music-box lid and the order before she called anyone. |
 | **3 — Put everything back** | Find the kitchen watch, utility-room ring and sitting-room ribbon; place watch by radio, ring by bath, ribbon by music box, in that order. | Real good acts become the pieces she keeps arranging to defend herself. Correct placements remain visible; errors preserve held items and prior progress. |
 | **4 — End the evening** | Close the bedroom music box, stop the bathroom tap, switch off the kitchen radio. | Reverse the routine. The silence does not complete her account. Wrong sounds reset this sequence only; the telephone cannot spoil it. |
@@ -54,24 +54,24 @@ Keep the sound puzzle’s earned silence in chapters 5 and 6. The bath, music bo
 
 ## Funeral-room coda
 
-The front door opens into the pale, enclosed wake: familiar chairs, a place reserved for Mara, flowers, portrait and the veiled seated versions of her. The banal funeral arrangement after the blood is the jarring change. Keep bounded walking, free look, flashlight and pause. Do not add a large monster attack that displaces the admission.
+The front door opens into the pale, enclosed wake: familiar chairs, a place reserved for Mara, flowers, portrait and the veiled seated versions of her. The banal funeral arrangement after the blood is the jarring change. Keep bounded walking, free look, flashlight and pause. The final attack belongs to the wounded human mother and follows the complete admission, report and final accusation; it never replaces them.
 
 A **separate, visible funeral radio** plays the new factual `news` take once. Its source position belongs to that prop. The kitchen radio remains silent; it is neither secretly moved into the wake nor reused as a puzzle target. The news confirms Evelyn’s age, Mara’s seven-year role, the admitted repeated stabbing and the 03:17 emergency call. It explicitly rules out illness as the cause of death.
 
-The report must finish in full. Drive coda timing from the decoded clip duration, then leave a short quiet beat, allow Mum’s final **“You looked right at me.”**, and leave another quiet beat before fading. The last voice is recognition without welcome, consolation or absolution. Seated heads can turn during the report, but no loud cue should obscure its facts. With voices muted, full readable captions and equivalent pacing still communicate the report. Credits and replay follow; there is no unrelated replacement walking back into the house.
+The report must finish in full. Drive coda timing from the decoded clip duration, then leave a short quiet beat, allow Mum’s final **“You were looking right at me.”** to finish, then turn the camera toward the wounded mother behind the player. She lunges and reaches into the camera before the screen fades to black. The finite sequence pauses and resets with play. Disabling sudden scares replaces the figure and forced turn with a quiet fade. The last voice is recognition without welcome, consolation or absolution. Seated heads can turn during the report, but no loud cue should obscure its facts. With voices muted, full readable captions and equivalent pacing still communicate the report. Credits and replay follow; there is no unrelated replacement walking back into the house.
 
 ## Complete performance script
 
-There are **25 local synthetic performances**: the existing kitchen weather loop, one finite funeral news report, one broken-word crying take and 22 other story takes. Mara and the glass share Kokoro’s supplied British `bf_emma`; Mum uses `bf_isabella`; both fictional radio readers use `bm_george`. These are synthetic presets, not actors or real-person clones. The broken-word take is directed TTS with restrained processing, not a claim of a captured human sob.
+There are **29 local synthetic performances**: the existing kitchen weather loop, one finite funeral news report, one broken-word crying take and 26 other story takes. Mara and the glass share Kokoro’s supplied British `bf_emma`; Mum uses `bf_isabella`; both fictional radio readers use `bm_george`. These are synthetic presets, not actors or real-person clones. The broken-word take is directed TTS with restrained processing, not a claim of a captured human sob.
 
 The weather file alone carries an eighteen-second quiet tail for sparse ambience. The funeral report has no padding tail and must never loop. `assets/voice/production.json` records exact text, voice, speed, filters, durations, output/model hashes and decoded true peaks. The table below mirrors `VOICES` and `lines.json`.
 
 | ID / cue | Exact speaker and line | Performance direction |
 | --- | --- | --- |
-| `arrival` / opening entry | MARA: “Mum's light is still on. I asked them to leave it.” | Practical self-assurance. She is returning to the version of the house she can bear. |
+| `arrival` / opening entry | MARA: “Huh. I guess the fuse went out again.” | Practical self-assurance. She is returning to the version of the house she can bear. |
 | `recording` / first sitting-room receiver lift | THE TELEPHONE: “Mara? It's Mum. The kitchen's gone again. Spare fuse by the sink. Don't go before I've fallen asleep.” | An ordinary, genuine memory of Mum alive. The request must not sound sinister or knowingly prophetic. |
 | `power` / restore kitchen circuit | MARA: “They disconnected this house on Monday.” | A small contradiction. Let the ordinary manual action finish before the thought. |
-| `repeat` / first impossible return | MARA: “I straightened that photograph before I left.” | Trust the remembered action more than the evidence in the room. |
+| `repeat` / look at the crooked hall photograph after the first return | MARA: “I straightened that photograph before I left.” | Trust the remembered action more than the evidence in the room. |
 | `late` / delayed reflection | MARA: “That wasn't a blink.” | Under her breath. Give the player room to experiment. |
 | `returned` / look back at the held reflection | THE GLASS: “You always look away before the difficult part.” | Mara’s own recognizable voice. The glass accuses without naming the crime. |
 | `key` / take bedroom key | MARA: “Her bedroom. I haven't opened it since they took her away.” | Avoid the reason they took Mum away; Mara chooses a passive construction. |
@@ -82,7 +82,7 @@ The weather file alone carries an eighteen-second quiet tail for sparse ambience
 | `command` / inspect the empty mirror | THE GLASS: “You keep putting yourself on the wrong side.” | The mirror is correcting her position in the story, not offering absolution. |
 | `released` / complete the reverse-sound puzzle | MARA: “It's quiet. That doesn't make it finished.” | The silence fails to produce closure. Preserve the unease. |
 | `unlocked` / front latch releases after bedside acknowledgment and lamp | THE GLASS: “Now tell it the right way round.” | The glass asks for an account with the actor and victim restored to their proper places. |
-| `ending` / after the funeral news has finished | MUM: “You looked right at me.” | Mum’s established voice, clear and close. Recognition, not welcome or forgiveness. Leave a quiet beat after it. |
+| `ending` / after the funeral news has finished | MUM: “You were looking right at me.” | Mum’s established voice, clear and close. Recognition, not welcome or forgiveness. Leave a quiet beat after it. |
 | `broadcast` / early kitchen radio ambience | THE KITCHEN RADIO: “Rain overnight. All roads out of the valley remain closed. Another bulletin will follow.” | An impersonal original weather bulletin. Never play the murder report from this early radio loop. |
 | `letter` / optional hospital discharge/property receipt | MARA: “Personal effects. That's what they called them when they sent her home.” | She classifies the care discharge as loss. The document itself clearly says Mum returned home alive. |
 | `watch` / collect the kitchen watch | MARA: “They gave this back in a sealed bag. It's warm.” | A returned care item with an impossible tactile detail; do not invent a post-death hospital admission. |
@@ -90,9 +90,13 @@ The weather file alone carries an eighteen-second quiet tail for sparse ambience
 | `ribbon` / collect the sitting-room ribbon | MARA: “I tied the lid open. She hated when the music stopped.” | A small good act she returns to as evidence that she was a good daughter. |
 | `ritual` / third correct keepsake offering | THE GLASS: “There. Every little thing put back. That's how you told it.” | Approval becomes an accusation about selective storytelling. Calm, never a monster growl. |
 | `empty` / first entry to the missing-reflection chapter | MARA: “I kept leaving myself out of it.” | The missing figure is the missing actor in her own account. |
-| `farewell` / inspect Mum’s bed in the revealed room | MARA: “It wasn't the illness. I picked up the kitchen knife. You were looking at me. I kept going. I killed you, Mum.” | An unambiguous first-person admission. Broken phrases, no triumphant villain speech and no claim Mum asked for it. |
+| `farewell` / inspect Mum’s bed in the revealed room | MARA: “It wasn't the illness. I stabbed you in the bathroom. You ran to your bed. I followed you. I kept going. I killed you, Mum.” | An unambiguous first-person admission. Broken phrases, no triumphant villain speech and no claim Mum asked for it. |
 | `sob` / first physical entry to the inverted bedroom, after other speech clears | MARA: “No... no. Mum. I'm sorry. I'm so sorry.” | Broken synthetic words with space between them. Add restrained authored breath/sob texture in the room mix; never loop a confession or overlap its subtitles. |
-| `news` / one-shot from the visible funeral-room radio | THE FUNERAL RADIO: “Police have confirmed that sixty-eight-year-old Evelyn Vale was killed in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.” | A sober fictional news reader. Facts rather than lurid adjectives: the victim, caregiver relationship, admitted act and emergency-call time. |
+| `news` / one-shot from the visible funeral-room radio | THE FUNERAL RADIO: “Police have confirmed that sixty-eight-year-old Evelyn Vale was attacked in her bathroom and died in her bedroom. Her daughter, Mara Vale, who had been her full-time carer for seven years, has admitted repeatedly stabbing her mother. Detectives say Mara called for an ambulance from the house at three seventeen in the morning. The death was not caused by her illness.” | A sober fictional news reader. Facts rather than lurid adjectives: the victim, caregiver relationship, admitted act and emergency-call time. |
+| `photoMemory` / straighten the crooked entrance-hall photograph | MARA: “Dad was still alive. Everything was simpler then. Mum never stopped missing him.” | A remembered childhood with Dad; a quieter contrast to the later evidence. |
+| `crimeBathroom` / inspect the bloodied bath after crossing the mirror | MARA: “It started here. She tried to get away from me.” | Recognize the first assault site. |
+| `crimeTrail` / inspect the declining hallway handprints | MARA: “She held the wall. All the way to her room.” | Recognize Evelyn’s flight toward her bed. |
+| `crimeKitchen` / inspect the bloody worktop | MARA: “I took it from here. I brought it to her.” | Name Mara’s deliberate choice of the weapon. |
 
 ## Shared written discoveries
 
@@ -150,9 +154,11 @@ I kept the house exactly how she liked it. I did everything.
 ```text
 I SAID SHE DIED IN HER SLEEP.
 
-The knife came from my kitchen. The cuts in the sheet follow my hand. I dialled for an ambulance at 03:17.
+The knife came from my kitchen. I brought it into the bathroom. That was where I first stabbed her.
 
-Mum was awake. She was looking at me.
+She tried to get away. Her blood follows the walls from the bath, through the hall, to her bed. She collapsed there. I followed her. The cuts in the sheet follow my hand.
+
+I dialled for an ambulance at 03:17. Mum was awake. She was looking at me.
 
 I did this.
 ```

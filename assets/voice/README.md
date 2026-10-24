@@ -1,6 +1,6 @@
 # Kokoro voice performances
 
-The twenty-five shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
+The twenty-nine shipped Ogg Vorbis takes are **synthetic**, produced offline with **Kokoro-82M v1.0**, replacing the earlier Piper/LJ Speech engine. No human actor performance, real-person voice clone or live speech service is represented. The game plays local files; it needs no API key, inference runtime or browser text-to-speech.
 
 Casting uses three of Kokoro's supplied synthetic British-English presets:
 
@@ -13,7 +13,7 @@ Casting uses three of Kokoro's supplied synthetic British-English presets:
 
 The model is not a substitute for directed acting: phrase delivery is controlled through the written punctuation, preset and pace, with role-specific post-processing. The glass retains Mara's real preset and pitch instead of becoming a pitch-shifted monster. Human performances remain a possible final improvement.
 
-There are twenty-two other story performances, one finite broken-word crying take, one funeral news report and one ambient kitchen weather loop. Twelve unchanged takes are retained from 0.6; eleven are revised for the murder revelation and two are added. The funeral report is original fictional news, not a real broadcast. It is a single finite take with no artificial padding tail. The crying take uses the existing Mara preset, separated phrases, scripted pauses and restrained amplitude modulation; it is not a recorded human sob. Exact text, phrase plans, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
+There are twenty-six other story performances, one finite broken-word crying take, one funeral news report and one ambient kitchen weather loop. The current narrative pass adds the hall photograph memory and three crime-scene evidence lines. Arrival, bedside confession, Mum's final accusation and the funeral report are re-rendered to match the darker opening and bathroom-to-bedroom chronology; twenty-one existing takes remain unchanged. The funeral report is original fictional news, not a real broadcast. It is a single finite take with no artificial padding tail. The crying take uses the existing Mara preset, separated phrases, scripted pauses and restrained amplitude modulation; it is not a recorded human sob. Exact text, phrase plans, preset, speaker ID and pace are in `lines.json`. `production.json` records the engine/runtime versions, model-file hashes, synthesis settings, durations, decoded true peaks and SHA256 of each rendered take. Game subtitle text remains in `src/story.mjs`; changes must be synchronized with the synthesis input and script.
 
 ## Provenance and license
 

@@ -1,6 +1,7 @@
 import * as T from "three";
 import { createFigure } from "./figure.mjs";
 import { FigureRig } from "./figure-motion.mjs";
+import { createFuneralScare } from "./funeral-scare.mjs";
 
 export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
 
@@ -207,6 +208,7 @@ export function buildWake(b, m, surfaces, photos) {
   const mournerSeats = [chairs[0], chairs[1], chairs[3]];
   const lace = veilTexture();
   let prepared = false;
+  let funeralScare = null;
   for (const seat of mournerSeats)
     addSolid(slab(0.49, 1.42, 0.82, 0, 0.71, -0.2, m.invisible, seat.group));
 
@@ -301,6 +303,7 @@ export function buildWake(b, m, surfaces, photos) {
       mourners.push(mourner);
       poseMourner(mourner, 0, 0);
     }
+    funeralScare = createFuneralScare(wake, bounds, colliders);
     prepared = true;
     for (const light of lights)
       if (light.castShadow) light.shadow.needsUpdate = true;
@@ -675,6 +678,7 @@ export function buildWake(b, m, surfaces, photos) {
         if (light.castShadow) light.shadow.needsUpdate = true;
     // The controller waits for the complete news report and final voice; this
     // room never ends a long report on an unrelated animation timer.
+    funeralScare?.update(time);
     return { elapsed: sequenceTime };
   }
   function reset() {
@@ -683,6 +687,7 @@ export function buildWake(b, m, surfaces, photos) {
     reportAt = null;
     sequenceTime = 0;
     wake.visible = false;
+    funeralScare?.reset();
     for (const mourner of mourners) {
       mourner.yaw = 0;
       poseMourner(mourner, 0, 0);
@@ -710,6 +715,10 @@ export function buildWake(b, m, surfaces, photos) {
     prepare,
     begin,
     beginReport,
+    beginAttack(time, player, options) { prepare(); return funeralScare.begin(time, player, options); },
+    attackCamera: time => funeralScare?.camera(time) || { active: false, done: false, fade: 0 },
+    reduceAttack: time => funeralScare?.reduce(time) || false,
+    get attackBody() { return funeralScare?.body; },
     update,
     snapshot: () => ({
       active,
@@ -720,6 +729,7 @@ export function buildWake(b, m, surfaces, photos) {
       prepared,
       turned: mourners.filter((mourner) => mourner.turned).length,
       radioPosition: { ...FUNERAL_RADIO },
+      attack: funeralScare?.snapshot() || { active: false, phase: "idle", visible: false },
     }),
     reset,
   };

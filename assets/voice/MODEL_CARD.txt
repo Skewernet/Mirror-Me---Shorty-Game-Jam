@@ -33,8 +33,13 @@ Sample rate: 24000 Hz. Exact line settings and output/model checksums are in
 production.json; source text and voice assignments are in lines.json.
 
 Kokoro v1.0 supersedes the former public-domain LJ Speech/Piper engine in this
-revision. No LJ Speech voice is used in the current twenty-five takes.
+revision. No LJ Speech voice is used in the current twenty-nine takes.
 
 Revision 0.7 adds a finite fictional news report and a broken-word Mara take.
 The latter uses scripted phrase spacing and restrained amplitude modulation;
 it is synthetic TTS, not a recorded human sob or a real-person voice clone.
+
+The local narrative/crime-scene pass adds a photograph memory and three
+evidence observations, and re-renders arrival, confession, final accusation
+and funeral news with matching source text. Existing supplied presets,
+model hashes, normalization and decoded peak checks remain unchanged.

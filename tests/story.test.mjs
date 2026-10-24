@@ -34,6 +34,7 @@ function encounter(s) {
   s.observe(1.4, true, true, 1.6);
 }
 function secondPass(s) {
+  s.interact("photo");
   encounter(s);
   s.interact("drawer");
   s.interact("drawer");
@@ -172,8 +173,28 @@ test("the bedroom key and an early-opened drawer recover without opening the fro
   assert.equal(s.interact("drawer"), "key");
   assert.equal(s.interact("room-bedroom"), "room-open");
   assert.equal(s.interact("diary"), "diary");
+  assert.equal(s.doorOpen, false, "The crooked hall photograph is still unfinished");
+  assert.equal(s.interact("photo"), "photo-straightened");
   assert.equal(s.doorOpen, true);
   assert.equal(s.interact("front-door"), "front-locked");
+});
+test("the crooked hall photograph is noticed once, straightened explicitly and reset", () => {
+  const s = new Story();
+  assert.equal(s.noticePhoto(), null);
+  assert.equal(s.interact("photo"), "photo");
+  assert.equal(s.photoStraightened, false);
+  firstPass(s);
+  assert.equal(s.photoNoticed, false, "A spatial return alone cannot speak about an unseen photograph");
+  assert.equal(s.noticePhoto(), "photo-crooked");
+  assert.equal(s.noticePhoto(), null);
+  assert.equal(s.interact("photo"), "photo-straightened");
+  assert.equal(s.photoStraightened, true);
+  assert.equal(s.interact("photo"), "photo");
+  assert.equal(s.noticePhoto(), null);
+  assert.equal(s.doorOpen, false, "Straightening cannot replace the mirror and diary gates");
+  s.reset();
+  assert.equal(s.photoStraightened, false);
+  assert.equal(s.photoNoticed, false);
 });
 test("the reflected clock, tuned radio and second telephone call are ordered gates", () => {
   const s = new Story();

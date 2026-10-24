@@ -587,6 +587,14 @@ export class Sound {
     } else if (id === "wake-turn") {
       noise(0.85, 0.045, 330);
       impulse(106, 0.025, 0.42);
+    } else if (id === "funeral-lunge") {
+      // A finite inward breath and close cloth rush; keep dialogue/master
+      // headroom instead of making the final scare depend on excessive level.
+      noise(0.62, 0.075, 1050);
+      impulse(47, 0.09, 0.55);
+    } else if (id === "funeral-impact") {
+      noise(0.18, 0.085, 620);
+      impulse(58, 0.11, 0.38);
     }
     if (p) {
       // Audio completion, rather than a wall-clock timer: pausing for several
@@ -629,6 +637,8 @@ export class Sound {
         "lamp-off",
         "wake-entered",
         "wake-turn",
+        "funeral-lunge",
+        "funeral-impact",
       ].includes(id)
     ) {
       this.horrorCue(id, position);

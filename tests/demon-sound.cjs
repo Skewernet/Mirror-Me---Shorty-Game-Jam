@@ -44,6 +44,8 @@ fs.mkdirSync(out, { recursive: true });
         "joint-fold",
         "ceiling-breath",
         "witness-breath",
+        "funeral-lunge",
+        "funeral-impact",
       ];
       const clips = [];
       for (const id of ids) {

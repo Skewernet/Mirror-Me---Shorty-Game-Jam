@@ -367,13 +367,15 @@ export function furnish(b, m) {
     TARGETS.photo.x,
     TARGETS.photo.y,
     TARGETS.photo.z,
-    Math.PI,
+    0,
     m.photos[0],
-    lounge,
-    0.42,
-    0.48,
+    scene,
+    0.62,
+    0.72,
   );
+  family.group.name = "Entrance-hall family photograph";
   target("photo", family.face, "EXAMINE FAMILY PHOTOGRAPH", 2.35, family.group);
+  const photoInteraction = b.interactables.find((item) => item.id === "photo");
   window(-4.4, 1.51, 4.1, Math.PI / 2, lounge, 0.95, 1.05);
   const bookcase = group(-0.96, 0, 3.88, -Math.PI / 2, lounge);
   slab(0.62, 1.9, 0.24, 0, 0.95, 0, m.wood, bookcase, 0.012);
@@ -990,12 +992,16 @@ export function furnish(b, m) {
     quiltGeo.computeVertexNormals();
     bathCurtain.rotation.y = Math.PI / 2;
     musicFigurine.visible = true;
+    family.group.rotation.z = 0;
     bathroomMirror.setClueVisible(false);
     lastStage = 0;
     lastTime = 0;
   }
   function animate(time, state, player) {
     if (time < lastTime || (state.stage === 0 && lastStage > 0)) reset();
+    const animationDt = Math.max(0, Math.min(time - lastTime, 0.1));
+    if (state.stage === 1 && lastStage !== 1 && !state.photoStraightened)
+      family.group.rotation.z = -0.135;
     lastTime = time;
     lastStage = state.stage;
     const frameNumber = Math.floor(time * 10);
@@ -1049,7 +1055,7 @@ export function furnish(b, m) {
       previous.dispose();
       shownFrequency = frequency;
     }
-    kitchenDiffuserMaterial.color.set(state.power ? 0xe6e2c8 : 0x393e32);
+    kitchenDiffuserMaterial.color.set(state.power ? 0xe6e2c8 : 0x101411);
     radioKnob.rotation.z = on ? ((frequency - 88) / 20 - 0.5) * 1.7 : 0.35;
     const offHook = time < state.phoneLiftUntil;
     receiver.position.set(
@@ -1059,6 +1065,18 @@ export function furnish(b, m) {
     );
     receiver.rotation.z = offHook ? -0.18 : 0;
     family.face.material.map = m.photos[state.stage >= 2 ? 1 : 0];
+    // A real wall-mounted frame settles around its hanging point when fixed;
+    // no screen overlay or instant texture substitution stands in for the act.
+    family.group.rotation.z = T.MathUtils.damp(
+      family.group.rotation.z,
+      state.stage === 1 && !state.photoStraightened ? -0.135 : 0,
+      5.5,
+      animationDt,
+    );
+    photoInteraction.label = state.stage === 1 && !state.photoStraightened
+      ? "STRAIGHTEN FAMILY PHOTOGRAPH"
+      : "EXAMINE FAMILY PHOTOGRAPH";
+    tvScreen.material.color.set(state.power ? 0x728487 : 0x030504);
     tvScreen.material.map = state.stage >= 4 ? m.photos[1] : screenMap;
     bathroomMirror.setClueVisible(state.stage >= 2);
     fuseGroup.visible = !state.hasFuse && !state.power;
