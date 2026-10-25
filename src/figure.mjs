@@ -3,6 +3,13 @@ import { GLTFLoader } from "../vendor/GLTFLoader.js";
 import { clone as cloneSkeleton } from "../vendor/SkeletonUtils.js";
 import { FigureRig, FigureGait, CreatureGait } from "./figure-motion.mjs";
 
+// Read-only interpolation palettes avoid allocating Colors for every animated
+// figure while retaining the existing per-call material repaint behavior.
+const MIRROR_SKIN = new T.Color(0xc4b2ab), CREATURE_SKIN = new T.Color(0x626b62);
+const MIRROR_EYES = new T.Color(0xb5c0b2), CREATURE_EYES = new T.Color(0x020204);
+const MIRROR_CLOTH = new T.Color(0x292b27), CREATURE_CLOTH = new T.Color(0x151916);
+const SHADED_MATERIALS = ["Mara_Clothes_Material", "Mara_Shoes_Material", "Mara_Hair_Material"];
+
 let template;
 let loading;
 let skinVariants;
@@ -192,14 +199,11 @@ export function createFigure(_house, layer = 1) {
     proxy.name = name;
     const joint = rig.joint(boneName);
     const state = { proxy, joint, base: joint.bone.quaternion.clone() };
-    const delta = new T.Quaternion();
+    const delta = new T.Quaternion(), local = new T.Quaternion();
+    const inverseBind = joint.bodyQuaternion.clone().invert();
     state.apply = () => {
       delta.setFromEuler(proxy.rotation);
-      const local = joint.bodyQuaternion
-        .clone()
-        .invert()
-        .multiply(delta)
-        .multiply(joint.bodyQuaternion);
+      local.copy(inverseBind).multiply(delta).multiply(joint.bodyQuaternion);
       joint.bone.quaternion.copy(state.base).multiply(local).normalize();
       joint.bone.updateMatrixWorld(true);
     };
@@ -220,10 +224,17 @@ export function createFigure(_house, layer = 1) {
     control("Mara left leg", "thigh_l"),
     control("Mara right leg", "thigh_r"),
   ];
-  function captureControls() {
+  const limbControls = [...arms, ...legs];
+  function captureControls(propagate = false) {
+    if (propagate) rig.update();
     for (const state of controls) state.base.copy(state.joint.bone.quaternion);
-    for (const state of controls) state.apply();
-    rig.update();
+    // The underlying gait/distortion has already propagated its matrices.
+    // Identity controls do not change that pose; nonzero controls propagate
+    // their own descendants inside apply(), without a second full-rig walk.
+    for (const state of controls) {
+      const rotation = state.proxy.rotation;
+      if (rotation.x || rotation.y || rotation.z) state.apply();
+    }
   }
   let unease = -1;
   let horror = 0;
@@ -281,22 +292,18 @@ export function createFigure(_house, layer = 1) {
     skin.map = skinVariants[Math.max(0, unease)];
     skin.color
       .set(unease >= 2 ? 0xc2d0c7 : unease === 1 ? 0xe0e1d9 : 0xf1e3d7)
-      .lerp(new T.Color(mirrorHorror ? 0xc4b2ab : 0x626b62), horror * (mirrorHorror ? 0.58 : 0.86));
+      .lerp(mirrorHorror ? MIRROR_SKIN : CREATURE_SKIN, horror * (mirrorHorror ? 0.58 : 0.86));
     skin.roughness = T.MathUtils.lerp(unease >= 2 ? 0.75 : 0.64, mirrorHorror ? 0.73 : 0.94, horror);
     const eyes = materials.get("Mara_Eyes_Material");
     eyes.color
       .set(unease >= 2 ? 0xc8c5b9 : 0xffffff)
-      .lerp(new T.Color(mirrorHorror ? 0xb5c0b2 : 0x020204), T.MathUtils.smoothstep(horror, 0.25, 0.75));
+      .lerp(mirrorHorror ? MIRROR_EYES : CREATURE_EYES, T.MathUtils.smoothstep(horror, 0.25, 0.75));
     eyes.roughness = T.MathUtils.lerp(0.18, mirrorHorror ? 0.2 : 0.5, horror);
-    for (const name of [
-      "Mara_Clothes_Material",
-      "Mara_Shoes_Material",
-      "Mara_Hair_Material",
-    ]) {
+    for (const name of SHADED_MATERIALS) {
       const material = materials.get(name);
       material.color
         .copy(colors.get(name))
-        .lerp(new T.Color(mirrorHorror ? 0x292b27 : 0x151916), horror * (mirrorHorror ? 0.78 : 0.97));
+        .lerp(mirrorHorror ? MIRROR_CLOTH : CREATURE_CLOTH, horror * (mirrorHorror ? 0.78 : 0.97));
       material.roughness = T.MathUtils.lerp(
         /Hair/.test(name) ? 0.7 : 0.84,
         mirrorHorror ? (/Hair/.test(name) ? .72 : .89) : 0.96,
@@ -403,7 +410,7 @@ export function createFigure(_house, layer = 1) {
   }
   function animate(time, speed = 0, frozen = false, options = {}) {
     applyingControls = false;
-    for (const control of [...arms, ...legs]) control.rotation.set(0, 0, 0);
+    for (const control of limbControls) control.rotation.set(0, 0, 0);
     applyingControls = true;
     rig.reset();
     const diagnostic = gait.update(time, speed, frozen, options);
@@ -568,7 +575,9 @@ export function createFigure(_house, layer = 1) {
       morph("Mara_Jaw_Open", horror * (0.93 + Math.sin(time * 1.3) * 0.05));
     baseline = snapshot();
     applyMaterials();
-    captureControls();
+    // Creature contact solving writes fingertip bind quaternions directly.
+    // Those edits need one propagation before the control layer is captured.
+    captureControls(true);
     body.userData.pose = mode;
     body.userData.creatureProgress = progress;
   }

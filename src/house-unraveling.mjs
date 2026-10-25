@@ -1,10 +1,8 @@
 import * as T from "three";
-import { mergeGeometries, mergeVertices } from "../vendor/BufferGeometryUtils.js";
-import { createFigure, preloadCharacterAssets } from "./figure.mjs";
+import { mergeGeometries } from "../vendor/BufferGeometryUtils.js";
+import { createReachingArms, UNRAVELING_ARMS } from "./unraveling-arms.mjs";
 import { CEILING_HEIGHT } from "./layout.mjs";
 
-const UP = new T.Vector3(0, 1, 0);
-const clamp = T.MathUtils.clamp;
 const smooth = T.MathUtils.smoothstep;
 const FLICKER_ZONES = ["bathroom", "utility"];
 const FLICKER_CUTS = {
@@ -14,16 +12,7 @@ const FLICKER_CUTS = {
 
 // These details never change the physical building. They occupy room margins,
 // wall planes or the ceiling, leaving the established capsule route intact.
-export const UNRAVELING_HANDS = Object.freeze([
-  { at: [3.78, 1.47, .637], normal: [0, 0, -1], roll: -.32, delay: 0 },
-  { at: [4.34, CEILING_HEIGHT - .002, -.20], normal: [0, -1, 0], roll: .36, delay: .18 },
-  { at: [5.34, 1.72, -.637], normal: [0, 0, 1], roll: .54, delay: .38 },
-  { at: [5.94, CEILING_HEIGHT - .002, .23], normal: [0, -1, 0], roll: -.48, delay: .64 },
-  { at: [6.46, 1.35, .637], normal: [0, 0, -1], roll: .78, delay: .88 },
-  { at: [7.00, CEILING_HEIGHT - .002, -.22], normal: [0, -1, 0], roll: .92, delay: 1.12 },
-  { at: [8.10, 1.62, .637], normal: [0, 0, -1], roll: -.64, delay: 1.4 },
-  { at: [8.43, CEILING_HEIGHT - .002, .13], normal: [0, -1, 0], roll: -.2, delay: 1.64 },
-]);
+export const UNRAVELING_HANDS = UNRAVELING_ARMS;
 
 // Sparse, different failures rather than a synchronized whole-house strobe.
 // The ordinary failed-fuse fill remains untouched by these practical outages.
@@ -216,66 +205,10 @@ export function createHouseUnraveling(scene, materials) {
 
   let prepared = null, ready = false, active = false, encountered = false, startedAt = null, lastTime = 0;
   let enabled = true, flashes = true;
-  const handNodes = [];
   const warmupObjects = [...dressing.children];
-  async function prepare() {
-    if (prepared) return prepared;
-    prepared = (async () => {
-      await preloadCharacterAssets();
-      const figure = createFigure(null, 0), rig = figure.anatomy;
-      // Bake the real measured right hand in a loose, imperfect grasp. The
-      // temporary complete skeleton is discarded; only this static patch ships
-      // through the rendering loop, shared by all eight wall hands.
-      for (const finger of ["index", "middle", "ring", "pinky"])
-        for (let segment = 1; segment <= 3; segment++)
-          rig.rotate(`${finger}_0${segment}_r`, 0, 0, -(.12 + segment * .035 + (finger === "ring" ? .06 : 0)));
-      rig.rotate("thumb_01_r", -.1, -.12, .2);rig.rotate("thumb_02_r", 0, 0, .16);rig.update();
-      const wrist = rig.point("hand_r"), along = rig.point("middle_03_r").sub(wrist).normalize();
-      const across = rig.point("index_01_r").sub(rig.point("pinky_01_r"));
-      across.addScaledVector(along, -across.dot(along)).normalize();
-      const normal = across.clone().cross(along).normalize();
-      const basis = new T.Matrix4().makeBasis(across, along, normal).setPosition(wrist).invert();
-      const source = figure.body.getObjectByName("Mara_Skin");source.skeleton.update();
-      const indices = source.geometry.index, weights = source.geometry.getAttribute("skinWeight"), bones = source.geometry.getAttribute("skinIndex");
-      const values = new Float32Array(weights.count), point = new T.Vector3();
-      const all = new Array(weights.count), uv = source.geometry.getAttribute("uv");
-      for (let i = 0; i < weights.count; i++) {
-        for (let j = 0; j < 4; j++) {
-          const name = source.skeleton.bones[bones.getComponent(i, j)].name;
-          if (/^(?:hand_r|lowerarm_r|(?:index|middle|ring|pinky|thumb)_\d+_r)$/.test(name)) values[i] += weights.getComponent(i, j);
-        }
-        if (values[i] < .8) continue;
-        source.getVertexPosition(i, point);source.localToWorld(point);point.applyMatrix4(basis);all[i] = point.clone();
-      }
-      const positions = [], uvs = [];
-      for (let i = 0; i < indices.count; i += 3) {
-        const tri = [indices.getX(i), indices.getX(i + 1), indices.getX(i + 2)];
-        if (tri.some(n => values[n] < .8 || all[n].y < -.145)) continue;
-        for (const n of tri) { positions.push(all[n].x, all[n].y, all[n].z);uvs.push(uv.getX(n), uv.getY(n)); }
-      }
-      const rawGeometry = new T.BufferGeometry();
-      rawGeometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
-      rawGeometry.setAttribute("uv", new T.Float32BufferAttribute(uvs, 2));
-      const geometry = mergeVertices(rawGeometry);rawGeometry.dispose();
-      geometry.computeVertexNormals();geometry.computeBoundingBox();geometry.computeBoundingSphere();
-      const skin = new T.MeshStandardMaterial({ map: source.material.map, normalMap: source.material.normalMap,
-        color: 0xa9b2ab, roughness: .82, envMapIntensity: .04 });
-      for (const spec of UNRAVELING_HANDS) {
-        const node = new T.Group();node.position.fromArray(spec.at);
-        const direction = new T.Vector3(...spec.normal);
-        node.quaternion.setFromUnitVectors(UP, direction);
-        tempQuaternion.setFromAxisAngle(UP, spec.roll);node.quaternion.multiply(tempQuaternion);
-        const mesh = new T.Mesh(geometry, skin);mesh.castShadow = mesh.receiveShadow = false;
-        mesh.name = "A hand from the wall";node.add(mesh);hands.add(node);
-        warmupObjects.push(mesh);
-        handNodes.push({ node, mesh, spec, direction });
-      }
-      // Never dispose shared source geometry/textures. Only the temporary
-      // instance's cloned materials and skeleton texture belong to this bake.
-      const own = new Set();figure.body.traverse(o => { if (o.isMesh) { own.add(o.material);o.skeleton?.dispose?.(); } });
-      for (const material of own) material.dispose();
-      ready = true;
-    })();
+  const armField = createReachingArms(hands, warmupObjects);
+  async function prepare(options = {}) {
+    if (!prepared) prepared = armField.prepare(options).then(() => { ready = true; });
     return prepared;
   }
   function update(time, dt, state, player, options = {}) {
@@ -286,17 +219,10 @@ export function createHouseUnraveling(scene, materials) {
     group.visible = true;
     if (options.encounterSeen) encountered = true;
     if (encountered && enabled && player && player.x > 3.5 && Math.abs(player.z) < .58 && startedAt === null) startedAt = time;
-    const approaching = player ? smooth(player.x, 3.6, 6.7) : 0;
+    const approaching = player ? smooth(player.x, 3.6, 8.6) : 0;
     const age = startedAt === null ? -1 : time - startedAt;
     hands.visible = ready && enabled && age >= 0;
-    for (const { node, mesh, spec, direction } of handNodes) {
-      const emerged = smooth(age - spec.delay, 0, 1.75) * (.68 + approaching * .32);
-      // The wrist remains inside plaster even at full extension; emergence
-      // reveals the fingertips first without a floating cut edge at the wall.
-      node.position.fromArray(spec.at).addScaledVector(direction, -.30 + emerged * .28);
-      mesh.rotation.y = Math.sin(time * .38 + spec.delay * 3) * .018 * emerged;
-      node.visible = emerged > .025;
-    }
+    if (hands.visible) armField.update(time, age, player, approaching);
   }
   function applyLighting(time, state, zoneLights) {
     if (!active || !enabled || !flashes || state.stage !== 5) return;
@@ -309,16 +235,18 @@ export function createHouseUnraveling(scene, materials) {
   }
   function reset() {
     group.visible = false;hands.visible = false;active = false;encountered = false;startedAt = null;lastTime = 0;
-    for (const { node } of handNodes) node.visible = false;
+    armField.reset();
   }
   return {
     group, dressing, hands, warmupObjects, prepare, update, applyLighting, lightingFactor, reset,
-    snapshot: () => ({ ready, active, encountered, startedAt, handsVisible: hands.visible,
-      handCount: handNodes.length, handTriangles: handNodes[0]?.mesh.geometry.index.count / 3 || 0,
-      staticDraws: dressing.children.length, staticBounds: meshBounds.map(b => ({ min: b.min.toArray(), max: b.max.toArray() })),
-      visible: group.visible, handBounds: handNodes.filter(h => h.node.visible).map(h => {
-        h.node.updateWorldMatrix(true, true);const box = h.mesh.geometry.boundingBox.clone().applyMatrix4(h.mesh.matrixWorld);
-        return { min: box.min.toArray(), max: box.max.toArray() };
-      }) }),
+    snapshot: () => {
+      const arms = armField.snapshot();
+      return { ready, active, encountered, startedAt, handsVisible: hands.visible,
+        handCount: arms.count, handTriangles: arms.triangles, armDraws: arms.draws,
+        arms, staticDraws: dressing.children.length,
+        staticBounds: meshBounds.map(b => ({ min: b.min.toArray(), max: b.max.toArray() })),
+        visible: group.visible, handBounds: arms.armBounds,
+      };
+    },
   };
 }

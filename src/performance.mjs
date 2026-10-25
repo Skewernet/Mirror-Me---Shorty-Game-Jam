@@ -26,7 +26,8 @@ function renderTextures(scene) {
 
 // Future-room textures are already decoded by the asset loader. Small batches
 // yield to the browser without paying a timer's minimum delay for every map.
-export async function prepareRenderTextures(renderer, scene, { yieldTask } = {}) {
+export async function prepareRenderTextures(renderer, scene, { yieldTask, beforeBatch } = {}) {
+  if (beforeBatch) await beforeBatch();
   const versions = textureVersions(renderer), textures = renderTextures(scene);
   const next = yieldTask || (() => new Promise(resolve => setTimeout(resolve, 0)));
   let uploaded = 0, batch = 0, lastYield = performance.now();
@@ -36,7 +37,9 @@ export async function prepareRenderTextures(renderer, scene, { yieldTask } = {})
     versions.set(texture, texture.version);
     uploaded++; batch++;
     if (batch >= 8 || performance.now() - lastYield >= 6) {
-      await next(); batch = 0; lastYield = performance.now();
+      await next();
+      if (beforeBatch) await beforeBatch();
+      batch = 0; lastYield = performance.now();
     }
   }
   if (batch) await next();
@@ -49,7 +52,9 @@ export async function prepareRenderTextures(renderer, scene, { yieldTask } = {})
 // constructors (a Reflector constructor allocates another render target).
 // Their transforms are snapshots and their render callbacks are intentionally
 // absent: warmProgramView can draw them off-screen without triggering mirrors.
-export function createProgramView(scene, { include = [], exclude = [] } = {}) {
+// onlyMeshes limits submitted geometry while retaining the selected world's
+// actual light counts, fog and environment for its shader keys.
+export function createProgramView(scene, { include = [], exclude = [], onlyMeshes = null } = {}) {
   const view = new Scene();
   view.environment = scene.environment;
   view.background = scene.background;
@@ -58,20 +63,22 @@ export function createProgramView(scene, { include = [], exclude = [] } = {}) {
   view.environmentRotation?.copy(scene.environmentRotation || view.environmentRotation);
   const included = new Set(include.filter(Boolean));
   const excluded = new Set(exclude.filter(Boolean));
+  const selectedMeshes = onlyMeshes ? new Set(onlyMeshes) : null;
   scene.updateMatrixWorld(true);
   let meshes = 0, lights = 0;
   const materials = new Set();
   function visit(node, parentVisible) {
     if (excluded.has(node)) return;
     const visible = included.has(node) || (parentVisible && node.visible);
-    if (visible && (node.isMesh || node.isLine || node.isPoints || node.isSprite || node.isLight)) {
+    if (visible && (node.isMesh || node.isLine || node.isPoints || node.isSprite || node.isLight) &&
+        (node.isLight || !selectedMeshes || selectedMeshes.has(node))) {
       const descriptor = node.isMesh ? new Mesh(node.geometry, node.material) : node.clone(false);
       if (node.isMesh) {
         descriptor.layers.mask = node.layers.mask;
         descriptor.castShadow = node.castShadow;
         descriptor.receiveShadow = node.receiveShadow;
         for (const key of ['isSkinnedMesh', 'isInstancedMesh', 'isBatchedMesh',
-          'instanceColor', 'instanceMatrix', 'skeleton', 'bindMode', 'bindMatrix',
+          'instanceColor', 'instanceMatrix', 'count', 'morphTexture', 'skeleton', 'bindMode', 'bindMatrix',
           'bindMatrixInverse', 'morphTargetInfluences', 'morphTargetDictionary'])
           if (key in node) descriptor[key] = node[key];
       }
@@ -102,9 +109,9 @@ export function createProgramView(scene, { include = [], exclude = [] } = {}) {
 }
 
 export async function prepareRenderPrograms(renderer, scene, camera, {
-  target = renderer.getRenderTarget(), include = [], exclude = [],
+  target = renderer.getRenderTarget(), include = [], exclude = [], onlyMeshes = null,
 } = {}) {
-  const descriptor = createProgramView(scene, { include, exclude });
+  const descriptor = createProgramView(scene, { include, exclude, onlyMeshes });
   const began = performance.now();
   const destination = renderer.getRenderTarget();
   const face = renderer.getActiveCubeFace(), mip = renderer.getActiveMipmapLevel();
@@ -157,7 +164,7 @@ function shadowProgramScene(view) {
             'displacementBias', 'clipShadows', 'clippingPlanes', 'clipIntersection']) depth[key] = material[key];
           const mesh = new Mesh(source.geometry, depth);
           for (const key of ['isSkinnedMesh', 'isInstancedMesh', 'isBatchedMesh', 'instanceColor',
-            'instanceMatrix', 'skeleton', 'bindMode', 'bindMatrix', 'bindMatrixInverse',
+            'instanceMatrix', 'count', 'morphTexture', 'skeleton', 'bindMode', 'bindMatrix', 'bindMatrixInverse',
             'morphTargetInfluences', 'morphTargetDictionary']) if (key in source) mesh[key] = source[key];
           mesh.layers.mask = source.layers.mask;
           scene.add(mesh);
@@ -198,11 +205,14 @@ export async function warmProgramView(renderer, view, camera, {
   const warmCamera = camera.clone();
   // The reflected Mara and torch use layer 1; all room lights remain layer 0.
   warmCamera.layers.enable(1);
+  // Preparing the shadow variants also starts synchronous driver work. The
+  // player may have resumed while the preceding texture/program tasks awaited.
+  if (beforeSubmit) await beforeSubmit();
   // Depth programs must be linked before the tiny draw asks for uniforms.
   // Otherwise that first draw can synchronously wait on a slow driver.
   const shadowScene = shadowProgramScene(view);
   await prepareRenderPrograms(renderer, shadowScene, warmCamera, { target });
-  // Retain the bounded three room-state preparations until renderer disposal;
+  // Retain the bounded scene-state preparations until renderer disposal;
   // disposing these materials now would evict still-unused depth variants.
   if (!shadowPreparations.has(renderer)) shadowPreparations.set(renderer, []);
   shadowPreparations.get(renderer).push(shadowScene);

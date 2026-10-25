@@ -35,7 +35,7 @@ const base = process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000';
     // here so their program counts cannot be misattributed to the F toggle.
     await page.waitForFunction(() => window.__mirror.snapshot().rendering.preparation.wake);
     assert.equal((await snap()).rendering.preparation.error, null);
-    assert.deepEqual((await snap()).rendering.warmup.map(phase => phase.phase), ['essential', 'revelation', 'wake']);
+    assert.deepEqual((await snap()).rendering.warmup.map(phase => phase.phase), ['essential', 'unraveling', 'revelation', 'wake']);
     assert.equal((await snap()).settings.quality, '720');
     assert.equal((await snap()).rendering.adaptive.enabled, false);
     await start();

@@ -3,6 +3,7 @@ import { Reflector } from "../vendor/Reflector.js";
 import { MIRROR, SPAWN, CEILING_HEIGHT } from "./layout.mjs";
 import { createFigure } from "./figure.mjs";
 import { singleBounce } from "./reflection.mjs";
+import { ReflectionVisibility } from "./reflection-visibility.mjs";
 import { attachFlashlight } from "./first-person.mjs";
 import { applyReflectionPose, interpolateReflectionPose } from "./reflection-pose.mjs";
 
@@ -83,6 +84,12 @@ export class Mirror {
     const centerY = CEILING_HEIGHT / 2 - 0.03;
     this.surface.position.set(MIRROR.x, centerY, MIRROR.z);
     this.surface.rotation.y = MIRROR.rotation;
+    this.visibility = new ReflectionVisibility(this.surface, house.occluders);
+    const renderReflection = this.surface.onBeforeRender;
+    this.surface.onBeforeRender = (renderer, world, camera, ...args) => {
+      if (camera.userData.reflectionView || this.visibility.isOccluded(camera)) return;
+      renderReflection.call(this.surface, renderer, world, camera, ...args);
+    };
     this.surface.userData.interactionId = "mirror";
     this.normal = new T.Vector3(
       Math.sin(MIRROR.rotation),

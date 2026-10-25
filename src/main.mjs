@@ -2,6 +2,7 @@ import * as T from "three";
 import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
 import { LookInput } from "./look-input.mjs";
+import { createInteractionQuery } from "./interaction-query.mjs";
 import { requestGamePointerLock } from "./pointer-lock.mjs";
 import { initSettings } from "./settings.mjs";
 import { createFirstPerson } from "./first-person.mjs";
@@ -96,6 +97,7 @@ camera.layers.enable(2);
 const aimCenter = new T.Vector2(), interactionPoint = new T.Vector3();
 const flashlightDirection = new T.Vector3(), safeBeamOffset = new T.Vector3();
 const interactionRange = Math.max(...house.interactables.map(item => item.range));
+const interactionQuery = createInteractionQuery(house.interactables, house.occluders);
 let forwardClearance = Infinity;
 let mode = "title",
   active = false,
@@ -741,42 +743,16 @@ renderer.domElement.addEventListener("webglcontextlost", (e) => {
   $("error").textContent =
     "The graphics context was lost. Reload to restart the house.";
 });
-function visibleInTree(object) {
-  for (let p = object; p; p = p.parent) if (!p.visible) return false;
-  return true;
-}
 function findTarget() {
-  scene.updateMatrixWorld(true);
   ray.setFromCamera(aimCenter, camera);
   // Nothing is usable beyond these authored ranges; don't raycast distant
   // room triangles just to discover that their prompt cannot be displayed.
   ray.far = interactionRange;
-  const items = house.interactables.filter(
-    (i) =>
-      (i.id !== "note" || !story.hasNote) &&
-      (i.id !== "fuse" || (!story.hasFuse && !story.power)) &&
-      visibleInTree(i.mesh),
-  );
-  const hit = ray.intersectObjects(
-    [
-      ...new Set([
-        ...items.map((i) => i.mesh),
-        ...house.occluders.filter(visibleInTree),
-      ]),
-    ],
-    false,
-  )[0];
+  const { hit, target: found } = interactionQuery.query(ray, story);
   forwardClearance = hit?.distance ?? Infinity;
   if (!hit) return null;
   interactionPoint.copy(hit.point);
-  for (let object = hit.object; object; object = object.parent) {
-    const id = object.userData.interactionId;
-    if (id)
-      return items.find((i) => i.id === id && hit.distance <= i.range) || null;
-  }
-  return (
-    items.find((i) => i.mesh === hit.object && hit.distance <= i.range) || null
-  );
+  return found;
 }
 function interact(id) {
   // A reflection reply never interrupts essential dialogue or builds a long
@@ -928,7 +904,6 @@ function respond(event) {
     "lamp-off": "The light goes out. It does not change what is on the sheets.",
     "front-unlocked":
       "At the front of the house, a door opens against the daylight.",
-    "ending-open": "Cold daylight. A place outside.",
   };
   if (event === "note") house.note.visible = false;
   if (event === "lamp-off") {
@@ -1414,24 +1389,26 @@ await sound.prepare();
 loadingStatus("Preparing your view…");
 const warmupTarget = renderer.getRenderTarget();
 const warmupStats = [];
-const preparation = { essential: false, revelation: false, wake: false, error: null };
+const preparation = { essential: false, unraveling: false, revelation: false, wake: false, error: null };
 const essentialObjects = [
   firstPerson.body, firstPerson.flashlight, mirror.flashlight.root,
   horror.figure.body, house.props.kitchenFrequency.root, house.props.hallBlood.root,
 ];
 const nextPreparationTask = () => new Promise(resolve => setTimeout(resolve, active ? 25 : 0));
 const idlePreparation = async () => {
-  // Small texture batches may progress during play; render submissions wait
-  // for the title, journal or a mandatory puzzle form to cover the world.
+  // Driver compilation, uploads and arm extraction wait for the title,
+  // journal or a mandatory puzzle form instead of stealing a gameplay frame.
   while (active) await new Promise(resolve => setTimeout(resolve, 100));
 };
-async function preparePhase(phase, include, exclude, { essential = false } = {}) {
+async function preparePhase(phase, include, exclude, { essential = false, onlyMeshes = null } = {}) {
+  if (!essential) await idlePreparation();
   const began = performance.now();
   const programs = await prepareRenderPrograms(renderer, scene, camera, {
-    target: picture.target, include, exclude,
+    target: picture.target, include, exclude, onlyMeshes,
   });
   const textures = await prepareRenderTextures(renderer, programs.view, {
     yieldTask: nextPreparationTask,
+    beforeBatch: essential ? undefined : idlePreparation,
   });
   if (!essential) await idlePreparation();
   const resources = await warmProgramView(renderer, programs.view, camera, {
@@ -1478,12 +1455,21 @@ await waitForRenderResources(renderer);
 preparation.essential = true;
 async function prepareFutureRooms() {
   await idlePreparation();
-  await house.unraveling?.prepare?.();
+  await house.unraveling?.prepare?.({ yieldTask: async () => {
+    await nextPreparationTask();
+    await idlePreparation();
+  } });
   const lateObjects = house.unraveling?.warmupObjects || [];
-  await preparePhase("revelation", [...essentialObjects, ...lateObjects, house.revelation.group], [house.wake.group]);
+  // The arms appear under the ordinary house lights. Preparing them only with
+  // the revelation's additional light leaves their first real shader uncached.
+  // Submit just the late meshes, retaining the actual normal light layout.
+  await preparePhase("unraveling", lateObjects, [house.revelation.group, house.wake.group],
+    { onlyMeshes: lateObjects });
+  await preparePhase("revelation", [...essentialObjects, house.revelation.group],
+    [house.wake.group, house.unraveling?.group]);
   await idlePreparation();
-  await preparePhase("wake", [...essentialObjects, ...lateObjects, house.revelation.group,
-    house.wake.group, house.wake.attackBody], []);
+  await preparePhase("wake", [...essentialObjects, house.revelation.group,
+    house.wake.group, house.wake.attackBody], [house.unraveling?.group]);
 }
 // This promise is deliberately independent of the entry button: late rooms
 // have minutes of gameplay and several mandatory forms to prepare under.

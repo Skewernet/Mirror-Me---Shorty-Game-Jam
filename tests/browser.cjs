@@ -827,7 +827,22 @@ fs.mkdirSync(out, { recursive: true });
     await advance(4.2);
     assert.equal((await snap()).unraveling.encountered, true);
     assert.equal((await snap()).unraveling.handsVisible, true);
+    const reaching = (await snap()).unraveling.arms;
+    assert.equal(reaching.count, 24);
+    assert.equal(reaching.draws, 1, "The reaching crowd shares one arm draw");
+    await advance(1.1);
+    const grasping = (await snap()).unraveling.arms;
+    assert.ok(grasping.armBounds.some((arm, i) =>
+      Math.abs(arm.grasp - reaching.armBounds[i].grasp) > .1),
+      "The hallway fingers continue grasping while Mara stands still");
+    assert.ok(grasping.armBounds.some((arm, i) =>
+      Math.hypot(...arm.wrist.map((value, axis) => value - reaching.armBounds[i].wrist[axis])) > .01),
+      "The hallway arms keep bending instead of holding a baked pose");
+    assert.equal((await snap()).rendering.preparation.unraveling, true);
+    const beforeArmReveal = (await snap()).rendering.programs;
     await photo("unraveling-hall");
+    assert.equal((await snap()).rendering.programs, beforeArmReveal,
+      "First normal-house arm reveal uses an already prepared shader");
     await rearDoor();
     await aim(TARGETS.door.x, TARGETS.door.y, TARGETS.door.z);
     assert.notEqual((await snap()).target, "door");
@@ -920,6 +935,8 @@ fs.mkdirSync(out, { recursive: true });
     await hallCorner();
     await walk(0, 6.6);
     await use("front-door");
+    assert.doesNotMatch(await p.locator("#message").innerText(), /cold daylight|a place outside/i,
+      "Opening the funeral entrance does not add the discarded outside caption");
     assert.equal((await snap()).story.frontOpen, true);
     assert.equal(
       (await snap()).story.endingStarted,
@@ -945,6 +962,12 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(wake.mode, "playing");
     await advance(0.3);
     await photo("wake-arrival");
+    assert.equal(await p.locator("#hud").getAttribute("data-guided"), "true");
+    for (const id of ["prompt", "hint", "chapter-mark"])
+      assert.equal(await p.locator("#" + id).innerText(), "", "Guided funeral leaves no stale exploration prompt");
+    for (const control of await p.locator("#hud-controls .explore-control").all())
+      assert.equal(await control.isVisible(), false, "Guided funeral hides unavailable interaction/run/journal controls");
+    assert.doesNotMatch(await p.locator("#message").innerText(), /cold daylight|a place outside/i);
     assert.equal((await snap()).funeralRoom.approach.active, true);
     assert.equal((await snap()).funeralRoom.approach.routeSafe, true);
     const surveyPose = (await snap()).pose;

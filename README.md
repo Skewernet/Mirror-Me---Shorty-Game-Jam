@@ -4,9 +4,9 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — hands, late-house atmosphere and ending buildup:** corrected flashlight gripping and item reaches; rebuilt rotary telephone; bounded asymmetric Mara reflection; late-only disorder, cracks, caution tape and emerging wall/ceiling hands. Mum's disembodied lamp reminder leads into four finite exit sightings. The funeral surveys the room, walks to the casket and holds Mum's face through the report before the existing turn and Goodnight strike. These changes are local and have not been deployed.
+**Current pass — reaching arms and frame stability:** the final hallway has 24 articulated arms that bend and grasp farther toward Mara as she approaches the glass. The unwanted funeral entrance caption is removed. Target queries, character updates, hidden mirror renders and background graphics scheduling do less work during play. The owner requested publication after validation; see the current status below and the deployed `/build-id.json` for release identity.
 
-**Published baseline:** `2e2f08ced356d37041420e78eeb3e654a888ec4d` contains the approved horror/blood-writing pass, fractured Mara menu mirror and supplied Skewer Games splash branding. All 177 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=2e2f08c).
+**Previous verified release:** `30f6b22821c994ab9ed58576e061a18e95196758` includes the corrected flashlight hand, rotary telephone, distorted Mara, late-house disorder/caution tape, Mum's lamp reminder, exit crawlers and guided funeral buildup. All 181 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev).
 
 The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
@@ -26,7 +26,7 @@ The rear leaf now opens inward and folds flat along the hall wall, with correcte
 
 The mirror progresses from faithful to late and held, then distorted and absent. After the physical crossing it returns Mara's ordinary human identity, visibly bloodied, against the revealed crime scene. The bedroom contains the covered mother, a blood-soaked bed, knife and blood on surrounding domestic surfaces. A finite broken-voice/cry beat precedes the bedside admission. Inspecting the bed establishes the truth; only then can Mara switch off the lamp and leave through the front entrance.
 
-That exit leads to a scorched, damp funeral parlor with wine-colored drapes, empty chairs and an open casket. Its restrained practical light keeps the clean mother and final attacker readable. Its own visible radio delivers a complete one-shot news report, separate from the silent kitchen radio and the sitting-room telephone. The ending waits for the report, a quiet interval and Mum's final accusation before the attack and fade. It does not offer forgiveness. Free look, walking, flashlight and pause remain available before the attack, and pausing dialogue resumes from its current offset. Voice mute retains captions and equivalent pacing.
+That exit leads to a scorched, damp funeral parlor with wine-colored drapes, empty chairs and an open casket. Its restrained practical light keeps the clean mother and final attacker readable. Its own visible radio delivers a complete one-shot news report, separate from the silent kitchen radio and the sitting-room telephone. A guided survey and aisle approach hold Mum's face through the report, quiet interval and final accusation before the established attack and fade. Flashlight and pause remain available; pausing dialogue resumes from its current offset. Voice mute retains captions and equivalent pacing.
 
 The house retains photographic wood/fabric, independent PBR normal/roughness maps, restrained indirect reflections, soft practical shadows and screen-space contact shading. Default output is up to 1080p, with 720p performance and 1440p detail options. Grain and walking motion start off. Six finite authored sightings, directional sound, falling décor and independent sudden-scare/light-flicker settings remain; changing comfort settings cannot block a puzzle.
 
@@ -88,9 +88,13 @@ MIRROR_TEST_CRAWLER_DEATH=escape node tests/browser.cjs
 node tests/settings.cjs
 node tests/picture.cjs
 node tests/first-person.cjs
+node tests/character-matrices.cjs
 node tests/telephone-ring.cjs
 node tests/crawler-lighting.cjs
 node tests/performance-render.cjs
+node tests/preparation-scheduling.cjs
+node tests/interaction-query.cjs
+node tests/mirror-visibility.cjs
 node tests/house-shadows.cjs
 node tests/creature-bounds.cjs
 node tests/demon.cjs
@@ -131,6 +135,6 @@ Current validation and release evidence are recorded in [current status](PROJECT
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `39625d7`; its automatic deployment and all 169 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The previous release `30f6b22` and all 181 public payload hashes were verified. The owner also authorized this reaching-arms/stability pass after validation. Subsequent game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.

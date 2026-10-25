@@ -261,7 +261,7 @@ export function createFirstPerson(scene, camera) {
     // safely below the view; the visible lens stays on our side of the wall.
     const handDepth = Number.isFinite(options.clearance)
       ? Math.min(.24, Math.max(-.22, options.clearance - .27)) : .24;
-    currentHand.copy(rig.point("hand_r"));
+    hand.getWorldPosition(currentHand);
     // The barrel remains below the centre of the view; pitch follows the eye,
     // while a near wall lowers and pulls the physical arm back into the body.
     worldFromCamera(.23 + blocked * .025, -.25 - blocked * .12 + sway, -handDepth, targetHand);
@@ -303,7 +303,8 @@ export function createFirstPerson(scene, camera) {
         for (let segment = 1; segment <= 3; segment++)
           rig.rotate(`${finger}_0${segment}_${side.side}`, 0, 0, (side.side === "l" ? 1 : -1) * .09 * reach);
     }
-    rig.update();
+    // Gait and each modified limb/finger already propagated their matrices;
+    // the barrel attachment below only needs the hand subtree.
     torch.root.visible = draw > .015;
     // Palm translation is truly bone-attached; counter-rotate the barrel from
     // its hand parent so its beam follows the eye without rolling with gait.

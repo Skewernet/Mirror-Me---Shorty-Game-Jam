@@ -85,26 +85,47 @@ const url = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\/
       const futureMesh = new T.Mesh(new T.SphereGeometry(.25, 12, 8), futureMaterial);
       futureMesh.castShadow = true;
       futureMesh.position.set(.8, .5, 0);
-      future.add(futureLight, futureMesh); scene.add(future);
+      const instances = new T.InstancedMesh(new T.BoxGeometry(.1, .1, .1), futureMaterial, 3);
+      // The reaching arms share one instanced draw and intentionally do not
+      // add another set of animated shadow casters to the narrow hall.
+      instances.castShadow = false;
+      for (let i = 0; i < instances.count; i++)
+        instances.setMatrixAt(i, new T.Matrix4().makeTranslation(-.5 + i * .2, .6, 0));
+      future.add(futureLight, futureMesh, instances); scene.add(future);
       const sourceChildren = scene.children.slice(), beforeFuturePrograms = renderer.info.programs.length;
       const pending = prepareRenderPrograms(renderer, scene, camera, { target, include: [future] });
       check(renderer.getRenderTarget() === null && !future.visible && future.parent === scene,
         'Pending future compilation changed the live scene or render target');
       renderer.render(scene, camera); // A real live frame while compilation waits.
       const futurePrepared = await pending;
+      check(futurePrepared.view.children.find(object => object.isInstancedMesh)?.count === 3,
+        'Future instance count was lost by its compile descriptor');
       const futureTextures = await prepareRenderTextures(renderer, futurePrepared.view);
-      let signalGate, releaseGate;
+      let signalGate, releaseGate, gateCalls = 0, instancedDraws = 0;
+      renderer.render = (view, camera) => {
+        for (const mesh of view.children.filter(object => object.isInstancedMesh)) {
+          check(mesh.count === 3, 'Beauty warmup lost its instanced draw count');
+          instancedDraws++;
+        }
+        render(view, camera);
+        check(Number.isFinite(renderer.info.render.triangles), 'Instanced warmup produced an invalid draw');
+      };
       const reachedGate = new Promise(resolve => { signalGate = resolve; });
       const resumedGate = new Promise(resolve => { releaseGate = resolve; });
+      const beforeShadowPrograms = renderer.info.programs.length;
       const warmingFuture = warmProgramView(renderer, futurePrepared.view, camera, { target,
-        beforeSubmit: () => { signalGate(); return resumedGate; } });
+        beforeSubmit: () => { gateCalls++; signalGate(); return resumedGate; } });
       await reachedGate;
+      check(renderer.info.programs.length === beforeShadowPrograms,
+        'Future shadow compilation started before its inactive-play gate');
       renderer.render(scene, camera); // Resumed play can postpone the tiny submission.
       check(!future.visible && renderer.getRenderTarget() === null,
         'Waiting for a safe submission changed the live scene');
       const beforeWarmFrame = renderer.info.render.frame;
       releaseGate();
       const futureWarmed = await warmingFuture;
+      check(gateCalls === 2 && instancedDraws > 0,
+        'Future warmup did not recheck safe submission after linking or draw its instances');
       check(renderer.info.render.frame > beforeWarmFrame,
         'Isolated warmup rewound the frame used by skeleton upload caches');
       check(renderer.getRenderTarget() === null && !future.visible && !futureLight.shadow.map,
@@ -116,7 +137,8 @@ const url = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\/
       renderer.setRenderTarget(target);
       renderer.render(scene, camera);
       check(renderer.info.programs.length === preparedFuturePrograms,
-        'First future-room reveal compiled an unprepared shader variant');
+        'First future-room reveal compiled an unprepared shader variant: ' +
+        renderer.info.programs.slice(preparedFuturePrograms).map(program => program.cacheKey).join('\n'));
       future.visible = false;
       renderer.setRenderTarget(null);
       target.dispose(); light.shadow.map.dispose(); renderer.dispose();
@@ -127,7 +149,8 @@ const url = (process.env.MIRROR_TEST_URL || 'http://127.0.0.1:8000').replace(/\/
         checks: ['old F shader-variant reproduction', 'stable shadow/light key',
           'no toggle-time shadow target allocation', 'off-state shadow work skipped', 'GPU resource warmup',
           'render state/error restoration', 'isolated future compile during live rendering',
-          'safe submission gate after async linking', 'tiny isolated shadow/buffer warmup',
+          'shadow compile and submission gates', 'instanced beauty descriptors',
+          'tiny isolated shadow/buffer warmup',
           'zero-program first future reveal'] };
     });
     assert.deepEqual(errors, []);

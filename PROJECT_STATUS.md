@@ -1,10 +1,24 @@
 # MIRROR ME — current status
 
-Updated October 24, 2026 (America/Denver).
+Updated October 25, 2026 (UTC).
 
-## Current local development — hands, unraveling house and final buildup
+## Current pass — reaching arms and frame stability
 
-This pass builds on published `2e2f08c` and remains local until the owner requests deployment.
+This follow-up builds on published `30f6b22`. The owner requested deployment after verification. The live `/build-id.json` and external HTTPS release receipt identify the final published revision.
+
+- Replaced eight fixed hand poses with 24 complete sleeve/hand arms in irregular wall and ceiling positions. Shoulder/elbow/wrist articulation and independent grasp phases keep moving while Mara stands still; the wrists reach about 16 cm farther from the walls and 19 cm farther from the ceiling over the final approach to x8.6. The existing crawler witness, final-loop, comfort, pause and reset gates remain. The dishevelment, cracks and caution tape remain established.
+- Cropped the existing credited fitted sleeves and anatomical hands once, sharing one instanced PBR draw with per-instance joint/grasp data. No full character clone or skeleton is animated for each arm. The complete arms total 288,312 triangles, versus 104,640 for the previous eight hand patches; arms plus dressing use seven meshes instead of fourteen. There are no additional shadow casters, lights or navigation colliders. Preparation is sliced under inactive screens; the measured update mean is 0.0295 ms in the focused cloud fixture, with diagnostic bounds evaluated only when requested.
+- Removed the UI-only “Cold daylight. A place outside.” line from the funeral entrance. The guided casket approach, report, accusation and Goodnight strike retain their established sequence.
+- Interaction queries reuse their buffers and update only relevant mesh/ancestor transforms. All 336 actual-house comparisons retain exact targets, occluders, hit points and flashlight distances. Matrix visits fall from 2,269 to 952–970; query medians fell about 47–52% in the measured fixture.
+- Character controls reuse quaternion/color scratch storage and avoid redundant skeleton propagation. Actual-game character matrix work falls from 1,829 to 1,365 nodes per simulation frame. Pose/material parity covers 200,868 comparisons (maximum difference 1.55e-14); all three approved menu WebP plates remain byte-identical. Whole-game CPU timing was noisy, so this is a reduced-work claim rather than an FPS claim.
+- A conservative hall-mirror check skips a secondary world render only when the complete glass is covered by the same opaque convex wall. Partial views, doorways, transparent/hidden/transformed walls and near-plane edge cases remain live. Actual-house kitchen/entrance samples fall from 1,168/1,221 draws to 218/270, with identical visible pixels; visible hall and bathroom mirror counts stay unchanged.
+- Future geometry extraction, shader compilation, texture batches and warm draws recheck inactive-play state across asynchronous boundaries. A real early-entry/resume trace recorded no preparation work during active play. Instanced warmup descriptors now preserve draw count. The seven late-house meshes receive a focused warmup under the normal house's 20-light shader state, while later revelation/wake states exclude these hidden arms. This avoids both a first-appearance compilation and two unused arm variants. Driver calls already begun under a menu are non-preemptible; this pass does not claim a shorter cold load or universal 60 FPS.
+
+Validation passes: 124 unit tests; 24 independently moving/grasping arms, 1,152 animated clearance bounds and exact shader-deformed sleeve intersections with all 24 plaster planes; primary/mirror instance-pose agreement; 12 mirror-visibility cases and identical pixels in eight actual-house views; 460 character poses/24,380 current bone matrices; asynchronous preparation handoffs; native mouse, 60 doorway-camera and 18 mirror-transition cases. The final prepared game has 173 warmed programs, zero new programs on first F, unchanged 47,220-triangle first-person body, working settings/captions/pause and real graphics-loss recovery. The complete seven-chapter collision-respecting route passes all puzzles, five rear returns, independently moving hallway arms with zero first-reveal compilation, the mirror crossing, Mum's lamp reminder, the guided funeral/report/Goodnight sequence, credits and reset. All 43 voice files decode. The removed entrance caption is absent and guided controls remain correct. No unexpected browser errors or failed requests. Credits verify 15 entries, 85 media/model/font assets and seven vendor modules.
+
+## Released — hands, unraveling house and final buildup (`30f6b22`)
+
+The owner requested publication of `30f6b22821c994ab9ed58576e061a18e95196758`. Its live HTTPS manifest and all 181 runtime/credit payload hashes matched the staged build. Receipt: `/workspace/artifacts/mirror-me-30f6b22-production-receipt.json`.
 
 - Corrected the flashlight grip/wrist and item-reaching arm motion while preserving the approved model, head cut, body placement, POV and mirror-pose replay.
 - Rebuilt the rotary telephone with a molded case, recessed ten-hole dial, numbered ring, cradle, sculpted handset and continuously connected coiled cord. Existing interaction/call timing and room/furniture layout remain.
@@ -19,7 +33,7 @@ Focused evidence: measured grip/reach and faithful/delayed/frozen mirror replay;
 
 ## Released — fractured title mirror and studio splashes (`2e2f08c`)
 
-Production is the owner-approved `2e2f08ced356d37041420e78eeb3e654a888ec4d`, with all 177 runtime/credit files verified live. Receipt: `/workspace/artifacts/mirror-me-2e2f08c-production-receipt.json`.
+The owner approved `2e2f08ced356d37041420e78eeb3e654a888ec4d`, and all 177 runtime/credit files were verified live at that release. Receipt: `/workspace/artifacts/mirror-me-2e2f08c-production-receipt.json`.
 
 - The decorative menu panel now contains Mara's actual normal and mirror-distorted models, rendered offline against a dim plate of the real hall. SVG impact fractures, chipped edges, aged silvering, bevel glints and three displaced shard regions give the glass depth. “DON'T LOOK AWAY” remains etched below her face. Existing menu/control layout and smaller-screen hiding rules remain.
 - Three 768×1152 WebP plates total 104,810 bytes. Rendering recipe and source/output hashes are retained in assets/art/menu-mara-sources.json; the generator reuses the existing character, materials and authored distortion. No runtime WebGL renderer, model clone, canvas or animation-frame loop is added for the title.

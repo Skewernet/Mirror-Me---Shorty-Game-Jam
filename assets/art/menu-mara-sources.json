@@ -49,7 +49,7 @@
     "assets/materials/photographic/interior-reflections.hdr": "8b73849c956e2d97e7a6cfacbe9396d90a84fcbd9b24327a37a6629150055cca",
     "assets/materials/photographic/wood-color.jpg": "6f985ac8ec698cab1ae7aeeb87d139b604d6169a516ca46593481ea25d0dcc10",
     "assets/materials/original/tactile-house-albedos.png": "42ca5e853f78be71b9450fc5c3478581298a96cf51123617dd0f45dff7e86f50",
-    "src/figure.mjs": "939ae11e9634aa7fef5af70940b2a947839daf1d0315b093a5f5e955c6362bb7",
+    "src/figure.mjs": "7a6f7e68334325f76e219ae89490e2120a3dea70fc02baa862c4543ed801d6d0",
     "src/figure-motion.mjs": "58a643c9b78f77169c9a7f2e5a14e18acc29506c524e1a95fcce15c61cc1d548",
     "src/house.mjs": "daef8bc4c81e1e1d9335ecba65856652223389036523cde0e045eb8939973788",
     "src/surfaces.mjs": "da39d17c2577e9fcd185548b515c8148611f47fd51bfd25753aac2f2a5351a4f"

@@ -43,6 +43,27 @@ test('compile descriptors retain skinning, morph, material and camera-layer feat
   assert.equal(skin.parent, scene); assert.equal(bone.parent, skin);
 });
 
+test('a focused late-mesh view keeps normal lights without compiling hidden-room lighting', () => {
+  const scene = new T.Scene(), late = new T.Group(), future = new T.Group();
+  late.visible = future.visible = false;
+  const normal = new T.Mesh(new T.BoxGeometry(), new T.MeshStandardMaterial());
+  const arm = new T.InstancedMesh(new T.BoxGeometry(), new T.MeshStandardMaterial(), 24);
+  const normalLight = new T.SpotLight(), futureLight = new T.PointLight();
+  late.add(arm); future.add(futureLight); scene.add(normal, normalLight, late, future);
+  scene.fog = new T.FogExp2();
+  const focused = createProgramView(scene, { include: [arm], exclude: [future], onlyMeshes: [arm] });
+  assert.equal(focused.meshes, 1);
+  assert.equal(focused.lights, 1);
+  assert.equal(focused.view.children.find(object => object.isMesh).geometry, arm.geometry);
+  assert.equal(focused.view.children.find(object => object.isLight).type, normalLight.type);
+  assert.equal(focused.view.fog, scene.fog);
+  assert.equal(late.visible, false);
+  assert.equal(future.visible, false);
+  const otherLighting = createProgramView(scene, { include: [arm, future], onlyMeshes: new Set([arm]) });
+  assert.equal(otherLighting.meshes, 1);
+  assert.equal(otherLighting.lights, 2, 'Future point light really changes the shader state');
+});
+
 test('compile views do not invoke custom mesh constructors or copy cyclic gameplay data', () => {
   let constructions = 0;
   class MirrorMesh extends T.Mesh {
@@ -56,6 +77,19 @@ test('compile views do not invoke custom mesh constructors or copy cyclic gamepl
   assert.equal(descriptor.material, mirror.material);
   assert.equal(descriptor.geometry, mirror.geometry);
   assert.equal(mirror.parent, scene);
+});
+
+test('instanced compile descriptors retain the active draw count and morph storage', () => {
+  const scene = new T.Scene();
+  const mesh = new T.InstancedMesh(new T.BoxGeometry(), new T.MeshStandardMaterial(), 24);
+  mesh.count = 19;
+  mesh.morphTexture = new T.DataTexture(new Float32Array(24 * 4), 4, 24);
+  scene.add(mesh);
+  const descriptor = createProgramView(scene).view.children[0];
+  assert.equal(descriptor.isInstancedMesh, true);
+  assert.equal(descriptor.count, 19);
+  assert.equal(descriptor.instanceMatrix, mesh.instanceMatrix);
+  assert.equal(descriptor.morphTexture, mesh.morphTexture);
 });
 
 test('isolated view keeps world transforms without sharing mutable transform objects', () => {
@@ -106,6 +140,42 @@ test('future texture upload is version-aware, yields and skips render-target fee
   texture.needsUpdate = true;
   await prepareRenderTextures(renderer, scene, options);
   assert.equal(calls, 2); assert.equal(yields, 2);
+});
+
+test('future texture uploads wait again if play resumes between background batches', async () => {
+  const scene = new T.Scene();
+  for (let i = 0; i < 17; i++) {
+    const texture = new T.DataTexture(new Uint8Array(4), 1, 1);
+    texture.needsUpdate = true;
+    scene.add(new T.Mesh(new T.BoxGeometry(), new T.MeshBasicMaterial({ map: texture })));
+  }
+  let uploads = 0, active = true, release, blocked, batches = 0;
+  const gateReached = () => new Promise(resolve => { blocked = resolve; });
+  const beforeBatch = async () => {
+    batches++;
+    if (active) {
+      blocked?.();
+      await new Promise(resolve => { release = resolve; });
+    }
+  };
+  let reached = gateReached();
+  const preparation = prepareRenderTextures({ initTexture: () => { uploads++; } }, scene, {
+    beforeBatch,
+    yieldTask: async () => { active = true; },
+  });
+  await reached;
+  assert.equal(uploads, 0, 'Initial preparation ran during play');
+  while (uploads < 17) {
+    const previous = uploads;
+    reached = gateReached();
+    active = false;
+    release();
+    await Promise.race([reached, preparation]);
+    assert.ok(uploads - previous <= 8, 'Upload batch exceeded its bound');
+    assert.equal(active, true);
+  }
+  assert.deepEqual(await preparation, { textures: 17, uploaded: 17 });
+  assert.ok(batches >= 3);
 });
 
 test('GPU completion yields without a synchronous finish and releases its fence', async () => {
