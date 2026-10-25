@@ -1,5 +1,7 @@
 # MIRROR ME — Cloudflare Pages playtest
 
+**Later measured follow-up:** see [rendering and input diagnosis](MIRROR_ME_RENDERING_DIAGNOSIS.md). Subsequent testing captured the hallway and verified forward displacement, but measured only approximately 3 FPS. The initial attempt record below is retained for chronology.
+
 **Result: loading, menu, fullscreen, and pointer lock observed; visible first-person navigation could not be established. No independent playthrough is claimed.**
 
 Date: 2026-10-25, approximately 08:24–08:33 UTC. Target: https://mirror-me.pages.dev/. This separately authorized fallback test preserves the original itch.io failure report. No further itch.io access attempts were made.
