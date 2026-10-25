@@ -162,7 +162,7 @@
             <button id="menu-sound" class="text-button" type="button" aria-pressed="false">MENU SOUND: OFF</button>
           </div>
           <aside id="ending-credits" hidden>
-            <p class="eyebrow">MIRROR ME · MADE BY SKEWERNET</p>
+            <p class="eyebrow">MIRROR ME · A SKEWER GAMES PRODUCTION</p>
             <p>Thank you for entering the house.</p>
             <p id="ending-credit-names"></p>
             <p>Complete sources, licenses and modifications: CREDITS & ASSETS.</p>
@@ -312,7 +312,7 @@
       <p class="eyebrow">THE PEOPLE AND TOOLS BEHIND THE HOUSE</p>
       <h2>Credits & assets</h2>
       <p>
-        MIRROR ME by Skewernet. Original game, story, procedural furnishings and
+        MIRROR ME — developed by Skewer Games. Carlos Dionicio: creative director, script writer and head of development. Original game, procedural furnishings and
         sound design, developed with Codex assistance. Synthetic voice
         performances are identified below.
       </p>
@@ -331,6 +331,23 @@
       </p>
       <button id="credits-close">RETURN</button>
     </section>
+    <dialog id="credits-roll" aria-labelledby="credits-roll-title">
+      <div class="credits-roll-viewport" tabindex="0" aria-label="Film credits; pause to read links">
+        <div class="credits-roll-track">
+          <header><p class="eyebrow">A SKEWER GAMES PRODUCTION</p><h2 id="credits-roll-title">MIRROR ME</h2><p>Developed by Skewer Games</p></header>
+          <section><h3>Creative Director</h3><p>Carlos Dionicio</p></section>
+          <section><h3>Script Writer</h3><p>Carlos Dionicio</p></section>
+          <section><h3>Head of Development</h3><p>Carlos Dionicio</p></section>
+          <section><h3>AI-Assisted Development</h3><p>OpenAI ChatGPT / Codex</p></section>
+          <p data-credit-load>Loading asset credits…<br>Complete sources and licenses: ATTRIBUTIONS.md</p>
+          <section data-assets-end><h3>Music &amp; Sound Effects</h3><p>Original project synthesis and sound design</p><p class="credits-roll-license">Ambience, score, footsteps, telephone, clicks and creature effects.<br>Radio bulletins and dialogue are original synthetic performances.</p></section>
+          <section><h3>Production Tools</h3><p>Blender · MakeHuman / MPFB<br>fontTools · FFmpeg · eSpeak NG</p></section>
+          <section><h3>Created for</h3><p>Shorty Jam 2026</p></section>
+          <footer><p class="eyebrow">SKEWER GAMES</p><p>Thank you for entering the house.</p><a href="ATTRIBUTIONS.md" target="_blank" rel="noopener">Complete attributions &amp; licenses</a></footer>
+        </div>
+      </div>
+      <div class="credits-roll-controls"><button type="button" data-roll-pause aria-pressed="false">PAUSE CREDITS</button><button type="button" data-roll-skip>RETURN TO MAIN MENU</button></div>
+    </dialog>
     <noscript
       >This house needs JavaScript and a desktop browser with WebGL.</noscript
     >

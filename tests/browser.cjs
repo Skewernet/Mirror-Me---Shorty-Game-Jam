@@ -1099,7 +1099,8 @@ fs.mkdirSync(out, { recursive: true });
     }
     await waitEndingFlag("goodnightFinished");
     await advance(.05);
-    assert.equal((await snap()).mode, "ending");
+    assert.equal((await snap()).mode, "credits-roll");
+    assert.equal(await p.locator("#credits-roll").isVisible(), true);
     assert.equal((await snap()).story.ended, true);
     assert.deepEqual(
       (await snap()).story.visited.slice().sort(),
@@ -1113,14 +1114,17 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(scares.completed["bathroom-ceiling"], true);
     assert.equal(scares.completed["far-hall-crawler"], true);
     assert.equal(completed.portalCount, 6);
-    assert.equal(await p.locator("#ending-credits").isVisible(), true);
+    assert.ok((await p.locator("#credits-roll").innerText()).includes("Carlos Dionicio"));
+    await p.locator('[data-roll-skip]').click();
+    assert.equal((await snap()).mode, "title");
+    assert.equal(await p.locator("#menu").isVisible(), true);
     await p.click("#credits-open");
     await p.waitForFunction(() => !document.querySelector("#credits").hidden);
     await frozenModal("credits");
     assert.ok((await p.locator("#credit-list").innerText()).length > 100);
     await p.keyboard.press("Escape");
     await p.waitForFunction(() => !document.querySelector("#menu").hidden);
-    assert.equal((await snap()).mode, "ending");
+    assert.equal((await snap()).mode, "title");
     console.log(
       "PASS 7: bedside acknowledgment, Mum lamp reminder, guided casket view and complete spatial news with pause recovery",
     );

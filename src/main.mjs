@@ -1,3 +1,4 @@
+import { createEndCredits, populateEndCredits } from "./end-credits.mjs";
 import * as T from "three";
 import { Picture } from "./picture.mjs";
 import { Player } from "./player.mjs";
@@ -92,6 +93,7 @@ const player = new Player(camera),
   horror = new HorrorDirector(scene, house);
 const firstPerson = createFirstPerson(scene, camera);
 const failure = new CrawlerFailure();
+const endCredits = createEndCredits($("credits-roll"), () => { reset(); showMenu(); });
 const adaptive = new AdaptiveResolution();
 camera.layers.enable(2);
 const aimCenter = new T.Vector2(), interactionPoint = new T.Vector3();
@@ -323,6 +325,7 @@ function announceChapter() {
 }
 
 function reset() {
+  endCredits.stop();
   delete $("hud").dataset.guided;
   failing = false;
   document.body.classList.remove("is-dying");
@@ -556,17 +559,9 @@ async function loadCredits() {
       item.append(changes);
       $("credit-list").append(item);
     }
-    // Keep the ending readable; the adjacent Credits & Assets button opens
-    // every source, license and modification in the complete register above.
-    for (const line of [
-      "Skewernet · Skewer Games · AI-assisted development with Codex",
-      "Wood textures: Eric Chadwick / Wayfair · CC BY 4.0 · modified in game",
-    ]) {
-      const credit = document.createElement("span");
-      credit.className = "ending-credit";
-      credit.textContent = line;
-      $("ending-credit-names").append(credit);
-    }
+    populateEndCredits($("credits-roll").querySelector('.credits-roll-track'), data);
+    endCredits.refresh();
+    $("ending-credit-names").textContent = "Carlos Dionicio · Creative Director, Script Writer & Head of Development · Skewer Games";
     decorateHorrorText($("credit-list"));
   } catch (error) {
     $("credit-list").textContent =
@@ -659,7 +654,7 @@ document.addEventListener("pointerlockchange", (e) => {
       say("The sitting-room telephone is ringing.", 4);
     }
   } else if (
-    !["pocket", "clock", "credits", "radio", "offering", "dead"].includes(mode)
+    !["pocket", "clock", "credits", "credits-roll", "radio", "offering", "dead"].includes(mode)
   )
     showMenu();
 });
@@ -680,6 +675,7 @@ document.addEventListener("mousemove", (e) => {
   lookInput.enqueue(e, performance.now());
 });
 document.addEventListener("keydown", (e) => {
+  if (mode === "credits-roll") return;
   if (mode === "dead" && e.code === "Escape") {
     e.preventDefault();
     reset();
@@ -981,7 +977,7 @@ function finish() {
   if (story.ended) return;
   story.ended = true;
   endingAt = 0;
-  mode = "ending";
+  mode = "credits-roll";
   active = false;
   player.clear();
   pending = [];
@@ -990,7 +986,9 @@ function finish() {
   $("veil").style.removeProperty("background-color");
   $("veil").style.removeProperty("transition");
   document.exitPointerLock();
-  showMenu();
+  $("menu").hidden = $("hud").hidden = true;
+  sound.pause();
+  endCredits.start();
 }
 function beginEnding() {
   picture.setThreat(0, elapsed);

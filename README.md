@@ -1,6 +1,6 @@
 # MIRROR ME — Shorty Game Jam 2026
 
-A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Original concept and direction by Skewernet; AI-assisted development with ChatGPT/Codex.
+A first-person psychological horror game about a looping house and a reflection that learns to move without you. Theme: **INVERTED**. Developed by Skewer Games. Creative Director, Script Writer and Head of Development: Carlos Dionicio (Skewernet). AI-assisted development with ChatGPT/Codex.
 
 ## Demonic presence — 0.8
 
@@ -72,6 +72,7 @@ node tests/escape-crawlers.cjs
 node tests/house-unraveling.cjs
 node tests/distorted-reflection.cjs
 node tests/telephone-model.cjs
+node tests/end-credits.cjs
 node tests/intro.cjs
 node tests/mirror-embodiment.cjs
 node tests/kitchen-frequency.cjs
@@ -123,6 +124,10 @@ CPU checks require Node 22.15+; browser checks require a running local server, P
 Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 15 entries, 85 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 
 ## Development, credits and release
+
+The ending now runs a dedicated film-style credits roll naming Carlos Dionicio and all fifteen registered asset/software sources, then resets to the main menu. Pause/skip, hidden-tab suspension and reduced-motion manual reading are supported.
+
+For an itch.io upload, see [the submission checklist](ITCH_SUBMISSION.md). Build a root-index HTML5 archive with `python3 tools/package_itch.py` after committing the approved build. The exact jam deadline and AI eligibility remain unverified because direct documentation access was blocked.
 
 - [Current status](PROJECT_STATUS.md)
 - [Direction, complete script and walkthrough — spoilers](GAME_DIRECTION.md)

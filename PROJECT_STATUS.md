@@ -2,6 +2,15 @@
 
 Updated October 25, 2026 (UTC).
 
+## Current follow-up — film credits and itch.io handoff
+
+- Dedicated end credits roll follows the final Goodnight blackout. Skewer Games is the development studio; Carlos Dionicio is named as Creative Director, Script Writer and Head of Development. Every one of the fifteen asset-register entries supplies a concise screen credit, with source/license links; full legal records remain accessible.
+- Character assets, costume, wood/fabric/HDR maps, fonts, original artwork/props/music/effects, Three.js, OpenAI tools, Kokoro/hexgrad and sherpa-onnx are identified. The three synthetic voice presets and production tools are named without inventing human performers or borrowed audio.
+- Completion or skip returns to a fresh main menu. The roll supports pause, resize, hidden-tab suspension, Escape and manual reading with reduced motion. It does not run another 3D rendering loop.
+- `tools/package_itch.py` packages the committed runtime as a root-index HTML5 ZIP with source-hash and ZIP-integrity verification. `ITCH_SUBMISSION.md` records page setup, embed testing and jam entry steps. Research access to the supplied jam URL and official documentation returned tunnel HTTP403; deadline and exact AI/submission rules are explicitly unverified.
+- Validation: all 124 unit tests, the complete seven-chapter route through credits/menu/reset with all 43 decoded voices, and the dedicated fifteen-entry credits lifecycle test pass. Pause/resume, resize, automatic completion, Escape/skip and reduced-motion manual scrolling are covered. Asset/license coverage remains 15 entries, 85 media/model assets and seven vendor modules.
+- This follow-up is local until separately deployed; the preceding published gameplay pass is 37a65f5.
+
 ## Current pass — reaching arms and frame stability
 
 This follow-up builds on published `30f6b22`. The owner requested deployment after verification. The live `/build-id.json` and external HTTPS release receipt identify the final published revision.
