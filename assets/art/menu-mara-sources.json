@@ -1,0 +1,76 @@
+{
+  "title": "MIRROR ME — original title-mirror render plates",
+  "description": "Two transparent WebP portraits of the game's existing Mara model and actual mirror distortion, plus a matching dim actual-house underlay. The same camera and original staged lighting are rendered offline; no image generation, film likeness, retouching, extra human model or new external artwork is used.",
+  "generator": "tools/render_menu_portraits.cjs",
+  "width": 768,
+  "height": 1152,
+  "eyeAnchor": [
+    0.49999999999999994,
+    0.40844188083330274
+  ],
+  "camera": {
+    "portraitPosition": [
+      0,
+      1.62,
+      -1.2
+    ],
+    "portraitTarget": [
+      0,
+      1.56,
+      0
+    ],
+    "fov": 32,
+    "roomPosition": [
+      8.6,
+      1.62,
+      0
+    ],
+    "roomTarget": [
+      7.4,
+      1.56,
+      0
+    ],
+    "roomExposure": 0.58
+  },
+  "sources": [
+    "assets/character/mara.glb",
+    "assets/character/inside-mouth-mask.jpg",
+    "assets/materials/photographic/interior-reflections.hdr",
+    "assets/materials/photographic/wood-color.jpg",
+    "assets/materials/original/tactile-house-albedos.png",
+    "src/figure.mjs",
+    "src/figure-motion.mjs",
+    "src/house.mjs",
+    "src/surfaces.mjs"
+  ],
+  "inputs": {
+    "assets/character/mara.glb": "ad495f13124468b3eb2800337423500e46d46bfac8d3d188c84a9019541eeabd",
+    "assets/character/inside-mouth-mask.jpg": "dc3e5b39e677351e3bb4c60653dc4d3516f585690076ec4c749e04402db3bf05",
+    "assets/materials/photographic/interior-reflections.hdr": "8b73849c956e2d97e7a6cfacbe9396d90a84fcbd9b24327a37a6629150055cca",
+    "assets/materials/photographic/wood-color.jpg": "6f985ac8ec698cab1ae7aeeb87d139b604d6169a516ca46593481ea25d0dcc10",
+    "assets/materials/original/tactile-house-albedos.png": "42ca5e853f78be71b9450fc5c3478581298a96cf51123617dd0f45dff7e86f50",
+    "src/figure.mjs": "09c12daa4c64c66ab0f8baeb83125c213a8b4abaf999bc6bd36e79e8679ffa5d",
+    "src/figure-motion.mjs": "58a643c9b78f77169c9a7f2e5a14e18acc29506c524e1a95fcce15c61cc1d548",
+    "src/house.mjs": "8e9e8eda8b593cf4381c9661685589f4c66f14f6049db886a8f6ca516184481f",
+    "src/surfaces.mjs": "da39d17c2577e9fcd185548b515c8148611f47fd51bfd25753aac2f2a5351a4f"
+  },
+  "outputs": [
+    {
+      "file": "menu-mara-normal.webp",
+      "bytes": 40358,
+      "sha256": "4a9e44e164103a50fddf2cde1b06b4d928820b795f0855a6215301f1653bba3e"
+    },
+    {
+      "file": "menu-mara-distorted.webp",
+      "bytes": 19224,
+      "sha256": "d306a2f4caf4c5b72f3cc75e6310794d5b483933a2c7b4a06311ebf1e698f24f"
+    },
+    {
+      "file": "menu-mara-room.webp",
+      "bytes": 45228,
+      "sha256": "578857a6f6e45f43cb78448cbd41149a80f069a6a5e158eccdbd09ee27dacc07"
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

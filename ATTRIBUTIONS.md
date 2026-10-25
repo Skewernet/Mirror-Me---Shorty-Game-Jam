@@ -110,6 +110,14 @@ Original AI-generated fictional family images and house material artwork. Curren
 
 Files: `assets/art/family-photographs.png`, `assets/art/house-materials.png`, `assets/materials/original/tactile-house-albedos.png`, `assets/character/unkept-wound.png`, `assets/character/unkept-wound.json`.
 
+### Original Mara title-mirror render plates
+
+**Creator:** MIRROR ME — in-engine rendering of the credited Mara rig and house. **License:** Original project renders; underlying assets retain their credited CC0 / CC BY 4.0 licenses. [Source](https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/render_menu_portraits.cjs).
+
+Offline WebP renders use the existing MakeHuman/MPFB Mara model, its authored mirror-distortion state and the existing house. The two character plates retain transparency and matching framing; a dim hallway plate supplies reflection depth. The hallway includes the separately credited Eric Chadwick / Wayfair wood maps (CC BY 4.0), Poly Haven lighting/materials and original house surfaces. Source assets and their licenses remain credited above. Camera recipe and input/output hashes are in menu-mara-sources.json. Original SVG fractures, chipped glass, displaced shards and finite menu glimpses are project presentation code. No extra runtime renderer, new human model or new external artwork is included.
+
+Files: `assets/art/menu-mara-normal.webp`, `assets/art/menu-mara-distorted.webp`, `assets/art/menu-mara-room.webp`, `assets/art/menu-mara-sources.json`, `tools/render_menu_portraits.cjs`.
+
 ## Detailed source records
 
 - **Rendering:** `vendor/THREE-LICENSE.txt` preserves the Three.js MIT notice. Three.js 0.160.1 and all seven vendored rendering/addon files are listed above; addons share the Three.js license.

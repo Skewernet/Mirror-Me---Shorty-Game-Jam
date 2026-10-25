@@ -1368,6 +1368,7 @@ function update(dt) {
 }
 // Restore preferences before preparing the actual selected render targets.
 const settings = initSettings();
+$("menu").dataset.settingsReady = "true";
 house.reset(story);
 updateInventory();
 showSubtitle("");

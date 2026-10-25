@@ -204,6 +204,22 @@
         "assets/character/unkept-wound.json"
       ],
       "changes": "Original AI-generated fictional family images and house material artwork. Current tactile atlas supplies wallpaper, plaster and painted-panel albedos through quadrant crops; framed photos sample the family atlas. The earlier house atlas remains recorded. Generated artwork, not photographic capture. The intruder's original RGBA torn-tissue decal was generated for this project and projected onto its facial sculpt. Its generation brief and exact output hash are recorded in assets/character/unkept-wound.json; no existing film face, likeness or wound asset is used."
+    },
+    {
+      "id": "original-menu-mirror-renders",
+      "title": "Original Mara title-mirror render plates",
+      "creator": "MIRROR ME \u2014 in-engine rendering of the credited Mara rig and house",
+      "license": "Original project renders; underlying assets retain their credited CC0 / CC BY 4.0 licenses",
+      "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/render_menu_portraits.cjs",
+      "licenseUrl": "",
+      "files": [
+        "assets/art/menu-mara-normal.webp",
+        "assets/art/menu-mara-distorted.webp",
+        "assets/art/menu-mara-room.webp",
+        "assets/art/menu-mara-sources.json",
+        "tools/render_menu_portraits.cjs"
+      ],
+      "changes": "Offline WebP renders use the existing MakeHuman/MPFB Mara model, its authored mirror-distortion state and the existing house. The two character plates retain transparency and matching framing; a dim hallway plate supplies reflection depth. The hallway includes the separately credited Eric Chadwick / Wayfair wood maps (CC BY 4.0), Poly Haven lighting/materials and original house surfaces. Source assets and their licenses remain credited above. Camera recipe and input/output hashes are in menu-mara-sources.json. Original SVG fractures, chipped glass, displaced shards and finite menu glimpses are project presentation code. No extra runtime renderer, new human model or new external artwork is included."
     }
   ]
 }

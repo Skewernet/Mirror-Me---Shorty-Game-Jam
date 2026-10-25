@@ -131,11 +131,11 @@
                     <input id="bob" type="checkbox" />
                   </label>
                   <label class="setting-row check-row">
-                    <span>Sudden scares<small>Creature appearances and the final camera turn.</small></span>
+                    <span>Sudden scares<small>Distorted reflections, creature appearances and the final camera turn.</small></span>
                     <input id="sudden-scares" type="checkbox" checked />
                   </label>
                   <label class="setting-row check-row">
-                    <span>Flickering lights<small>Irregular darkness during creature appearances.</small></span>
+                    <span>Flickering lights<small>Mirror flicker and irregular darkness during creature appearances.</small></span>
                     <input id="flashing-lights" type="checkbox" checked />
                   </label>
                   <dl class="controls-grid">
@@ -167,7 +167,36 @@
           <p id="error" role="alert"></p>
         </div>
         <aside class="menu-aside" aria-hidden="true">
-          <div class="menu-mirror"><span>DON'T<br />LOOK<br />AWAY.</span></div>
+          <div class="menu-mirror" id="menu-mirror" data-state="normal" data-motion="still" data-ready="pending">
+            <div class="menu-mirror__glass">
+              <img class="menu-mirror__room" src="assets/art/menu-mara-room.webp" width="768" height="1152" alt="" loading="lazy" decoding="async" fetchpriority="low" />
+              <div class="menu-mirror__reflection">
+                <img class="menu-reflection-normal" src="assets/art/menu-mara-normal.webp" width="768" height="1152" alt="" loading="lazy" decoding="async" fetchpriority="low" />
+                <img class="menu-reflection-distorted" src="assets/art/menu-mara-distorted.webp" width="768" height="1152" alt="" loading="lazy" decoding="async" fetchpriority="low" />
+              </div>
+              <div class="menu-mirror__shard menu-mirror__shard--brow"><i class="mirror-shard-normal"></i><i class="mirror-shard-distorted"></i></div>
+              <div class="menu-mirror__shard menu-mirror__shard--temple"><i class="mirror-shard-normal"></i><i class="mirror-shard-distorted"></i></div>
+              <div class="menu-mirror__shard menu-mirror__shard--lower"><i class="mirror-shard-normal"></i><i class="mirror-shard-distorted"></i></div>
+              <div class="menu-mirror__silvering"></div>
+              <svg class="menu-mirror__fractures" viewBox="0 0 300 500" preserveAspectRatio="none" focusable="false">
+                <defs>
+                  <linearGradient id="mirror-crack-light" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d7dfd9" stop-opacity=".14"/><stop offset=".55" stop-color="#e2e9df" stop-opacity=".7"/><stop offset="1" stop-color="#9caea4" stop-opacity=".13"/></linearGradient>
+                  <radialGradient id="mirror-impact-dust"><stop stop-color="#d6e2d4" stop-opacity=".2"/><stop offset="1" stop-color="#bccfc4" stop-opacity="0"/></radialGradient>
+                  <path id="mirror-fracture-lines" d="M208 203 196 156 171 61 164 0 M208 203 242 158 276 102 300 71 M208 203 249 230 280 267 300 281 M208 203 193 251 186 297 187 348 181 403 185 500 M208 203 159 192 111 169 58 156 0 136 M186 297 141 326 95 341 43 378 0 393 M208 203 168 228 112 257 68 263 0 298 M171 61 119 37 82 0 M276 102 271 54 280 0 M249 230 275 219 300 221 M111 169 91 119 68 95 M187 348 232 382 254 420 300 452 M141 326 130 382 138 415 129 469"/>
+                </defs>
+                <ellipse cx="208" cy="203" rx="24" ry="31" fill="url(#mirror-impact-dust)"/>
+                <use href="#mirror-fracture-lines" fill="none" stroke="#010303" stroke-width="2.3" stroke-linejoin="bevel"/>
+                <use href="#mirror-fracture-lines" transform="translate(.65 -.55)" fill="none" stroke="url(#mirror-crack-light)" stroke-width=".75"/>
+                <path d="m207 200 6-8-1 11 7 3-8 3-3 10-2-11-9-4 9-1z" fill="#050807" stroke="#b3bdb0" stroke-opacity=".45" stroke-width=".6"/>
+                <path d="m196 156 3-29-8-21m51 52 7-19 17-10m-73 122-13-12-15 1m27 13 8 18-5 13m-37-92-11 4-16-7m99 194 3 24 11 12m-148-40 3-19-5-11" fill="none" stroke="#b9c6bd" stroke-opacity=".3" stroke-width=".45"/>
+                <path d="M297 73 300 71 300 111 295 98 297 87zM181 477 185 500 179 500 177 492zM0 136 5 137 2 157 0 161z" fill="#020303"/>
+                <path d="m296 72-1 25 4 13m-120 369 2 13-2 8" fill="none" stroke="#ced5cb" stroke-opacity=".35" stroke-width=".8"/>
+                <path d="m18 63 3 37m-3 301 8 28m255-81 4 40M45 465l22-3m185-447-13 9" fill="none" stroke="#c3cbbd" stroke-opacity=".12" stroke-width=".5"/>
+              </svg>
+              <div class="menu-mirror__sheen"></div>
+              <span class="menu-mirror__tagline">DON'T LOOK AWAY.</span>
+            </div>
+          </div>
           <p>IT REMEMBERS YOUR HANDS.</p>
         </aside>
       </div>
@@ -302,6 +331,7 @@
       >This house needs JavaScript and a desktop browser with WebGL.</noscript
     >
     <script type="module" src="src/intro.mjs"></script>
+    <script type="module" src="src/menu-mirror.mjs"></script>
     <script type="module" src="src/main.mjs"></script>
   </body>
 </html>

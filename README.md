@@ -4,9 +4,9 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — horror presentation and stability:** distressed local typography, a redesigned menu/HUD, slow fading producer/jam splashes, readable electrical outages, persistent overlapping kitchen/hall ramblings with rushed finger-written lettering, indirect bath/clock mirror replies, deliberate crawler-contact failure and Shift running. Menu and funeral share an original slow dread score. Essential-first asynchronous render preparation reduces the controlled software-renderer cold start from 46.52 s to 20.42 s while retaining zero-program first flashlight/mirror/future-room draws. A full collision, dialogue and gameplay regression pass accompanies the changes. This build is local and has not been pushed or deployed.
+**Current local development — fractured title mirror:** the menu's mirror now shows the actual Mara model against the house, split by chipped glass and offset shards. Sparse, brief glimpses replace her with the existing distorted reflection while “DON'T LOOK AWAY” stays etched into the glass. Three cached WebP plates total 104.8 KB; no second runtime renderer or model scene is added. Flash/sudden-scare/reduced-motion settings and hidden-page/gameplay states keep it still. This title-art follow-up is local and has not been deployed.
 
-**Published baseline:** `1fe6069f9933b4281e8fcede5f49ce1167e35fd3` contains the previously approved mirror/clue/blackout/intro pass. Its 153 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=1fe6069).
+**Published baseline:** `39625d7279353e282617aa8ba1a2c5c1c531890b` contains the approved horror UI, lighting/audio/intro, crawler failure/sprint, faster preparation and dense blood-writing passes. All 169 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=39625d7).
 
 The existing foundation retains continuous architectural texture placement, fitted floor/skirting and door trim, surface-anchored mirror condensation, capsule-aware transitions and the photographic PBR presentation. See [current status](PROJECT_STATUS.md) for current validation.
 
@@ -73,6 +73,7 @@ node tests/kitchen-frequency.cjs
 node tests/reflection-audio.cjs
 node tests/funeral-blackout.cjs
 node tests/horror-ui.cjs
+node tests/menu-mirror.cjs
 node tests/ui-text.cjs
 node tests/horror-audio.cjs
 node tests/lighting-readability.cjs
@@ -110,7 +111,7 @@ node tests/parlor.cjs
 
 CPU checks require Node 22.15+; browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
 
-Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 13 entries, 79 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
+Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 14 entries, 82 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 
 ## Development, credits and release
 
@@ -125,6 +126,6 @@ Current validation and release evidence are recorded in [current status](PROJECT
 
 Every externally sourced asset must have a register entry identifying creator, source, license, local files and modifications. In-game credits and ending credits read the register. Keep the public description's credit list synchronized when adding assets. Free does not mean attribution-free: the wood maps carry CC BY 4.0, while the MakeHuman and Poly Haven assets are CC0. Runtime Three.js license text is retained; voice model/tool provenance is documented.
 
-Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `1fe6069`; its automatic deployment and all 153 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
+Cloudflare Pages project `mirror-me` is connected to this repository with `main` as production branch. Production automation and branch previews are enabled, so **a push can publish**. The owner approved publication through `39625d7`; its automatic deployment and all 169 public payload hashes are verified. Future game changes require their own approval before a potentially publishing push or deployment. Check the deployment result and public asset hashes rather than treating a push alone as proof; `/build-id.json` identifies the deployed revision.
 
 For an approved release, `python3 tools/deploy_pages.py --github-build` explicitly builds remote main and verifies its commit and every public runtime hash. `--verify-only` is read-only. Build settings remain `python3 tools/stage_pages.py --output-dir dist`, output `dist`, repository root. No deployment occurs at environment startup. Do not modify Morlins Quest or Skewer Signals.
