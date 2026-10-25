@@ -1,0 +1,21 @@
+MIRROR ME — itch.io theme
+
+Unzip this kit. In the Edit theme panel, enter:
+BG: #080807
+BG 2: #141411
+Text: #E8E6DF
+Link: #D45B5B (slightly brighter than the initial suggestion for clear dark-page links)
+Font: Lato
+Size: Medium
+Screenshots: Auto
+
+Under IMAGES upload:
+Banner -> theme-banner.png
+Background -> theme-background.png
+Embed BG -> theme-embed.png
+
+If background positioning options appear, use centered, cover/fit-to-width and no repeat. If a hide-title option appears, it can hide itch.io's duplicate text title because the banner already contains it.
+Click Save and inspect the public page at a normal desktop window width and fullscreen.
+Open PREVIEW.html locally for an approximate color/image layout before applying; it is a mockup, not a game upload or an exact copy of itch.io's responsive layout.
+
+These are original promotional images generated with OpenAI using the approved cover/game/studio visual references. They are theme artwork, not gameplay screenshots. Existing gameplay screenshots and page credits remain in the separately supplied page kit.
