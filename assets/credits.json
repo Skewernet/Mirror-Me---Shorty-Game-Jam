@@ -220,6 +220,20 @@
         "tools/render_menu_portraits.cjs"
       ],
       "changes": "Offline WebP renders use the existing MakeHuman/MPFB Mara model, its authored mirror-distortion state and the existing house. The two character plates retain transparency and matching framing; a dim hallway plate supplies reflection depth. The hallway includes the separately credited Eric Chadwick / Wayfair wood maps (CC BY 4.0), Poly Haven lighting/materials and original house surfaces. Source assets and their licenses remain credited above. Camera recipe and input/output hashes are in menu-mara-sources.json. Original SVG fractures, chipped glass, displaced shards and finite menu glimpses are project presentation code. No extra runtime renderer, new human model or new external artwork is included."
+    },
+    {
+      "id": "skewer-games-branding",
+      "title": "Skewer Games \u2014 supplied logo and Skewer Blade splash font",
+      "creator": "Skewer Games; supplied by Skewernet",
+      "license": "User-supplied project branding; no separate asset-license grant",
+      "source": "https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/assets/art/skewer-brand-sources.json",
+      "licenseUrl": "",
+      "files": [
+        "assets/art/skewer-games-logo.png",
+        "assets/art/skewer-brand-sources.json",
+        "assets/fonts/SkewerBlade-Regular.woff2"
+      ],
+      "changes": "Approved transparent studio PNG copied byte-for-byte from the supplied SkewerGames-LogoMatched-Source.zip. Skewer Blade Regular Version 0.20 converted losslessly from the supplied SkewerBlade-Regular.ttf to local WOFF2 with fontTools; all outlines, metrics, names, character mappings, kerning and ligatures retained. Logo appears on the producer splash; the display font is scoped to splash headings. Readable body/UI fonts and the established main-menu typography remain. Upload and output hashes are recorded in skewer-brand-sources.json. These owner-provided identity assets have no separate redistribution license supplied; no open-source license is inferred."
     }
   ]
 }

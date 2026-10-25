@@ -132,3 +132,11 @@ Files: `assets/art/menu-mara-normal.webp`, `assets/art/menu-mara-distorted.webp`
 ## Historical records
 
 The former Piper/LJ Speech model is not used in the current shipped voice takes. Earlier development-log references describe those historical builds and are retained as history; current voice credits belong to Kokoro. No source code, imagery, audio or character asset from P.T. or Silent Hill is included.
+
+### Skewer Games — supplied logo and Skewer Blade splash font
+
+**Creator:** Skewer Games; supplied by Skewernet. **License:** User-supplied project branding; no separate asset-license grant. [Source](https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/assets/art/skewer-brand-sources.json).
+
+Approved transparent studio PNG copied byte-for-byte from the supplied SkewerGames-LogoMatched-Source.zip. Skewer Blade Regular Version 0.20 converted losslessly from the supplied SkewerBlade-Regular.ttf to local WOFF2 with fontTools; all outlines, metrics, names, character mappings, kerning and ligatures retained. Logo appears on the producer splash; the display font is scoped to splash headings. Readable body/UI fonts and the established main-menu typography remain. Upload and output hashes are recorded in skewer-brand-sources.json. These owner-provided identity assets have no separate redistribution license supplied; no open-source license is inferred.
+
+Files: `assets/art/skewer-games-logo.png`, `assets/art/skewer-brand-sources.json`, `assets/fonts/SkewerBlade-Regular.woff2`.

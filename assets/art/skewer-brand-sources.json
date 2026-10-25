@@ -1,0 +1,32 @@
+{
+  "provided": "2026-10-24",
+  "creator": "Skewer Games; supplied by Skewernet",
+  "usage": "User-supplied project branding; no separate asset-license grant supplied.",
+  "uploads": {
+    "fontFile": "SkewerBlade-Regular.ttf",
+    "fontSha256": "ca6fd383801adeb97eebfa86e559f5091b0e1719548a749910df94b9d7f395f5",
+    "sourceArchive": "SkewerGames-LogoMatched-Source.zip",
+    "sourceArchiveSha256": "2627772372ef011438e1616dd62ae0baf217f56490ba3018d80347fa2d6ef5a5"
+  },
+  "logo": {
+    "archivePath": "assets/skewer-games-approved-original.png",
+    "outputFile": "assets/art/skewer-games-logo.png",
+    "sha256": "e4c6a082e239b59002ba7e8288d7a901ba0211e8e721fee0d664ed0e212ee2e6",
+    "bytes": 1138344,
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "modifications": "None. Exact supplied transparent original PNG; no crop, recoloring or redraw."
+  },
+  "font": {
+    "family": "Skewer Blade",
+    "style": "Regular",
+    "version": "Version 0.20",
+    "characterMapEntries": 100,
+    "outputFile": "assets/fonts/SkewerBlade-Regular.woff2",
+    "sha256": "3ac78ea9316f5f12cbbd3b80d0144642a56068544667274c2d4487782595e5b3",
+    "bytes": 13816,
+    "modifications": "Lossless WOFF2 packaging with fontTools from supplied TTF; no subsetting, outline, metrics or glyph edits. Names, cmap, kerning and GSUB ligature table retained. Used only for splash display headings."
+  }
+}

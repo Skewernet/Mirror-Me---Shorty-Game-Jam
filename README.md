@@ -4,7 +4,7 @@ A first-person psychological horror game about a looping house and a reflection 
 
 ## Demonic presence — 0.8
 
-**Current local development — fractured title mirror:** the menu's mirror now shows the actual Mara model against the house, split by chipped glass and offset shards. Sparse, brief glimpses replace her with the existing distorted reflection while “DON'T LOOK AWAY” stays etched into the glass. Three cached WebP plates total 104.8 KB; no second runtime renderer or model scene is added. Flash/sudden-scare/reduced-motion settings and hidden-page/gameplay states keep it still. This title-art follow-up is local and has not been deployed.
+**Current local development — fractured title mirror and studio splashes:** the menu's mirror now shows the actual Mara model against the house, split by chipped glass and offset shards. Sparse, brief glimpses replace her with the existing distorted reflection while “DON'T LOOK AWAY” stays etched into the glass. Three cached WebP plates total 104.8 KB; no second runtime renderer or model scene is added. Flash/sudden-scare/reduced-motion settings and hidden-page/gameplay states keep it still. The producer splash uses the supplied original Skewer Games logo; the jam/title splash headings use the locally bundled Skewer Blade face. Slow fades, skippable background loading and readable body/UI fonts remain. This follow-up is local and has not been deployed.
 
 **Published baseline:** `39625d7279353e282617aa8ba1a2c5c1c531890b` contains the approved horror UI, lighting/audio/intro, crawler failure/sprint, faster preparation and dense blood-writing passes. All 169 runtime/credit files were verified live at [mirror-me.pages.dev](https://mirror-me.pages.dev/?v=39625d7).
 
@@ -111,7 +111,7 @@ node tests/parlor.cjs
 
 CPU checks require Node 22.15+; browser checks require a running local server, Playwright and system Chromium, available in the prepared environment. Set `MIRROR_TEST_URL`, `MIRROR_TEST_OUTPUT` or `CHROMIUM_PATH` when needed. `?test=1` enables explicit simulation/render controls for deterministic validation; those controls are absent from ordinary play.
 
-Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 14 entries, 82 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
+Current validation and release evidence are recorded in [current status](PROJECT_STATUS.md). Credits cover 15 entries, 84 media/model/font assets and seven vendor modules. Human playtesting must judge fear, material quality, headphone mix and first-play duration; cloud software rendering does not establish target-GPU performance.
 
 ## Development, credits and release
 

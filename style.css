@@ -8,6 +8,18 @@
   src: url("assets/fonts/SpecialElite-latin.woff") format("woff");
   font-display: swap;
 }
+@font-face {
+  font-family: "Skewer Blade";
+  src: url("assets/fonts/SkewerBlade-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  /* These splash headings use the regular alphabet, not the extra-tall
+     private-use logo glyphs that determine the font's global metrics. */
+  ascent-override: 100%;
+  descent-override: 35%;
+  line-gap-override: 0%;
+}
 :root {
   color-scheme: dark;
   --paper: #f2f0eb;
@@ -138,7 +150,12 @@ footer { min-height: 62px; padding-top: 12px; border-top: 1px solid #6f25254a; }
 #intro[data-fade="out"] .intro-card, #intro[data-fade="blank"] .intro-card { opacity: 0; }
 #intro[data-stage="2"][data-fade="hold"] .intro-card { opacity: 1; }
 #intro-kicker { color: #d5ceca; font-size: 14px; line-height: 1.5; margin: 0 0 28px; letter-spacing: 4px; }
-#intro-title { font-family: var(--title); font-size: clamp(40px, 7.5vw, 114px); line-height: 1.16; letter-spacing: 2px; margin: 0; color: #f7f3ee; text-transform: uppercase; }
+#intro-title { font-family: var(--title); font-size: clamp(40px, 7.5vw, 114px); line-height: 1.16; letter-spacing: 2px; margin: 0; color: #e8e6df; text-transform: uppercase; overflow: visible; }
+#intro:is([data-stage="1"], [data-stage="2"]) #intro-title { font-family: "Skewer Blade", var(--title); line-height: 1.5; letter-spacing: .04em; }
+#intro[data-stage="1"] #intro-title { font-size: clamp(30px, 6.1vw, 80px); }
+#intro-logo { display: none; width: min(100%, 560px, 42.6667vh); height: auto; max-height: 32vh; object-fit: contain; margin: 0 auto; }
+#intro[data-stage="0"][data-brand-ready="true"] #intro-logo { display: block; }
+#intro[data-stage="0"][data-brand-ready="true"] #intro-title { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 #intro-caption { color: #c0b8b3; font-size: 16px; line-height: 1.7; margin: 24px 0; }
 #intro-skip { position: fixed; top: 24px; right: max(24px, 4.5vw); z-index: 1; font-size: 11px; }
 #intro-warning { margin-top: 28px; }

@@ -26,6 +26,18 @@ export function initIntro({ root = document, atmosphere, fadeDuration = INTRO_TI
     target?.addEventListener(event, handler, options);
     listeners.push(() => target?.removeEventListener(event, handler, options));
   };
+  // The original studio art is decorative; the existing heading remains the
+  // dialog's accessible name and a visible fallback if the image cannot load.
+  // Decoding never gates stage timing, skipping, or scene preparation.
+  const logo = byId('intro-logo');
+  screen.dataset.brandReady = 'false';
+  const revealBrand = async () => {
+    try { await logo?.decode?.(); } catch { return; }
+    if (!disposed && logo?.naturalWidth > 0) screen.dataset.brandReady = 'true';
+  };
+  listen(logo, 'load', revealBrand);
+  listen(logo, 'error', () => { screen.dataset.brandReady = 'false'; });
+  if (logo?.complete && logo.naturalWidth > 0) revealBrand();
   const savedVolume = () => {
     try {
       const record = JSON.parse(view.localStorage.getItem('mirror-me.settings.v1') || 'null');
