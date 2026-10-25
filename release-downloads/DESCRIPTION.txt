@@ -1,0 +1,30 @@
+MIRROR ME
+A first-person psychological horror game by Skewer Games.
+
+DON'T LOOK AWAY.
+
+Mara Vale returns to her mother's house. The fuse has gone again. The telephone carries a familiar voice. In the hall, her reflection is learning to move without her.
+
+Explore a cramped home that changes each time you return. Read the diary, follow the evening's rituals, and decide how long you can trust the woman in the glass.
+
+• Seamless looping rooms and a reflection that learns your movements.
+• Environmental puzzles, whispered calls and a house full of uneasy details.
+• A short, single-player horror story created for Shorty Jam's INVERTED theme.
+• Subtitles, brightness, sensitivity and separate sudden-scare/light-flicker settings.
+
+HOW TO PLAY
+Desktop browser with keyboard and mouse. Headphones recommended.
+WASD / arrows: walk | Shift: run | Mouse: look | E: interact
+F: flashlight | Tab: journal | H: optional hint | Esc: pause / release mouse
+Click ENTER THE HOUSE to capture the mouse and enable sound. Fullscreen is available from the menu.
+
+CONTENT WARNING
+Flashing lights, sudden scares, graphic blood and gore, violence and family violence, illness, bereavement and disturbing imagery.
+
+CREATED BY SKEWER GAMES
+Carlos Dionicio — Creative Director, Script Writer & Head of Development.
+
+PRODUCTION DISCLOSURE
+AI-assisted development with OpenAI ChatGPT/Codex; original AI-generated artwork; synthetic speech produced offline with Kokoro-82M and sherpa-onnx. Music and sound effects are original project synthesis. The promotional cover uses OpenAI image generation. Gameplay screenshots are actual game captures, with the HUD hidden for presentation.
+
+Complete creator, asset and software credits are in the game and in CREDITS.txt.

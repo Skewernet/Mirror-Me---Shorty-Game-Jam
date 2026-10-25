@@ -1,0 +1,116 @@
+MIRROR ME — CREDITS
+A Skewer Games production
+Developed by Skewer Games
+
+Carlos Dionicio
+Creative Director • Script Writer • Head of Development
+
+AI-assisted development: OpenAI ChatGPT / Codex
+
+Game Design, Programming & Sound Design
+Skewer Games · Carlos Dionicio
+Original procedural props, animation, music and sound effects · AI-assisted development with OpenAI Codex
+Source: https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam
+Rights: Original project work; no separate asset-license grant
+
+Rendering & 3D Technology
+Three.js Authors
+Three.js 0.160.1 and addons · MIT
+Source: https://github.com/mrdoob/three.js/tree/r160
+License: https://github.com/mrdoob/three.js/blob/r160/LICENSE
+
+Synthetic Voice Production
+Kokoro / hexgrad · k2-fsa / sherpa-onnx
+Kokoro-82M v1.0 · sherpa-onnx · Apache-2.0
+Mara / The Glass: bf_emma · Mum: bf_isabella · Radio: bm_george
+Source: https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+License: https://github.com/hexgrad/kokoro/blob/main/LICENSE
+
+Title Typography — Rubik Dirt
+The Rubik Filtered Project Authors · Hubert & Fischer / NaN
+SIL Open Font License 1.1
+Source: https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdirt/RubikDirt-Regular.ttf
+License: https://raw.githubusercontent.com/google/fonts/main/ofl/rubikdirt/OFL.txt
+
+Interface Typography — Special Elite
+Brian J. Bonislawsky · Astigmatic (AOETI)
+Apache License 2.0
+Source: https://raw.githubusercontent.com/google/fonts/main/apache/specialelite/SpecialElite-Regular.ttf
+License: https://raw.githubusercontent.com/google/fonts/main/apache/specialelite/LICENSE.txt
+
+Character Bases, Morphology & Rigging
+MakeHuman Team · Data Collection AB
+Joel Palmius · Jonas Hauquier
+MakeHuman / MPFB · CC0 1.0 · Modified for MIRROR ME
+Source: https://github.com/makehumancommunity/mpfb2/tree/b1a2dc98776da9d1eea751b159d42cf61778fe2e/src/mpfb/data
+License: https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md
+
+Character Skin, Hair, Eyes & Wardrobe
+MakeHuman Team · Data Collection AB
+Joel Palmius · Jonas Hauquier
+MakeHuman System Assets · CC0 1.0
+Source: https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html
+License: https://github.com/makehumancommunity/mpfb2/blob/b1a2dc98776da9d1eea751b159d42cf61778fe2e/LICENSE.ASSETS.md
+
+Mara Costume Material — Red Shirt with Black Jeans
+Margaret Toigo
+CC0 1.0 · Modified for MIRROR ME
+Source: http://www.makehumancommunity.org/node/997
+License: https://static.makehumancommunity.org/assets/assetpacks/system_clothes_materials01.html
+
+Wood Surface Textures
+Eric Chadwick · © 2021 Wayfair
+Chair Damask Purplegold wood maps · CC BY 4.0
+Runtime tint, tiling and floorboard joins modified for MIRROR ME
+Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/15cd02d304e54cb42a4db4eefe719f76190f4b68/Models/ChairDamaskPurplegold
+License: https://creativecommons.org/licenses/by/4.0/
+
+Fabric Surface Textures — Fabric Pattern 07
+Poly Haven
+CC0 1.0 · Publisher attribution; material tint and tiling modified
+Source: https://polyhaven.com/a/fabric_pattern_07
+License: https://polyhaven.com/license
+
+Interior Reflection Lighting — St Fagans Interior
+Poly Haven
+CC0 1.0 · HDR environment
+Source: https://polyhaven.com/a/st_fagans_interior
+License: https://polyhaven.com/license
+
+House Surface Materials
+Skewer Games
+Original procedural PBR artwork · AI-assisted production
+Source: https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/materials_prep.py
+Rights: Original project work; no separate asset-license grant
+
+Family Portraits, Material Atlases & Wound Artwork
+Created for MIRROR ME with OpenAI Image Generation
+Original generated project artwork
+Source: https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/tree/main/assets
+Rights: Original project artwork; no third-party asset-license grant
+
+Title Mirror Imagery
+Skewer Games
+Original in-engine renders · Credited character and surface assets
+Source: https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/tools/render_menu_portraits.cjs
+Rights: Original project renders; underlying assets retain their credited CC0 / CC BY 4.0 licenses
+
+Studio Identity — Logo & Skewer Blade Typeface
+Skewer Games
+Supplied studio branding
+Source: https://github.com/Skewernet/Mirror-Me---Shorty-Game-Jam/blob/main/assets/art/skewer-brand-sources.json
+Rights: User-supplied project branding; no separate asset-license grant
+
+ADDITIONAL PRODUCTION TOOLS
+Blender • MakeHuman / MPFB • fontTools • FFmpeg • eSpeak NG
+
+AUDIO
+All 43 spoken takes are synthetic Kokoro performances. Mara / The Glass: bf_emma; Mum: bf_isabella; radio: bm_george. No human voice actor performance is claimed.
+Music, room ambience, footsteps, telephone ringing, creature clicks and attack sounds are original project synthesis. No film sound bites or external sound-effect samples are used.
+
+PROMOTIONAL MATERIAL
+Cover: created with OpenAI image generation using the approved game visuals and supplied Skewer Games branding as references. Promotional illustration, not a gameplay screenshot.
+Screenshots: actual captures of game build e8e5898, with interface overlays hidden during capture.
+Studio logo: supplied by Skewer Games / Carlos Dionicio.
+
+Full asset modifications and legal notices: ATTRIBUTIONS.md (also included in the playable ZIP).

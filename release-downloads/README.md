@@ -1,7 +1,13 @@
-# MIRROR ME itch.io downloads
+# MIRROR ME — itch.io upload files
 
-Approved game build: e8e5898 (closing credits included).
+Approved game version: **e8e5898**, including the closing credits roll.
 
-Download MIRROR-ME-itch.zip using the file's raw download button, then upload the ZIP unchanged as an itch.io HTML/browser game. Do not upload an enclosing source-code ZIP.
+- [GAME ZIP — upload this unchanged as the playable HTML game](MIRROR-ME-itch.zip)
+- [PAGE KIT — unzip this for the cover, five actual-game screenshots, logo, copy-ready description/credits and page settings](MIRROR-ME-page-kit.zip)
+- [Cover image](MIRROR-ME-cover.png)
+- [Description text](DESCRIPTION.txt)
+- [Credits text](CREDITS.txt)
 
-The separate page kit contains marketing files, not another playable build.
+On each file page, use **Download raw file**. The page-kit ZIP is marketing material, not another playable game ZIP.
+
+Game ZIP SHA256: 76e0d0a5759c17ee2a28bc4ccb307d9e7e9ec69faa38e02ade2ddbd18304ff25
