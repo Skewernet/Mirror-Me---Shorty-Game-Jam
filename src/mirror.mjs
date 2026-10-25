@@ -386,6 +386,7 @@ export class Mirror {
       this.figure.setCreaturePose?.(time, 0.5, {
         mode: "twisted",
         intensity: 0.9,
+        reflection: true,
       });
     this.uniforms.dread.value = story.stage < 5 ? dread : 0;
     this.uniforms.glassTime.value = time;

@@ -2,9 +2,24 @@
 
 Updated October 24, 2026 (America/Denver).
 
-## Current local development — fractured title mirror and studio splashes
+## Current local development — hands, unraveling house and final buildup
 
-Production is the owner-approved `39625d7279353e282617aa8ba1a2c5c1c531890b`, with all 169 runtime/credit files verified live. The title-mirror and splash follow-ups below are local and have not been pushed or deployed.
+This pass builds on published `2e2f08c` and remains local until the owner requests deployment.
+
+- Corrected the flashlight grip/wrist and item-reaching arm motion while preserving the approved model, head cut, body placement, POV and mirror-pose replay.
+- Rebuilt the rotary telephone with a molded case, recessed ten-hole dial, numbered ring, cradle, sculpted handset and continuously connected coiled cord. Existing interaction/call timing and room/furniture layout remain.
+- Mara's distorted reflection retains measured limb lengths and a restrained asymmetric facial strain, fixed gaze and backward turn. Normal Mara and original creature poses/materials retain baseline equivalence. The title's distorted plate is refreshed; normal/hallway plates are byte-identical.
+- Only the final old-house loop adds displaced/broken furnishings, scattered papers/plaster, cracks and torn caution tape. Eight anatomical hands emerge from wall/ceiling planes after the crawler is seen. Their one-time baking/upload is deferred to menu/form background preparation; there are no runtime skeletons, extra shadow lights or new navigation colliders.
+- The truth acknowledgment leads to Mum's same-voice disembodied “Honey... before you go... turn off my lamp...” reminder. Turning the lamp off cancels stale reminders. Four finite, spatially clicking exit sightings begin only after Mara leaves the bedroom with the lamp off, reusing the existing single crawler actor.
+- The funeral begins with a smooth scene survey and collision-checked aisle approach, then holds Mum's face in the casket through the full existing report. The established accusation/turn/Goodnight attack retains its sequence; the accusation now sounds just behind the new listening position. Camera movement pauses with simulation time, and mouse/movement cannot override this final guided sequence. Ordinary gameplay input remains established. The guided scene shows only its available flashlight/pause controls.
+
+Validation passes: all 115 unit tests and 48 responsive UI layouts; the complete seven-chapter actual-collision route, five rear returns and mirror crossing, Mum lamp reminder, guided casket hold, full report/accusation/Goodnight, pause recovery, ending credits and fresh reset. All 43 local Ogg takes decode. Prepared-game checks pass 172 warmed programs and zero new programs on first F, body/draw/stow/settings/single subtitles and real graphics-loss recovery, without browser errors or failed requests.
+
+Focused evidence: measured grip/reach and faithful/delayed/frozen mirror replay; 8,160 mirror anatomy samples, pixel-identical healthy Mara and 12 exact legacy-creature pose/material comparisons; rotary receiver/cord/target/reset; late-hand/capsule/mirror clearance, caution tape and actual utility bulb/practical flicker; four real doorway crawler sightlines and a full 3.25 m/s sprint with no passive contact; and 5,409 funeral-route collider samples with centered Mum framing. Native mouse, 60 doorway-camera and 18 mirror-transition cases pass. The hand update remains measured median 0.2 ms/p95 0.3 ms in the prepared environment. Credits verify 15 entries, 85 media/model/font assets and seven vendor modules; the 42 previous voice files/records remain unchanged. This is automated/cloud evidence, not a desktop-GPU FPS or subjective fear rating.
+
+## Released — fractured title mirror and studio splashes (`2e2f08c`)
+
+Production is the owner-approved `2e2f08ced356d37041420e78eeb3e654a888ec4d`, with all 177 runtime/credit files verified live. Receipt: `/workspace/artifacts/mirror-me-2e2f08c-production-receipt.json`.
 
 - The decorative menu panel now contains Mara's actual normal and mirror-distorted models, rendered offline against a dim plate of the real hall. SVG impact fractures, chipped edges, aged silvering, bevel glints and three displaced shard regions give the glass depth. “DON'T LOOK AWAY” remains etched below her face. Existing menu/control layout and smaller-screen hiding rules remain.
 - Three 768×1152 WebP plates total 104,810 bytes. Rendering recipe and source/output hashes are retained in assets/art/menu-mara-sources.json; the generator reuses the existing character, materials and authored distortion. No runtime WebGL renderer, model clone, canvas or animation-frame loop is added for the title.

@@ -55,6 +55,17 @@ def effects_for(role: str) -> str:
         # Keep the broken words recognizable. This is a directed synthetic
         # take with restrained breath-like amplitude, not a recorded human cry.
         return "highpass=f=90,lowpass=f=8500,tremolo=f=4.7:d=0.12,loudnorm=I=-23:TP=-4:LRA=9"
+    if role == "whisper":
+        # The same Mum preset, close and airy rather than telephone-filtered.
+        # Preserve her natural pitch; the quiet high band adds breath texture
+        # without replacing her identity or importing a recorded performance.
+        return (
+            "asplit=2[voice][air];"
+            "[voice]highpass=f=170,lowpass=f=6500,volume=0.84[v];"
+            "[air]highpass=f=2700,lowpass=f=7500,volume=0.20[a];"
+            "[v][a]amix=inputs=2:duration=longest:normalize=0,"
+            "aecho=0.75:0.16:79:0.12,loudnorm=I=-24:TP=-5:LRA=9[whisper]"
+        )
     return "highpass=f=75,lowpass=f=9500,loudnorm=I=-20:TP=-4:LRA=8"
 
 
@@ -185,7 +196,8 @@ def main() -> None:
                 wav.setsampwidth(2)
                 wav.setframerate(sample_rate)
                 wav.writeframes(pcm.tobytes())
-            processing = ["-filter_complex", effects, "-map", "[glass]"] if line["role"] == "glass" else ["-af", effects]
+            processing = (["-filter_complex", effects, "-map", "[" + line["role"] + "]"]
+                          if line["role"] in {"glass", "whisper"} else ["-af", effects])
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(raw),
                 *processing, "-ar", "24000", "-c:a", "libvorbis", "-q:a", "5", str(target),

@@ -7,6 +7,9 @@ let template;
 let loading;
 let skinVariants;
 let mouthMask;
+const MIRROR_FINGERS = ["index", "middle", "ring", "pinky"];
+const MIRROR_FINGER_CURL = [0, -.10, -.24, -.16];
+const MIRROR_SIDES = ["l", "r"];
 
 // One bundled, licensed asset; the reflection, intruders and wake mourners share
 // geometry and textures, but each owns its skeleton, materials and pose controls.
@@ -32,6 +35,7 @@ export function preloadCharacterAssets() {
       );
     skinVariants = createSkinVariants(skin.material.map);
     addHollowFaceMorph(skin);
+    addMirrorStrainMorph(skin);
     addRecessedEyeMorph(template.getObjectByName("Mara_Eyes"));
     return template;
   });
@@ -223,6 +227,7 @@ export function createFigure(_house, layer = 1) {
   }
   let unease = -1;
   let horror = 0;
+  let mirrorHorror = true;
   let baseline = null;
   let poseCache = null;
   let horrorOptions = {};
@@ -276,13 +281,13 @@ export function createFigure(_house, layer = 1) {
     skin.map = skinVariants[Math.max(0, unease)];
     skin.color
       .set(unease >= 2 ? 0xc2d0c7 : unease === 1 ? 0xe0e1d9 : 0xf1e3d7)
-      .lerp(new T.Color(0x626b62), horror * 0.86);
-    skin.roughness = T.MathUtils.lerp(unease >= 2 ? 0.75 : 0.64, 0.94, horror);
+      .lerp(new T.Color(mirrorHorror ? 0xc4b2ab : 0x626b62), horror * (mirrorHorror ? 0.58 : 0.86));
+    skin.roughness = T.MathUtils.lerp(unease >= 2 ? 0.75 : 0.64, mirrorHorror ? 0.73 : 0.94, horror);
     const eyes = materials.get("Mara_Eyes_Material");
     eyes.color
       .set(unease >= 2 ? 0xc8c5b9 : 0xffffff)
-      .lerp(new T.Color(0x020204), T.MathUtils.smoothstep(horror, 0.25, 0.75));
-    eyes.roughness = T.MathUtils.lerp(0.18, 0.5, horror);
+      .lerp(new T.Color(mirrorHorror ? 0xb5c0b2 : 0x020204), T.MathUtils.smoothstep(horror, 0.25, 0.75));
+    eyes.roughness = T.MathUtils.lerp(0.18, mirrorHorror ? 0.2 : 0.5, horror);
     for (const name of [
       "Mara_Clothes_Material",
       "Mara_Shoes_Material",
@@ -291,10 +296,10 @@ export function createFigure(_house, layer = 1) {
       const material = materials.get(name);
       material.color
         .copy(colors.get(name))
-        .lerp(new T.Color(0x151916), horror * 0.97);
+        .lerp(new T.Color(mirrorHorror ? 0x292b27 : 0x151916), horror * (mirrorHorror ? 0.78 : 0.97));
       material.roughness = T.MathUtils.lerp(
         /Hair/.test(name) ? 0.7 : 0.84,
-        0.96,
+        mirrorHorror ? (/Hair/.test(name) ? .72 : .89) : 0.96,
         horror,
       );
     }
@@ -306,7 +311,8 @@ export function createFigure(_house, layer = 1) {
     const index = target.morphTargetDictionary?.[name];
     if (index !== undefined) target.morphTargetInfluences[index] = amount;
   }
-  function distort(level, time, options = {}) {
+  function distortCreature(level, time, options = {}) {
+    morph("Mara_Mirror_Strain", 0);
     if (level < 0.0001) {
       morph("Mara_Jaw_Open", 0);
       morph("Mara_Hollow", 0);
@@ -352,6 +358,33 @@ export function createFigure(_house, layer = 1) {
     }
     rig.update();
   }
+  // The glass retains Mara's measured anatomy. The disobedience lives in a
+  // strained, unequal face and a held human posture, rather than scaled limbs.
+  // This path never changes the director's separately authored creature pose.
+  function distort(level, time, options = {}) {
+    const strength = T.MathUtils.smoothstep(level, 0.2, 1);
+    const still = options.still === true || options.held === true;
+    const breath = still ? 0 : Math.sin(time * .67) * .004;
+    morph("Mara_Jaw_Open", strength * (.14 + breath));
+    morph("Mara_Hollow", strength * .88);
+    morph("Mara_Mirror_Strain", strength);
+    // Leave the iris visible: an unblinking human eye reads more clearly than
+    // the old fully buried black spheres. The unequal lid is in the skin morph.
+    morph("Mara_Recessed", strength * .13, eyeMesh);
+    if (strength < .0001) return;
+    rig.rotate("spine_03", -strength * .026, strength * .034, -strength * .025);
+    rig.rotate("neck_01", strength * .014, -strength * .026, strength * .065);
+    rig.rotate("head", strength * -.018, 0, strength * -.025);
+    for (const suffix of MIRROR_SIDES) {
+      const side = suffix === "l" ? 1 : -1;
+      for (const finger of MIRROR_FINGERS)
+        for (let segment = 1; segment <= 3; segment++)
+          rig.rotate(`${finger}_0${segment}_${suffix}`,
+            strength * MIRROR_FINGER_CURL[segment], 0,
+            segment === 1 ? side * strength * .015 : 0);
+    }
+    rig.update();
+  }
   function setUnease(level) {
     const next = Math.max(0, Math.min(2, Math.floor(level)));
     if (next === unease) return;
@@ -361,6 +394,7 @@ export function createFigure(_house, layer = 1) {
   function setHorror(level, time = 0, options = {}) {
     horror = T.MathUtils.clamp(level, 0, 1);
     horrorOptions = options;
+    mirrorHorror = true;
     if (baseline) restore(baseline);
     else rig.reset();
     distort(horror, time, options);
@@ -396,6 +430,7 @@ export function createFigure(_house, layer = 1) {
     creatureGait.reset();
     baseline = snapshot();
     horror = 0;
+    mirrorHorror = true;
     evidenceUniform.value = 0;
     body.userData.evidenceBlood = 0;
     unease = 0;
@@ -404,6 +439,7 @@ export function createFigure(_house, layer = 1) {
     foldPose = null;
     morph("Mara_Jaw_Open", 0);
     morph("Mara_Hollow", 0);
+    morph("Mara_Mirror_Strain", 0);
     morph("Mara_Recessed", 0, eyeMesh);
     applyMaterials();
     captureControls();
@@ -439,12 +475,26 @@ export function createFigure(_house, layer = 1) {
     applyingControls = true;
     rig.reset();
     horror = T.MathUtils.clamp(options.intensity ?? 1, 0, 1);
+    mirrorHorror = options.reflection === true;
     baseline = snapshot();
-    distort(horror, time, options);
+    if (mirrorHorror) distort(horror, time, options);
+    else distortCreature(horror, time, options);
     const cycle = Number.isFinite(options.distance)
       ? options.distance / 0.82
       : progress * 2.2;
-    if (mode === "twisted") {
+    if (mode === "twisted" && mirrorHorror) {
+      // A body turning away while the face stays behind. Distribute the turn
+      // through the torso and neck; retain actual arm and finger lengths.
+      rig.rotate("spine_01", -.055, .38, .022);
+      rig.rotate("spine_03", .035, .52, -.052);
+      rig.rotate("neck_01", .025, .68, .11);
+      rig.rotate("head", -.045, 1.16, -.075);
+      rig.rotate("upperarm_l", -.14, .035, -.08);
+      rig.rotate("lowerarm_l", -.22, 0, .035);
+      rig.rotate("upperarm_r", -.09, -.025, .10);
+      rig.rotate("lowerarm_r", -.28, 0, -.02);
+      rig.update();
+    } else if (mode === "twisted") {
       rig.offset("pelvis", new T.Vector3(0, -0.1, 0));
       rig.rotate("spine_01", -0.22, 0.2, 0.15);
       rig.rotate("spine_03", 0.1, -0.13, -0.2);
@@ -514,7 +564,8 @@ export function createFigure(_house, layer = 1) {
       if (blend === 1) foldPose = null;
       rig.update();
     }
-    morph("Mara_Jaw_Open", horror * (0.93 + Math.sin(time * 1.3) * 0.05));
+    if (!mirrorHorror)
+      morph("Mara_Jaw_Open", horror * (0.93 + Math.sin(time * 1.3) * 0.05));
     baseline = snapshot();
     applyMaterials();
     captureControls();
@@ -681,4 +732,45 @@ function addRecessedEyeMorph(eyes) {
   geometry.morphTargetsRelative = true;
   eyes.morphTargetDictionary = { Mara_Recessed: 0 };
   eyes.morphTargetInfluences = [0];
+}
+
+
+function addMirrorStrainMorph(skin) {
+  const geometry = skin.geometry, positions = geometry.attributes.position;
+  const sourceNormals = geometry.attributes.normal;
+  const delta = new Float32Array(positions.count * 3);
+  const deformed = new Float32Array(positions.array);
+  const smooth = T.MathUtils.smoothstep;
+  const gaussian = (x, y, cx, cy, rx, ry) =>
+    Math.exp(-(((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2));
+  for (let i = 0; i < positions.count; i++) {
+    const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+    const face = smooth(z, .035, .10) * smooth(y, 1.47, 1.54) *
+      (1 - smooth(Math.abs(x), .09, .14));
+    if (face < .0001) continue;
+    const leftLid = gaussian(x, y, .032, 1.631, .024, .012);
+    const rightBrow = gaussian(x, y, -.035, 1.645, .025, .020);
+    const cheek = gaussian(x, y, .058, 1.576, .027, .033);
+    const lip = gaussian(x, y, -.026, 1.547, .020, .018);
+    const jaw = gaussian(x, y, .032, 1.516, .035, .026);
+    const dx = (-.004 * cheek - .008 * lip + .003 * jaw) * face;
+    const dy = (-.007 * leftLid + .0035 * rightBrow - .005 * lip - .004 * jaw) * face;
+    const dz = (-.007 * cheek - .004 * jaw + .002 * lip) * face;
+    delta.set([dx, dy, dz], i * 3);
+    deformed[i * 3] += dx; deformed[i * 3 + 1] += dy; deformed[i * 3 + 2] += dz;
+  }
+  const normalGeometry = geometry.clone();
+  normalGeometry.morphAttributes = {};
+  normalGeometry.setAttribute("position", new T.BufferAttribute(deformed, 3));
+  normalGeometry.computeVertexNormals();
+  const normals = new Float32Array(sourceNormals.count * 3);
+  for (let i = 0; i < normals.length; i++)
+    normals[i] = normalGeometry.attributes.normal.array[i] - sourceNormals.array[i];
+  normalGeometry.dispose();
+  const index = geometry.morphAttributes.position.length;
+  const attribute = new T.BufferAttribute(delta, 3); attribute.name = "Mara_Mirror_Strain";
+  geometry.morphAttributes.position.push(attribute);
+  geometry.morphAttributes.normal.push(new T.BufferAttribute(normals, 3));
+  skin.morphTargetDictionary.Mara_Mirror_Strain = index;
+  skin.morphTargetInfluences[index] = 0;
 }

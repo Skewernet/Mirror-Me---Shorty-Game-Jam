@@ -72,11 +72,19 @@ fs.mkdirSync(out, { recursive: true });
       near(fp.snapshot().draw, 1, .00001, "Flashlight draw never completes");
       near(fp.getBeam().visibility, 1, .00001, "Held flashlight has no beam");
       const drawPose = fp.snapshot();
+      const wristBend = side => {
+        const wrist = fp.rig.point(`hand_${side}`);
+        const forearm = wrist.clone().sub(fp.rig.point(`lowerarm_${side}`)).normalize();
+        const palm = fp.rig.point(`middle_01_${side}`).sub(wrist).normalize();
+        return Math.acos(T.MathUtils.clamp(forearm.dot(palm), -1, 1));
+      };
+      const heldWristRadians = wristBend("r");
+      check(heldWristRadians < Math.PI / 3, "Holding the torch folds the wrist back against the forearm");
       const gripContacts = ["index", "middle", "ring", "pinky"].map(finger => {
         const point = fp.flashlight.worldToLocal(fp.rig.point(`${finger}_02_r`));
         return { finger, radius: Math.hypot(point.x, point.y), z: point.z };
       });
-      check(gripContacts.filter(point => point.radius < .043 && point.z > -.085 && point.z < .085).length >= 3,
+      check(gripContacts.every(point => point.radius > .024 && point.radius < .036 && point.z > -.085 && point.z < .085),
         "Fingers close around empty air rather than the physical flashlight barrel");
       const lensToEye = fp.getBeam().position.clone().sub(camera.position).applyQuaternion(camera.quaternion.clone().invert());
       check(lensToEye.z < -.2 && lensToEye.x > .05 && lensToEye.y < -.05, "Flashlight is not physically held below/right of view");
@@ -123,6 +131,8 @@ fs.mkdirSync(out, { recursive: true });
       const reaching = step(INTERACTION_SECONDS * .38, true);
       check(reaching.interaction.side === "l" && fp.rig.point("hand_l").distanceTo(leftStart) > .10, "A held flashlight does not free the other hand to interact");
       check(fp.getBeam().position.distanceTo(beamOrigin) < .025, "Interaction moves the flashlight into the reaching hand");
+      check(wristBend("l") < .12, "Free-hand reaching resets the wrist to a downward standing pose");
+      check(!fp.interact(new T.Vector3(.15, 1.2, -.4)), "Repeated prompts restart an unfinished reach and snap its arm");
       step(INTERACTION_SECONDS, true);
       check(fp.snapshot().interaction === null, "Interaction animation does not complete");
       let minHandDepth = Infinity;
@@ -148,6 +158,16 @@ fs.mkdirSync(out, { recursive: true });
       check(fp.snapshot().draw > 0 && fp.snapshot().draw < 1 && fp.getBeam().visibility === 0, "Putting away flashlight teleports or leaves beam on");
       step(FLASHLIGHT_DRAW_SECONDS, false);
       check(!fp.snapshot().flashlightVisible, "Stowed torch never disappears");
+      check(fp.interact(new T.Vector3(.22, 1.22, -.40), "pickup"), "Empty right hand cannot reach");
+      step(INTERACTION_SECONDS * .38, false);
+      check(fp.snapshot().interaction.side === "r" && wristBend("r") < .12,
+        "Empty-hand reach folds the right wrist or uses the wrong hand");
+      step(.10, true);
+      check(fp.snapshot().draw === 0, "Flashlight draws into an occupied reaching hand");
+      step(INTERACTION_SECONDS, true); step(FLASHLIGHT_DRAW_SECONDS, true);
+      check(fp.snapshot().draw === 1 && fp.snapshot().interaction === null,
+        "Queued torch draw does not recover after the right hand finishes reaching");
+      step(FLASHLIGHT_DRAW_SECONDS, false);
       const walkStart = fp.rig.point("foot_l");
       player.speed = 1.85; player.vz = -1.85;
       for (let frame = 0; frame < 60; frame++) {
@@ -190,7 +210,7 @@ fs.mkdirSync(out, { recursive: true });
       await renderer.compileAsync(scene, camera);
       window.firstPersonFixture = { fp, scene, camera, renderer, player, step };
       window.drawFirstPerson("forward");
-      return { status: "PASS", triangles: fp.snapshot().triangles, drawPose, gripContacts, wallClearance, minHandDepth, originalTriangles: originalCount / 3, updateCpuMs, layer: FIRST_PERSON_LAYER };
+      return { status: "PASS", triangles: fp.snapshot().triangles, drawPose, gripContacts, heldWristRadians, wallClearance, minHandDepth, originalTriangles: originalCount / 3, updateCpuMs, layer: FIRST_PERSON_LAYER };
     });
     for (const view of ["forward", "down", "stowed"]) {
       await page.evaluate(view => window.drawFirstPerson(view), view);
@@ -208,7 +228,7 @@ fs.mkdirSync(out, { recursive: true });
     });
     await page.screenshot({ path: out + "/grip-detail.png", timeout: 60000 });
     assert.deepEqual(errors, []); assert.deepEqual(failed, []);
-    const result = { ...report, checks: ["private headless body geometry", "normal/NPC material and template isolation", "primary-camera-only layer", "finite draw/stow animations", "bone-attached physical flashlight and matching beam", "near-wall withdrawal", "free-hand interaction reach/reset", "safe held-hand depth at all pitch limits", "walking follows real displacement", "truth-state blood isolation", "inactive/reset cleanup", "actual PBR render poses"], errors, failed };
+    const result = { ...report, checks: ["private headless body geometry", "normal/NPC material and template isolation", "primary-camera-only layer", "finite draw/stow animations", "bone-attached physical flashlight and matching beam", "near-wall withdrawal", "neutral two-hand reach, input overlap and repeat suppression", "safe held-hand depth at all pitch limits", "walking follows real displacement", "truth-state blood isolation", "inactive/reset cleanup", "actual PBR render poses"], errors, failed };
     fs.writeFileSync(out + "/report.json", JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
   } finally { await browser.close(); }

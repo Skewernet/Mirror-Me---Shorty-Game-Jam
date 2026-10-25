@@ -7,6 +7,7 @@ import { dressHouse } from "./dressing.mjs";
 import { ThresholdPortal } from "./portal.mjs";
 import { buildWake } from "./wake.mjs";
 import { buildRevelation } from "./revelation.mjs";
+import { createHouseUnraveling } from "./house-unraveling.mjs";
 import { WRITINGS } from "./story.mjs";
 import { FUSE_OUT_LIGHTING } from "./crawler-flicker.mjs";
 import {
@@ -526,6 +527,7 @@ export async function buildHouse(scene) {
 
   const furnishings = furnish(b, m),
     dressing = dressHouse(b, m, surfaces, furnishings);
+  const unraveling = createHouseUnraveling(scene, m);
   const wake = buildWake(b, m, surfaces, photos);
   const revelation = buildRevelation(b, m, surfaces);
   const portal = new ThresholdPortal(scene, back);
@@ -819,9 +821,11 @@ export async function buildHouse(scene) {
   const lightGroups = {
     entry: [hallHero, entryFill, cornerFill],
     bathroom: [bathLight, bathWindow],
+    utility: [utilityLight],
     "far-hall": [mirrorHero, mirrorLight, kitchenDoorLight],
     bedroom: [bedsideLight, bedWindow],
   };
+  const unravelingLights = { bathroom: [bathLight], utility: [utilityLight] };
   for (const [zone, members] of Object.entries(lightGroups))
     for (const light of members) light.userData.zone = zone;
   for (const light of lights) {
@@ -1083,6 +1087,7 @@ export async function buildHouse(scene) {
     furnishings.animate?.(time, state, player);
     dressing.animate?.(time, state, player);
     revelation.animate(time, state, player);
+    unraveling.applyLighting(time, state, unravelingLights);
     if (wake.update) wake.update(time, dt, state, player);
     else wake.animate?.(time, state);
     for (const fixture of circuitMaterials.values()) {
@@ -1095,6 +1100,13 @@ export async function buildHouse(scene) {
       fixture.currentEmissive = fixture.source.emissiveIntensity;
       if (fixture.currentEmissive !== undefined)
         fixture.material.emissiveIntensity = fixture.currentEmissive;
+      const lateFlicker = unraveling.lightingFactor(time, state, fixture.zone);
+      fixture.currentColor.multiplyScalar(fixture.unlit ? lateFlicker : 1);
+      fixture.material.color.copy(fixture.currentColor);
+      if (fixture.currentEmissive !== undefined) {
+        fixture.currentEmissive *= lateFlicker;
+        fixture.material.emissiveIntensity = fixture.currentEmissive;
+      }
     }
     for (const light of lights) {
       light.userData.currentBase = light.intensity;
@@ -1111,6 +1123,7 @@ export async function buildHouse(scene) {
     doorShadowBounds.clear();
     furnishings.reset?.();
     dressing.reset?.();
+    unraveling.reset();
     for (const d of Object.values(roomDoors)) {
       d.pivot.rotation.y = 0;
       d.collider.disabled = false;
@@ -1163,6 +1176,7 @@ export async function buildHouse(scene) {
     props: furnishings,
     furnishings,
     dressing,
+    unraveling,
     drainEvents: () => dressing.drainEvents?.() || [],
     roomAt,
     setStage,

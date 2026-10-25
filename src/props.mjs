@@ -6,6 +6,7 @@ import { WRITINGS } from "./story.mjs";
 import { createBathroomMirror } from "./bathroom-mirror.mjs";
 import { createKitchenFrequency } from "./kitchen-frequency.mjs";
 import { createHallBlood } from "./hall-blood.mjs";
+import { createRotaryPhone } from "./rotary-phone.mjs";
 
 // Furnishings use measured human dimensions and the same coordinates as story
 // targeting/audio. The tight floor plan is furnished deliberately, not scaled
@@ -321,49 +322,11 @@ export function furnish(b, m) {
     lounge,
   );
   const phone = group(0, TARGETS.telephone.y, 0, 0, phoneTable);
-  const phoneTarget = slab(0.36, 0.105, 0.27, 0, 0, 0, m.black, phone, 0.035);
-  target("telephone", phoneTarget, "LIFT TELEPHONE RECEIVER", 2.3, phone);
-  const dial = new T.Mesh(new T.TorusGeometry(0.062, 0.01, 10, 36), m.brass);
-  dial.rotation.x = -Math.PI / 2;
-  dial.position.set(0, 0.063, -0.015);
-  phone.add(dial);
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2;
-    cylinder(
-      0.007,
-      0.007,
-      0.012,
-      Math.cos(a) * 0.048,
-      0.072,
-      Math.sin(a) * 0.048 - 0.015,
-      m.black,
-      phone,
-      10,
-    );
-  }
-  const receiver = group(0, 0, 0, 0, phone);
-  tube(
-    [
-      [-0.16, 0.12, 0.065],
-      [-0.13, 0.16, 0.065],
-      [0, 0.18, 0.065],
-      [0.13, 0.16, 0.065],
-      [0.16, 0.12, 0.065],
-    ],
-    0.029,
-    m.black,
-    receiver,
-  );
-  for (const side of [-1, 1])
-    cylinder(0.045, 0.042, 0.035, side * 0.16, 0.115, 0.065, m.black, receiver);
-  const cord = [];
-  for (let i = 0; i < 96; i++)
-    cord.push([
-      0.17 + Math.sin(i * 0.67) * 0.012,
-      0.1 - i * 0.0053,
-      0.06 + Math.cos(i * 0.67) * 0.012,
-    ]);
-  tube(cord, 0.0035, m.black, phone);
+  const rotaryPhone = createRotaryPhone(phone), receiver = rotaryPhone.receiver;
+  target("telephone", rotaryPhone.target, "LIFT TELEPHONE RECEIVER", 2.3, phone);
+  rotaryPhone.root.traverse(object => {
+    if (object.isMesh && !object.material.transparent) b.occluders.push(object);
+  });
   lamp(-1.22, 0.82, 6.78, lounge, 0.76);
   const family = frame(
     TARGETS.photo.x,
@@ -1027,8 +990,7 @@ export function furnish(b, m) {
     puzzle.reset();
     kitchenFrequency.reset();
     hallBlood.reset();
-    receiver.position.set(0, 0, 0);
-    receiver.rotation.set(0, 0, 0);
+    rotaryPhone.reset();
     radioKnob.rotation.z = 0;
     tuningMaterial.emissiveIntensity = 0;
     invertedChair.position.y = 0;
@@ -1106,12 +1068,7 @@ export function furnish(b, m) {
     kitchenDiffuserMaterial.color.set(state.power ? 0xe6e2c8 : 0x101411);
     radioKnob.rotation.z = on ? ((frequency - 88) / 20 - 0.5) * 1.7 : 0.35;
     const offHook = time < state.phoneLiftUntil;
-    receiver.position.set(
-      offHook ? -0.05 : 0,
-      offHook ? 0.23 : 0,
-      offHook ? -0.02 : 0,
-    );
-    receiver.rotation.z = offHook ? -0.18 : 0;
+    rotaryPhone.update(offHook, animationDt);
     family.face.material.map = m.photos[state.stage >= 2 ? 1 : 0];
     // A real wall-mounted frame settles around its hanging point when fixed;
     // no screen overlay or instant texture substitution stands in for the act.
@@ -1152,6 +1109,7 @@ export function furnish(b, m) {
     cloth,
     telephone: phone,
     receiver,
+    rotaryPhone,
     radio,
     kitchenFrequency,
     hallBlood,

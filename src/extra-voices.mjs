@@ -1,6 +1,16 @@
 // Original, indirect reminders. These never identify a different culprit or
 // state the final confession before the player reaches the revealed bedroom.
 export const EXTRA_VOICES = {
+  lampReminder: {
+    speaker: "MUM",
+    text: "Honey... before you go... turn off my lamp...",
+    duration: 6.2,
+    captionCues: [
+      { at: 0, text: "Honey." },
+      { at: 1.822, text: "Before you go." },
+      { at: 4.484, text: "Turn off my lamp." },
+    ],
+  },
   mirrorClock0: { speaker: "THE GLASS", text: "The hands kept turning. The water went cold." },
   mirrorClock1: { speaker: "THE GLASS", text: "Mum liked her bath warm. You let the hour slip away." },
   mirrorClock2: { speaker: "THE GLASS", text: "Some things keep time. Some things keep the face you won't look at." },

@@ -7,6 +7,8 @@ export const FIRST_PERSON_LAYER = 2;
 export const FLASHLIGHT_DRAW_SECONDS = .36;
 export const INTERACTION_SECONDS = .58;
 const FORWARD = new T.Vector3(0, 0, -1);
+const GRIP_ROLL = -2.40;
+const FINGERS = ["index", "middle", "ring", "pinky"];
 const smooth = value => T.MathUtils.smoothstep(value, 0, 1);
 
 export function createFlashlightModel(layer = FIRST_PERSON_LAYER) {
@@ -73,11 +75,82 @@ export function attachFlashlight(figure, layer = FIRST_PERSON_LAYER) {
   const torch = createFlashlightModel(layer);
   const hand = rig.joint("hand_r").bone;
   const restWrist = rig.restPoint("hand_r");
-  const gripAnchor = hand.worldToLocal(body.localToWorld(restWrist.add(new T.Vector3(-.010, -.090, -.006))));
+  // Locate the barrel across the curled palm, rather than through the finger
+  // roots. The calibrated middle knuckle rests one finger radius off its axis.
+  const palm = rig.restPoint("middle_01_r").sub(restWrist);
+  const radial = new T.Vector3(-.029, 0, 0).applyAxisAngle(new T.Vector3(0, 0, 1), -GRIP_ROLL);
+  const centre = palm.sub(radial); centre.z = -.006;
+  const gripAnchor = hand.worldToLocal(body.localToWorld(restWrist.add(centre)));
   hand.add(torch.root);
   torch.root.position.copy(gripAnchor);
   torch.root.visible = false;
   return { ...torch, hand };
+}
+
+// Solve the real phalanges around a 21 mm barrel. Bone rolls are measured
+// from the imported rig; each joint follows a chord outside the tube instead
+// of closing through it. Scratch storage and bind measurements are leased once.
+function createBarrelGrip(rig, torch) {
+  const records = FINGERS.map((name, index) => {
+    const names = [1, 2, 3].map(n => `${name}_0${n}_r`);
+    const points = names.map(n => rig.restPoint(n));
+    return { bones: names.map(n => rig.joint(n).bone), full: names.map(() => new T.Quaternion()),
+      first: points[0].distanceTo(points[1]), second: points[1].distanceTo(points[2]),
+      radius: [.029, .0295, .0285, .026][index],
+      tip: points[2].clone().sub(points[1]).normalize()
+        .applyQuaternion(rig.joint(names[2]).bodyQuaternion.clone().invert()) };
+  });
+  const centre = new T.Vector3(), root = new T.Vector3(), pip = new T.Vector3(), dip = new T.Vector3();
+  const a = new T.Vector3(), b = new T.Vector3(), position = new T.Vector3();
+  const inverse = new T.Quaternion(), current = new T.Quaternion(), wanted = new T.Quaternion(), parent = new T.Quaternion();
+  const setDirection = (bone, from, to, weight) => {
+    if (from.lengthSq() < 1e-10 || to.lengthSq() < 1e-10) return;
+    bone.getWorldQuaternion(current);
+    wanted.setFromUnitVectors(from.normalize(), to.normalize()).multiply(current);
+    current.slerp(wanted, weight);
+    bone.parent.getWorldQuaternion(parent).invert();
+    bone.quaternion.copy(parent.multiply(current)).normalize();
+    bone.updateMatrixWorld(true);
+  };
+  const aim = (bone, child, target, weight) => {
+    bone.getWorldPosition(position); child.getWorldPosition(a).sub(position);
+    b.copy(target).sub(position); setDirection(bone, a, b, weight);
+  };
+  let compiled = false;
+  return (cameraQuaternion, weight) => {
+    if (weight <= 0) return;
+    // The fully held grip has a fixed relationship to the hand and barrel.
+    // Cache its local joint rotations during warmup; ordinary frames only
+    // blend those rotations and update the hand subtree once.
+    if (compiled) {
+      for (const record of records) for (let index = 0; index < 3; index++)
+        record.bones[index].quaternion.slerp(record.full[index], weight);
+      torch.hand.updateMatrixWorld(true);
+      return;
+    }
+    torch.root.getWorldPosition(centre); inverse.copy(cameraQuaternion).invert();
+    for (const record of records) {
+      const [first, second, third] = record.bones;
+      first.getWorldPosition(root).sub(centre).applyQuaternion(inverse);
+      const radius = record.radius, distance = Math.max(.001, Math.hypot(root.x, root.y));
+      const theta = Math.atan2(root.y, root.x) - Math.acos(T.MathUtils.clamp(
+        (distance * distance + radius * radius - record.first * record.first) / (2 * distance * radius), -1, 1));
+      const next = theta - 2 * Math.asin(Math.min(.98, record.second / (2 * radius)));
+      pip.set(Math.cos(theta) * radius, Math.sin(theta) * radius, root.z).applyQuaternion(cameraQuaternion).add(centre);
+      dip.set(Math.cos(next) * radius, Math.sin(next) * radius, root.z).applyQuaternion(cameraQuaternion).add(centre);
+      aim(first, second, pip, weight); aim(second, third, dip, weight);
+      third.getWorldQuaternion(current);
+      a.copy(record.tip).applyQuaternion(current);
+      // The last phalanx continues over the front of the barrel; its pad
+      // approaches the thumb rather than pointing rigidly out into space.
+      const end = next - .40;
+      b.set(Math.sin(end), -Math.cos(end), 0).applyQuaternion(cameraQuaternion);
+      setDirection(third, a, b, weight);
+      if (weight >= 1) for (let index = 0; index < 3; index++)
+        record.full[index].copy(record.bones[index].quaternion);
+    }
+    compiled = weight >= 1;
+  };
 }
 
 // Keep the existing model's torso, legs and articulated hands. Only this
@@ -134,13 +207,18 @@ export function createFirstPerson(scene, camera) {
   const torch = attachFlashlight(figure);
   const hand = torch.hand;
   const capture = createPoseCapture(figure, torch);
+  const poseGrip = createBarrelGrip(rig, torch);
   const rightSide = rig.sides.find(side => side.side === "r");
   const leftSide = rig.sides.find(side => side.side === "l");
   const currentHand = new T.Vector3(), currentLeft = new T.Vector3();
   const targetHand = new T.Vector3(), pole = new T.Vector3(), offset = new T.Vector3();
   const handQuaternion = new T.Quaternion(), parentQuaternion = new T.Quaternion();
-  const gripRotation = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), .08);
+  const gripRotation = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), GRIP_ROLL);
   const beamPosition = new T.Vector3(), beamDirection = new T.Vector3();
+  const reachAxis = Object.fromEntries(["l", "r"].map(side => [side,
+    rig.restPoint(`middle_01_${side}`).sub(rig.restPoint(`hand_${side}`)).normalize()]));
+  const reachForward = new T.Vector3(), reachRest = new T.Vector3();
+  const reachRotation = new T.Quaternion(), reachCurrent = new T.Quaternion(), bodyQuaternion = new T.Quaternion();
   let draw = 0, time = 0, interactionAge = INTERACTION_SECONDS, bodyLean = .14;
   let interactionTarget = null, interactionSide = "l", evidence = -1;
   const beamState = { position: beamPosition, direction: beamDirection, visibility: 0 };
@@ -154,7 +232,9 @@ export function createFirstPerson(scene, camera) {
     body.visible = options.active !== false;
     if (!body.visible) { beamState.visibility = 0; return; }
     time = Number.isFinite(options.time) ? options.time : time + delta;
-    const targetDraw = options.flashlightOn ? 1 : 0;
+    // Finish a free right-hand reach before drawing into that same hand.
+    const rightHandBusy = interactionSide === "r" && interactionAge < INTERACTION_SECONDS;
+    const targetDraw = options.flashlightOn && !rightHandBusy ? 1 : 0;
     draw = targetDraw > draw
       ? Math.min(targetDraw, draw + delta / FLASHLIGHT_DRAW_SECONDS)
       : Math.max(targetDraw, draw - delta / FLASHLIGHT_DRAW_SECONDS);
@@ -180,21 +260,18 @@ export function createFirstPerson(scene, camera) {
     // player's capsule stops. A lowered wrist can pass behind the eye plane
     // safely below the view; the visible lens stays on our side of the wall.
     const handDepth = Number.isFinite(options.clearance)
-      ? Math.min(.35, Math.max(-.22, options.clearance - .27)) : .35;
+      ? Math.min(.24, Math.max(-.22, options.clearance - .27)) : .24;
     currentHand.copy(rig.point("hand_r"));
     // The barrel remains below the centre of the view; pitch follows the eye,
     // while a near wall lowers and pulls the physical arm back into the body.
-    worldFromCamera(.20 + blocked * .035, -.14 - blocked * .15 + sway, -handDepth, targetHand);
+    worldFromCamera(.23 + blocked * .025, -.25 - blocked * .12 + sway, -handDepth, targetHand);
     currentHand.lerp(targetHand, raised);
-    worldFromCamera(.44, -.36, -.04, pole);
+    worldFromCamera(.44, -.52, .04, pole);
     rig.solveLimb("upperarm_r", "lowerarm_r", "hand_r", currentHand, pole, rightSide.upperArm, rightSide.lowerArm);
     handQuaternion.copy(camera.quaternion).multiply(gripRotation).multiply(rig.joint("hand_r").bodyQuaternion);
     const naturalHand = rig.joint("hand_r").bone.getWorldQuaternion(parentQuaternion);
     naturalHand.slerp(handQuaternion, raised);
     rig.setWorldQuaternion("hand_r", naturalHand);
-    for (const finger of ["index", "middle", "ring", "pinky"])
-      for (let segment = 1; segment <= 3; segment++)
-        rig.rotate(`${finger}_0${segment}_r`, 0, 0, -raised * (segment === 1 ? 1.13 : segment === 2 ? 1.28 : .88));
     rig.rotate("thumb_01_r", -.10 * raised, -.38 * raised, .27 * raised);
     rig.rotate("thumb_02_r", 0, 0, .48 * raised);
     rig.rotate("thumb_03_r", 0, 0, .25 * raised);
@@ -206,18 +283,25 @@ export function createFirstPerson(scene, camera) {
       currentLeft.copy(rig.point(`hand_${side.side}`));
       const shoulder = rig.point(`upperarm_${side.side}`);
       offset.copy(interactionTarget).sub(shoulder);
-      const maxReach = side.upperArm + side.lowerArm - .022;
+      const maxReach = side.upperArm + side.lowerArm - .060;
       if (offset.length() > maxReach) offset.setLength(maxReach);
       targetHand.copy(shoulder).add(offset);
       // Keep reaching fingers in front of the chest, out of the camera plane.
       currentLeft.lerp(targetHand, reach);
       worldFromCamera(side.side === "l" ? -.43 : .43, -.32, -.17, pole);
       rig.solveLimb(`upperarm_${side.side}`, `lowerarm_${side.side}`, `hand_${side.side}`, currentLeft, pole, side.upperArm, side.lowerArm);
-      const rest = rig.bodyQuaternion(rig.joint(`hand_${side.side}`).bodyQuaternion);
-      rig.setWorldQuaternion(`hand_${side.side}`, rest);
-      for (const finger of ["index", "middle", "ring", "pinky"])
+      body.getWorldQuaternion(bodyQuaternion);
+      rig.joint(`hand_${side.side}`).bone.getWorldPosition(reachForward);
+      rig.joint(`lowerarm_${side.side}`).bone.getWorldPosition(reachRest);
+      reachForward.sub(reachRest).normalize();
+      reachRest.copy(reachAxis[side.side]).applyQuaternion(bodyQuaternion);
+      reachRotation.setFromUnitVectors(reachRest, reachForward)
+        .multiply(bodyQuaternion).multiply(rig.joint(`hand_${side.side}`).bodyQuaternion);
+      rig.joint(`hand_${side.side}`).bone.getWorldQuaternion(reachCurrent).slerp(reachRotation, reach);
+      rig.setWorldQuaternion(`hand_${side.side}`, reachCurrent);
+      for (const finger of FINGERS)
         for (let segment = 1; segment <= 3; segment++)
-          rig.rotate(`${finger}_0${segment}_${side.side}`, 0, 0, (side.side === "l" ? 1 : -1) * .24 * reach);
+          rig.rotate(`${finger}_0${segment}_${side.side}`, 0, 0, (side.side === "l" ? 1 : -1) * .09 * reach);
     }
     rig.update();
     torch.root.visible = draw > .015;
@@ -226,6 +310,7 @@ export function createFirstPerson(scene, camera) {
     hand.getWorldQuaternion(parentQuaternion).invert();
     torch.root.quaternion.copy(parentQuaternion.multiply(camera.quaternion));
     torch.root.updateMatrixWorld(true);
+    poseGrip(camera.quaternion, raised);
     torch.lens.emissiveIntensity = targetDraw ? .5 * smooth((draw - .35) / .35) : 0;
     torch.beam.getWorldPosition(beamPosition);
     beamDirection.copy(FORWARD).applyQuaternion(camera.quaternion).normalize();
@@ -240,8 +325,9 @@ export function createFirstPerson(scene, camera) {
     interact(point, kind = "use") {
       const source = point?.isVector3 ? point : point?.position || point;
       if (!source || ![source.x, source.y, source.z].every(Number.isFinite)) return false;
+      if (interactionAge < INTERACTION_SECONDS * .8) return false;
       interactionTarget = new T.Vector3(source.x, source.y, source.z);
-      interactionSide = draw > .15 ? "l" : "r";
+      interactionSide = draw > .015 ? "l" : "r";
       interactionAge = 0;
       body.userData.interactionKind = kind;
       return true;

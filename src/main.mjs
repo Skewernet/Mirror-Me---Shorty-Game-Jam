@@ -321,6 +321,7 @@ function announceChapter() {
 }
 
 function reset() {
+  delete $("hud").dataset.guided;
   failing = false;
   document.body.classList.remove("is-dying");
   failure.reset();
@@ -673,7 +674,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 document.addEventListener("mousemove", (e) => {
-  if (!active || funeralAttack || failing || document.pointerLockElement !== renderer.domElement) return;
+  if (!active || endingAt || funeralAttack || failing || document.pointerLockElement !== renderer.domElement) return;
   lookInput.enqueue(e, performance.now());
 });
 document.addEventListener("keydown", (e) => {
@@ -930,6 +931,11 @@ function respond(event) {
     "ending-open": "Cold daylight. A place outside.",
   };
   if (event === "note") house.note.visible = false;
+  if (event === "lamp-off") {
+    pending = pending.filter(line => line.id !== "lampReminder");
+    if (sound.currentVoice === "lampReminder") sound.stopVoice();
+    if (sound.resumeVoice?.id === "lampReminder") sound.resumeVoice = null;
+  }
   if (event === "arrival-recording" || event === "call" || event === "routine-call")
     story.phoneLiftUntil = elapsed + 13;
   if (event === "radio-on" || event === "radio-off") sound.effect("switch");
@@ -983,6 +989,11 @@ function respond(event) {
         story.phoneLiftUntil = elapsed + Math.max(0, duration - sound.voiceElapsed()) + .4;
       },
       onComplete: () => { story.phoneLiftUntil = elapsed + .4; },
+    } : event === "farewell" ? {
+      onComplete: () => {
+        if (story.inverted && story.truthFound && !story.lampOff && !endingAt && !failing && !story.ended)
+          queueVoice("lampReminder", .65, { gain: .95 });
+      },
     } : {});
   } else if (lines[event]) {
     say(lines[event], ["diary", "letter", "note", "time-clue"].includes(event) ? 7 : 4);
@@ -1009,6 +1020,8 @@ function finish() {
 function beginEnding() {
   picture.setThreat(0, elapsed);
   forwardClearance = Infinity;
+  player.clear();
+  lookInput.reset();
   endingStart = elapsed;
   endingAt = elapsed + 45;
   wakeTurned = false;
@@ -1024,8 +1037,8 @@ function beginEnding() {
   $("prompt").textContent = $("chapter-mark").textContent = "";
   $("cross").classList.remove("active");
   $("location").textContent = "THE FUNERAL ROOM";
-  $("hint").textContent =
-    "WASD · WALK    SHIFT · RUN    F · FLASHLIGHT    ESC · PAUSE";
+  $("hud").dataset.guided = "true";
+  $("hint").textContent = "";
   mirror.body.visible = false;
   house.wake?.begin?.(elapsed, player);
   sound.effect("wake-entered", { x: 0, y: 1.4, z: 11 });
@@ -1127,7 +1140,7 @@ function crossGlass() {
 function update(dt) {
   if (!active) return;
   const look = lookInput.consume(dt, player.sensitivity);
-  if (look && !funeralAttack && !failing) player.look(look.x, look.y);
+  if (look && !endingAt && !funeralAttack && !failing) player.look(look.x, look.y);
   elapsed += dt;
   if (failing) {
     horror.updateFailure(elapsed);
@@ -1148,7 +1161,24 @@ function update(dt) {
   }
   if (endingAt) {
     const t = elapsed - endingStart;
-    if (!funeralAttack) player.update(dt, house.colliders);
+    if (!funeralAttack) {
+      const approach = house.wake.approachCamera?.(elapsed);
+      if (approach?.active) {
+        const travelled = Math.hypot(approach.x - player.x, approach.z - player.z);
+        player.previousX = player.x;
+        player.previousZ = player.z;
+        player.x = approach.x;
+        player.z = approach.z;
+        player.yaw = approach.yaw;
+        player.pitch = approach.pitch;
+        player.distance += travelled;
+        player.speed = approach.speed;
+        player.vx = player.vz = player.bobOffset = 0;
+        player.sprinting = false;
+        player.syncCamera();
+        sound.step(player.distance, player.speed, true);
+      }
+    }
     house.wake.setBlackoutEnabled(flashingLights);
     house.animate(elapsed, dt, story, player);
     for (const event of house.wake.drainEvents()) sound.effect(event.id, event);
@@ -1180,15 +1210,17 @@ function update(dt) {
     if (newsFinished && elapsed - newsFinishedAt >= 2.6 && !endingSpoken) {
       endingSpoken = true;
       const startedAt = endingStart;
+      const behind = { x: player.x + Math.sin(player.yaw) * 1.85,
+        y: 1.4, z: player.z + Math.cos(player.yaw) * 1.85 };
       sound.voice("ending", {
-        position: { x: 1.62, y: 1.2, z: 9.65 },
+        position: behind,
         gain: 1.05,
         postGap: .06,
         onComplete: () => {
           if (!endingAt || startedAt !== endingStart) return;
           lastLineFinished = true;
           funeralAttack = true;
-          if (scaresEnabled) sound.effect("funeral-turn", { x: 1.62, y: 1.2, z: 9.65 });
+          if (scaresEnabled) sound.effect("funeral-turn", behind);
           house.wake.beginAttack(elapsed, player, { enabled: scaresEnabled });
           $("veil").style.transition = "none";
           endingAt = elapsed + 10;
@@ -1288,6 +1320,11 @@ function update(dt) {
     enabled: scaresEnabled,
     flashes: flashingLights,
     dialogueBusy: sound.busy || pending.length > 0,
+  });
+  house.unraveling?.update(elapsed, dt, story, player, {
+    encounterSeen: Boolean(horror.completed["last-ceiling"] ||
+      (horror.active?.definition.id === "last-ceiling" && horror.active.seen > 0)),
+    enabled: scaresEnabled, flashes: flashingLights,
   });
   house.applyHorrorLighting?.(light);
   for (const event of horror.drainEvents()) {
@@ -1415,7 +1452,7 @@ try {
   flashlight.intensity = 1;
   flashlight.shadow.needsUpdate = true;
   const essential = await preparePhase("essential", essentialObjects,
-    [house.revelation.group, house.wake.group], { essential: true });
+    [house.revelation.group, house.wake.group, house.unraveling?.group], { essential: true });
   // Allocate the real flashlight target and room caches only once. Future
   // lighting states use tiny isolated views instead of full-world warm draws.
   warmRenderResources(renderer, scene, camera, {
@@ -1441,9 +1478,11 @@ await waitForRenderResources(renderer);
 preparation.essential = true;
 async function prepareFutureRooms() {
   await idlePreparation();
-  await preparePhase("revelation", [...essentialObjects, house.revelation.group], [house.wake.group]);
+  await house.unraveling?.prepare?.();
+  const lateObjects = house.unraveling?.warmupObjects || [];
+  await preparePhase("revelation", [...essentialObjects, ...lateObjects, house.revelation.group], [house.wake.group]);
   await idlePreparation();
-  await preparePhase("wake", [...essentialObjects, house.revelation.group,
+  await preparePhase("wake", [...essentialObjects, ...lateObjects, house.revelation.group,
     house.wake.group, house.wake.attackBody], []);
 }
 // This promise is deliberately independent of the entry button: late rooms
@@ -1542,6 +1581,7 @@ if (testMode) {
     },
     quality,
     dressing: house.dressing?.snapshot(),
+    unraveling: house.unraveling?.snapshot(),
     revelation: house.revelation?.snapshot?.(),
     funeralRoom: house.wake.snapshot(),
     evidence: [...evidenceSeen],

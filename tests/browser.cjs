@@ -820,6 +820,14 @@ fs.mkdirSync(out, { recursive: true });
     assert.ok(quiet.radio < 0.005 && quiet.water < 0.005);
     console.log("PASS 5: reverse silence and the vanished back door");
 
+    assert.equal((await snap()).unraveling.active, true);
+    await hallCorner();
+    await walk(4.4, 0);
+    await encounter("last-ceiling", 7.3, 1.94, 0);
+    await advance(4.2);
+    assert.equal((await snap()).unraveling.encountered, true);
+    assert.equal((await snap()).unraveling.handsVisible, true);
+    await photo("unraveling-hall");
     await rearDoor();
     await aim(TARGETS.door.x, TARGETS.door.y, TARGETS.door.z);
     assert.notEqual((await snap()).target, "door");
@@ -853,6 +861,7 @@ fs.mkdirSync(out, { recursive: true });
     }
     assert.equal(inverted.story.stage, 6);
     assert.equal(inverted.story.inverted, true);
+    assert.equal(inverted.unraveling.visible, false, "The unraveling belongs to the final old-house loop");
     assert.equal(inverted.revelation.visible, true);
     assert.equal(inverted.revelation.coveredBody, true);
     assert.equal(inverted.revelation.truthAcknowledged, false);
@@ -896,6 +905,10 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal((await snap()).revelation.truthAcknowledged, true);
     assert.equal((await snap()).story.frontReleased, false);
     await photo("bedside-truth");
+    let heardLampReminder = false;
+    await waitDialogue(id => { heardLampReminder ||= id === "lampReminder"; });
+    assert.equal(heardLampReminder, true, "Mum's disembodied reminder follows Mara's bedside acknowledgment");
+    assert.equal((await snap()).story.lampOff, false);
     await walk(8.7, -1.65);
     await walk(8.7, -2.55);
     await use("bedside-lamp");
@@ -932,23 +945,21 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(wake.mode, "playing");
     await advance(0.3);
     await photo("wake-arrival");
+    assert.equal((await snap()).funeralRoom.approach.active, true);
+    assert.equal((await snap()).funeralRoom.approach.routeSafe, true);
+    const surveyPose = (await snap()).pose;
     await p.keyboard.down("KeyW");
     await advance(0.5);
     await p.keyboard.up("KeyW");
-    assert.ok(
-      (await snap()).pose.z > wake.pose.z + 0.2,
-      "The reception retains player movement",
-    );
+    close((await snap()).pose.z, surveyPose.z);
+    close((await snap()).pose.x, surveyPose.x);
     await p.mouse.move(640, 400);
     await advance(1 / 60);
     const yaw = (await snap()).pose.yaw;
     await p.mouse.move(700, 400);
     await advance(1 / 60);
-    assert.notEqual(
-      (await snap()).pose.yaw,
-      yaw,
-      "The reception retains mouse look",
-    );
+    assert.ok(Math.abs((await snap()).pose.yaw - yaw) < .025,
+      "Raw mouse motion cannot override the slow funeral survey");
     await face(Math.PI);
     await p.keyboard.press("Escape");
     await p.waitForFunction(() => !document.querySelector("#menu").hidden);
@@ -1016,6 +1027,11 @@ fs.mkdirSync(out, { recursive: true });
     await face(Math.PI);
     await photo("wake-mourners");
     await waitEndingFlag("newsFinished");
+    const casketView = await snap();
+    assert.equal(casketView.funeralRoom.approach.holding, true);
+    close(casketView.pose.x, .32);
+    close(casketView.pose.z, 14.48);
+    await photo("wake-casket-hold");
     assert.equal((await snap()).mode, "playing");
     assert.equal((await snap()).ending.lastLineFinished, false);
     await advance(2);
@@ -1083,7 +1099,7 @@ fs.mkdirSync(out, { recursive: true });
     await p.waitForFunction(() => !document.querySelector("#menu").hidden);
     assert.equal((await snap()).mode, "ending");
     console.log(
-      "PASS 7: bedside acknowledgment, lamp, playable wake and complete spatial news with pause recovery",
+      "PASS 7: bedside acknowledgment, Mum lamp reminder, guided casket view and complete spatial news with pause recovery",
     );
 
     await p.click("#start");
@@ -1146,10 +1162,11 @@ fs.mkdirSync(out, { recursive: true });
       return result;
     });
     assert.equal(Object.keys(voices).length, Object.keys(VOICES).length);
-    assert.equal(Object.keys(voices).length, 42);
+    assert.equal(Object.keys(voices).length, 43);
     assert.ok(voices.news > 10, "The funeral news is a complete voiced report");
     assert.ok(voices.sob > 0, "Mara's broken confession has audible content");
     assert.ok(voices.routineCall > 0, "Mum's reverse-routine hint has an audible local take");
+    assert.ok(voices.lampReminder > 0, "Mum's bedside lamp reminder has an audible local take");
     assert.equal(Array.from({ length: 8 }, (_, i) => voices["mirror" + i]).filter(duration => duration > 0).length, 8);
     assert.deepEqual(errors, []);
     assert.deepEqual(failed, []);
@@ -1185,8 +1202,9 @@ fs.mkdirSync(out, { recursive: true });
             "reverse silence",
             "vanished rear wall",
             "inverted house",
-            "bedside truth acknowledgment and lamp order",
-            "front threshold and playable wake",
+            "bedside truth acknowledgment, Mum reminder and lamp order",
+    "late-house hands appear after crawler and hide across the mirror",
+            "front threshold and guided funeral survey/approach/hold",
             "one-shot funeral report with spatial origin and preserved pause offset",
             "credits wait for the complete report, response and final pause",
             "ending credits and full reset",

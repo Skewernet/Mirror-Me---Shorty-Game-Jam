@@ -339,5 +339,21 @@
     "speed": 0.92,
     "voice": "bf_emma",
     "speaker_id": 21
+  },
+  "lampReminder": {
+    "text": "Honey... before you go... turn off my lamp...",
+    "role": "whisper",
+    "speed": 0.82,
+    "voice": "bf_isabella",
+    "speaker_id": 22,
+    "segments": [
+      "Honey.",
+      "Before you go.",
+      "Turn off my lamp."
+    ],
+    "pauses_after_seconds": [
+      0.95,
+      1.2
+    ]
   }
 }

@@ -594,6 +594,32 @@
       "sha256": "fd0d5a711ae0f19bc88405631e5efff5922950485642286967074992abd009b4",
       "decoded_true_peak_dbfs": -3.9,
       "original_rattle": "deterministic glottal closure PCM; no external recording"
+    },
+    "lampReminder": {
+      "voice": "bf_isabella",
+      "speaker_id": 22,
+      "role": "whisper",
+      "speed": 0.82,
+      "text": "Honey... before you go... turn off my lamp...",
+      "speech_seconds": 6.04,
+      "file_seconds": 6.2,
+      "effects": "asplit=2[voice][air];[voice]highpass=f=170,lowpass=f=6500,volume=0.84[v];[air]highpass=f=2700,lowpass=f=7500,volume=0.20[a];[v][a]amix=inputs=2:duration=longest:normalize=0,aecho=0.75:0.16:79:0.12,loudnorm=I=-24:TP=-5:LRA=9[whisper]",
+      "sha256": "29a542b9a4156610c17363e48f2cd9968c18068ceadee0e7fb7ad367100069e9",
+      "decoded_true_peak_dbfs": -7.7,
+      "segments": [
+        "Honey.",
+        "Before you go.",
+        "Turn off my lamp."
+      ],
+      "pauses_after_seconds": [
+        0.95,
+        1.2
+      ],
+      "phrase_starts_seconds": [
+        0.0,
+        1.822,
+        4.484
+      ]
     }
   }
 }

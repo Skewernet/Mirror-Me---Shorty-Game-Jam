@@ -22,7 +22,7 @@ weights, embeddings, phonemizer data and inference runtime stay outside it.
 Preset IDs use the official conversion's table:
 https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/scripts/kokoro/v1.0/generate_voices_bin.py
   21 bf_emma — Mara and the glass
-  22 bf_isabella — Mum / all three telephone calls, final recognition and attack “Goodnight”
+  22 bf_isabella — Mum / all three telephone calls, bedside lamp whisper, final recognition and attack “Goodnight”
   26 bm_george — original kitchen weather bulletin and fictional funeral news report
 The preset labels identify supplied synthetic styles, not actors or cloned
 identifiable people. No human performance is claimed.
@@ -33,7 +33,7 @@ Sample rate: 24000 Hz. Exact line settings and output/model checksums are in
 production.json; source text and voice assignments are in lines.json.
 
 Kokoro v1.0 supersedes the former public-domain LJ Speech/Piper engine in this
-revision. No LJ Speech voice is used in the current forty-two takes.
+revision. No LJ Speech voice is used in the current forty-three takes.
 
 Revision 0.7 adds a finite fictional news report and a broken-word Mara take.
 The latter uses scripted phrase spacing and restrained amplitude modulation;
@@ -67,3 +67,8 @@ graph, raw phrase starts and per-file encoded/decoded measurements.
 Three additional clock-chapter mirror hints bring the current total to42 takes.
 They use the same supplied bf_emma preset and original glass processing, hinting
 at clock hands, Mum and bathwater without giving 03:17 or directing an action.
+
+The bedside lamp reminder brings the total to43 local takes. It uses bf_isabella
+without pitch shifting, with three spaced phrases and a quiet airy post-process
+(-24 LUFS target, -5 dBTP synthesis target). All42 previous audio files and
+production records remain byte-for-byte unchanged.

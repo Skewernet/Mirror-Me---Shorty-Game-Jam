@@ -208,6 +208,11 @@ select { max-width: 200px; padding: 10px 8px; background: #170c0c; border: 1px s
 #hud-controls { position: absolute; bottom: 19px; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; gap: 8px; width: max-content; max-width: 96%; padding: 9px 12px; background: #050303de; border: 1px solid #6e3a3aa1; border-top: 2px solid #a72929; }
 #hud-controls > span { display: flex; align-items: center; gap: 8px; padding: 0 8px; border-right: 1px solid #6e3a3a70; }
 #hud-controls > span:last-child { border-right: 0; }
+#hud-controls > .guided-control { display: none; }
+#hud[data-guided="true"] #hud-controls > .explore-control { display: none; }
+#hud[data-guided="true"] #inventory { display: none; }
+#hud[data-guided="true"] #hud-controls > .guided-control { display: flex; }
+#hud:not([data-guided="true"]) #hud-controls > span:nth-last-child(2) { border-right: 0; }
 #hud-controls kbd { font-size: 17px; min-width: 34px; text-align: center; }
 #hud-controls b { color: #fff; font-size: 12px; font-weight: 400; letter-spacing: .3px; }
 #pocket, #inspect, #radio-inspect, #offering, #credits { position: fixed; inset: 0; z-index: 4; padding: 7vh 8vw; background: #080606fa; overflow: auto; scrollbar-color: #8d2525 #100909; }

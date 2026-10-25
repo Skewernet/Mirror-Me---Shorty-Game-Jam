@@ -5,6 +5,7 @@ import { createFuneralScare } from "./funeral-scare.mjs";
 import { createEvelyn } from "./evelyn.mjs";
 import { alignArchitectureUV } from "./architecture-uv.mjs";
 import { BLACKOUT_ENVIRONMENT, FUNERAL_BLACKOUT, funeralBlackoutAt } from "./crawler-flicker.mjs";
+import { FuneralApproach } from "./funeral-approach.mjs";
 
 export const FUNERAL_RADIO = Object.freeze({ x: 1.04, y: 1.04, z: 11.92 });
 
@@ -28,6 +29,7 @@ export function buildWake(b, m, surfaces, photos) {
   const colliders = [],
     chairs = [],
     lights = [];
+  const approach = new FuneralApproach(bounds, colliders);
   const tag = (material) => {
     material.userData.wake = true;
     return material;
@@ -825,12 +827,13 @@ export function buildWake(b, m, surfaces, photos) {
         if (light.castShadow) light.shadow.needsUpdate = true;
     active = next;
   }
-  function begin(time, _player) {
+  function begin(time, player) {
     if (startedAt !== null) return false;
     prepare();
     startedAt = time;
     sequenceTime = 0;
     wake.visible = true;
+    approach.begin(time, player);
     return true;
   }
   const headPosition = new T.Vector3();
@@ -893,6 +896,7 @@ export function buildWake(b, m, surfaces, photos) {
     applyBlackout(1);
     wake.visible = false;
     funeralScare?.reset();
+    approach.reset();
     for (const mourner of mourners) {
       mourner.yaw = 0;
       poseMourner(mourner, 0, 0);
@@ -923,12 +927,14 @@ export function buildWake(b, m, surfaces, photos) {
     prepare,
     begin,
     beginReport,
+    approachCamera: time => approach.update(time),
     beginBlackout,
     setBlackoutEnabled,
     blackoutLighting,
     drainEvents: () => blackoutEvents.splice(0),
     beginAttack(time, player, options) {
       prepare();
+      approach.release();
       blackoutStopped = true;
       blackoutIndex = -1;
       blackoutEvents.length = 0;
@@ -954,6 +960,7 @@ export function buildWake(b, m, surfaces, photos) {
       roomArea: (bounds.maxX - bounds.minX) * (bounds.maxZ - bounds.minZ),
       emptyChairs: chairs.filter(seat => !seat.occupied).length,
       casket: { visible: wake.visible, prepared: Boolean(casketMother), cleanMother: Boolean(casketMother), position: casket.position.toArray() },
+      approach: approach.snapshot(),
       attack: funeralScare?.snapshot() || { active: false, phase: "idle", visible: false },
     }),
     reset,

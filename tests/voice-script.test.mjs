@@ -100,3 +100,17 @@ test("clock-loop mirror hints keep the bath/clock connection indirect", () => {
   }
   assert.match(hints.map(id => VOICES[id].text).join(" "), /hands.*water.*Mum.*bath/i);
 });
+
+test("the bedside lamp reminder retains Mum's voice and measured whisper phrases", () => {
+  const voice = VOICES.lampReminder, line = lines.lampReminder, clip = clips.lampReminder;
+  assert.equal(voice.speaker, "MUM");
+  assert.equal(voice.text, "Honey... before you go... turn off my lamp...");
+  assert.equal(line.voice, lines.recording.voice);
+  assert.equal(line.speaker_id, lines.goodnight.speaker_id);
+  assert.equal(line.role, "whisper");
+  assert.equal(voice.duration, clip.file_seconds);
+  assert.deepEqual(voice.captionCues.map(cue => cue.at), clip.phrase_starts_seconds);
+  assert.deepEqual(voice.captionCues.map(cue => cue.text), line.segments);
+  assert.doesNotMatch(clip.effects, /asetrate|atempo|f=300,lowpass=f=3400/,
+    "The disembodied line retains natural pitch instead of telephone filtering");
+});

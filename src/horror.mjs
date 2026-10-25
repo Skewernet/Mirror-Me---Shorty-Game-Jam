@@ -5,7 +5,7 @@ import { CREATURE_STEP_METERS } from "./figure-motion.mjs";
 import { BLACKOUT_ENVIRONMENT, CRAWLER_FLICKER, crawlerFlickerAt } from "./crawler-flicker.mjs";
 import { CRAWLER_FAILURE_SECONDS, crawlerThreatTarget, playerInitiatedContact } from "./crawler-threat.mjs";
 
-// One body, six authored sightings. Every encounter starts from a visible,
+// One body, authored sightings. Every encounter starts from a visible,
 // unobstructed sightline and withdraws into a real room or behind its dressing.
 // None initiates a chase or blocks an objective. Only a player deliberately
 // closing into an existing posed crawler can trigger contact failure.
@@ -168,30 +168,58 @@ const SIGHTINGS = [
   {
     id: "inverted-witness",
     stages: [6],
-    mode: "twisted",
-    lightSource: null,
-    cue: "witness-breath",
-    duration: 4.8,
-    hold: 1.05,
-    orient: 0.5,
-    gazeDot: 0.82,
+    escape: true,
+    flickerId: "last-ceiling",
+    mode: "ceiling",
+    lightSource: "bathroom",
+    cue: "crawler-click",
+    duration: .88,
+    hold: .18,
+    orient: .1,
+    gazeDot: .25,
     premonition: null,
     intensity: 1,
-    headHeight: 1.12,
-    minDistance: 1.05,
+    headHeight: -.38,
+    minDistance: .7,
     path: [
-      [1.24, 0, 2.5],
-      [1.24, 0, 2.5],
-      [2.0, 0, 2.8],
+      [1.55, CEILING, 2.6],
+      [1.9, CEILING, 2.6],
+      [2.8, CEILING, 2.6],
     ],
     pulses: [],
     eligible: (s, p) =>
-      s.farewellSaid &&
-      s.lampOff &&
       s.doors?.bathroom &&
-      Math.abs(p.x) < 0.45 &&
-      p.z > 1.5 &&
-      p.z < 3.45,
+      Math.abs(p.x) < .5 && p.z > 1.3 && p.z < 3.2,
+  },
+  {
+    id: "exit-kitchen",
+    stages: [6], escape: true, flickerId: "last-ceiling",
+    mode: "ceiling", lightSource: "kitchen", cue: "crawler-click",
+    duration: .86, hold: .16, orient: .1, gazeDot: .25,
+    premonition: null, intensity: 1, headHeight: -.38, minDistance: .7,
+    path: [[2.23, CEILING, -1.55], [2.23, CEILING, -1.9], [2.23, CEILING, -2.75]],
+    pulses: [],
+    eligible: (s, p) => s.doors?.kitchen && Math.abs(p.z) < .5 && p.x > 1.4 && p.x < 5.1,
+  },
+  {
+    id: "exit-utility",
+    stages: [6], escape: true, flickerId: "last-ceiling",
+    mode: "ceiling", lightSource: "utility", cue: "crawler-click",
+    duration: .82, hold: .15, orient: .1, gazeDot: .25,
+    premonition: null, intensity: 1, headHeight: -.38, minDistance: .65,
+    path: [[-1.55, CEILING, 1.94], [-1.9, CEILING, 1.94], [-2.65, CEILING, 1.94]],
+    pulses: [],
+    eligible: (s, p) => s.doors?.utility && Math.abs(p.x) < .5 && p.z > -.4 && p.z < 1.25,
+  },
+  {
+    id: "exit-sitting-room",
+    stages: [6], escape: true, flickerId: "last-ceiling",
+    mode: "ceiling", lightSource: "entry", cue: "crawler-click",
+    duration: .94, hold: .2, orient: .1, gazeDot: .25,
+    premonition: null, intensity: 1, headHeight: -.38, minDistance: .7,
+    path: [[-1.55, CEILING, 5.26], [-1.95, CEILING, 5.26], [-2.9, CEILING, 5.26]],
+    pulses: [],
+    eligible: (s, p) => s.doors?.lounge && Math.abs(p.x) < .5 && p.z > 2.9 && p.z < 5.2,
   },
 ];
 
@@ -257,6 +285,11 @@ function facingFor(definition, position, player) {
     case "bedroom-fold":
       return 0;
     case "inverted-witness":
+      return Math.PI / 2;
+    case "exit-kitchen":
+      return Math.PI;
+    case "exit-utility":
+    case "exit-sitting-room":
       return -Math.PI / 2;
     case "last-ceiling":
       return Math.PI;
@@ -330,6 +363,7 @@ export class HorrorDirector {
     this.lastTime = -1;
     this.lastStage = 0;
     this.cooldownUntil = 0;
+    this.escapeArmed = false;
     this.previousPlayer = null;
     this.contactsReady = false;
     this.threat = { amount: 0, gaze: 0, distance: null, contact: false, encounter: null };
@@ -391,7 +425,7 @@ export class HorrorDirector {
       lastCueAt: definition.premonition
         ? (this.anticipationStarted[definition.id] ?? -Infinity)
         : -Infinity,
-      nextClickAt: time + .54,
+      nextClickAt: time + (definition.escape ? .07 : .54),
       clickIndex: 0,
       contacted: false,
     };
@@ -406,11 +440,12 @@ export class HorrorDirector {
   }
 
   finish(time) {
+    const escape = this.active?.definition.escape;
     this.figure.body.visible = false;
     this.updateShadows(time);
     this.active = null;
     this.contactsReady = false;
-    this.cooldownUntil = time + 7;
+    this.cooldownUntil = time + (escape ? .04 : 7);
     this.light = { lightMultiplier: 1, lightSource: null };
   }
 
@@ -486,6 +521,11 @@ export class HorrorDirector {
       this.reset();
     this.lastTime = time;
     this.lastStage = story.stage;
+    const leaving = story.stage === 6 && story.inverted && story.truthFound && story.lampOff;
+    // The bedroom remains quiet for the confession and lamp interaction. The
+    // sequence arms only after Mara actually crosses out of that room.
+    if (!leaving) this.escapeArmed = false;
+    else if (player.z >= -.76 || player.x < 4.7 || player.x > 9.2) this.escapeArmed = true;
     const previousPlayer = Number.isFinite(player.previousX) && Number.isFinite(player.previousZ)
       ? { x: player.previousX, z: player.previousZ } : this.previousPlayer;
     this.previousPlayer = { x: player.x, z: player.z };
@@ -502,13 +542,18 @@ export class HorrorDirector {
       this.threat = { amount: 0, gaze: 0, distance: null, contact: false, encounter: null };
       return this.light;
     }
-    if (this.active && !this.active.definition.stages.includes(story.stage))
+    if (this.active && (!this.active.definition.stages.includes(story.stage) ||
+        // Release the pooled body as Mara passes this doorway, so a sprint
+        // can still catch the next glimpse instead of outrunning its window.
+        (this.active.definition.escape && (!leaving || !this.active.definition.eligible(story, player)))))
       this.finish(time);
-    if (!this.active && time >= this.cooldownUntil && !dialogueBusy) {
+    if (!this.active && time >= this.cooldownUntil && (!dialogueBusy || this.escapeArmed)) {
       for (const definition of SIGHTINGS) {
         if (
           this.completed[definition.id] ||
           !definition.stages.includes(story.stage) ||
+          (dialogueBusy && !definition.escape) ||
+          (definition.escape && !this.escapeArmed) ||
           !definition.eligible(story, player)
         )
           continue;
@@ -564,7 +609,7 @@ export class HorrorDirector {
           ? this.attention[definition.id] + dt
           : 0;
         if (
-          this.attention[definition.id] >= 0.08 &&
+          this.attention[definition.id] >= (definition.escape ? .025 : .08) &&
           time - (this.anticipationStarted[definition.id] ?? time) >=
             (definition.premonition ? 0.45 : 0)
         ) {
@@ -604,6 +649,10 @@ export class HorrorDirector {
 
     const active = this.active,
       definition = active.definition;
+    // Leaving the revealed room may overlap the tail of Mara's confession.
+    // These sparse positional clicks never stop or replace that voice. Other
+    // encounters keep their established dialogue-first deferral.
+    const cuesAllowed = !dialogueBusy || definition.escape;
     const age = Math.max(0, time - active.started);
     let progress = Math.min(1, age / definition.duration);
     const withdrawalAt = definition.hold + definition.orient;
@@ -743,16 +792,16 @@ export class HorrorDirector {
     this.updateThreat(dt, crawling && visible, gaze, this.target.distanceTo(camera.position));
     if (crawling) this.captureContacts();
     else this.contactsReady = false;
-    if (crawling && visible && !dialogueBusy && time >= active.nextClickAt) {
+    if (crawling && visible && cuesAllowed && time >= active.nextClickAt) {
       active.nextClickAt = time + [.61, .94, .73, 1.08][active.clickIndex++ % 4];
       this.events.push({ id: "crawler-click", x: this.target.x, y: this.target.y, z: this.target.z,
-        encounter: definition.id, intensity: .45 + this.threat.amount * .55 });
+        encounter: definition.id, intensity: definition.escape && dialogueBusy ? .25 : .45 + this.threat.amount * .55 });
     }
     active.seen += visible ? dt : 0;
     active.away = visible ? 0 : active.away + dt;
     active.progress = progress;
     const emit = (id) => {
-      if (!dialogueBusy && time - active.lastCueAt >= 0.7) {
+      if (cuesAllowed && time - active.lastCueAt >= 0.7) {
         active.lastCueAt = time;
         this.events.push({
           id,
@@ -786,7 +835,7 @@ export class HorrorDirector {
     if (active.travelled >= active.nextStepDistance && mode !== "twisted") {
       // The contact gait and scrape cadence use the same travelled stride.
       active.nextStepDistance = active.travelled + CREATURE_STEP_METERS;
-      if (!dialogueBusy)
+      if (cuesAllowed)
         this.events.push({
           id: "crawl-step",
           x: body.position.x,
@@ -795,9 +844,10 @@ export class HorrorDirector {
           encounter: definition.id,
         });
     }
-    if (!flashes || dialogueBusy) active.electricalIndex = -1;
-    if (flashes && !dialogueBusy) {
-      const flicker = crawlerFlickerAt(definition.id, age);
+    if (!flashes || !cuesAllowed) active.electricalIndex = -1;
+    if (flashes && cuesAllowed) {
+      const flickerId = definition.flickerId || definition.id;
+      const flicker = crawlerFlickerAt(flickerId, age);
       let multiplier = flicker.lightMultiplier;
       const relay = (index, edge = "off") => {
         if (active.relays.has(index)) return;
@@ -811,7 +861,7 @@ export class HorrorDirector {
           encounter: definition.id,
         });
       };
-      const wholeHouse = Object.hasOwn(CRAWLER_FLICKER, definition.id);
+      const wholeHouse = Object.hasOwn(CRAWLER_FLICKER, flickerId);
       if (wholeHouse) {
         if (flicker.index >= 0) relay("off:" + flicker.index);
         else if (active.electricalIndex >= 0) relay("on:" + active.electricalIndex, "on");
@@ -854,6 +904,7 @@ export class HorrorDirector {
       intensity: this.active?.definition.intensity ?? 0,
       anticipated: { ...this.anticipated },
       visible: this.figure.body.visible,
+      escapeArmed: this.escapeArmed,
       mode: this.active?.mode || null,
       progress: this.active?.progress || 0,
       seen: this.active?.seen || 0,
